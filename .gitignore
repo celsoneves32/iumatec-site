@@ -1,10 +1,4 @@
-iumatec-site/
-├─ app/
-│  ├─ layout.tsx
-│  ├─ page.tsx
-│  └─ search/
-│     └─ page.tsx
-├─ .gitignore
-├─ package.json
-├─ tsconfig.json
-└─ next.config.mjs
+node_modules
+.next
+out
+.DS_Store
