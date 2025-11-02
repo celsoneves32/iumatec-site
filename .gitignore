@@ -1,0 +1,10 @@
+iumatec-site/
+├─ app/
+│  ├─ layout.tsx
+│  ├─ page.tsx
+│  └─ search/
+│     └─ page.tsx
+├─ .gitignore
+├─ package.json
+├─ tsconfig.json
+└─ next.config.mjs
