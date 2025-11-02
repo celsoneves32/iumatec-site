@@ -10,11 +10,11 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.ico",
     other: [
-      { rel: "icon", url: "/favicon.svg", type: "image/svg+xml" }, // opcional (SVG moderno)
-      { rel: "apple-touch-icon", url: "/apple-touch-icon.png" }, // para iOS
+      { rel: "icon", url: "/favicon.svg", type: "image/svg+xml" }, // favicon moderno (SVG)
+      { rel: "apple-touch-icon", url: "/apple-touch-icon.png" }, // ícone para iPhone/iPad
     ],
   },
-  manifest: "/site.webmanifest",
+  manifest: "/site.webmanifest", // garante integração PWA
   metadataBase: new URL("https://iumatec.ch"),
   openGraph: {
     title: "IUMATEC – Technik zu unschlagbaren Preisen",
@@ -24,6 +24,13 @@ export const metadata: Metadata = {
     siteName: "IUMATEC Schweiz",
     locale: "de_CH",
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "IUMATEC – Technik zu unschlagbaren Preisen",
+    description:
+      "Technik und Elektronikprodukte mit schneller Lieferung in der ganzen Schweiz.",
+    site: "@iumatec",
   },
 };
 
