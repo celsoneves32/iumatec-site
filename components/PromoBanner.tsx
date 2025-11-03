@@ -4,37 +4,24 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 type Props = {
-  /** Título grande do banner */
   title: string;
-  /** Subtítulo opcional */
   subtitle?: string;
-  /** Link do CTA */
   href?: string;
-  /** Texto do CTA */
   ctaLabel?: string;
-  /** Variante de cor */
   variant?: "red" | "blue" | "dark" | "light";
-  /** ISO date strings: controlam quando o banner aparece */
-  startAt?: string; // ex: "2025-11-01T00:00:00Z"
-  endAt?: string;   // ex: "2025-11-30T23:59:59Z"
-  /** Chave única para o localStorage (necessário para 'lembrar' o fechar) */
-  storageKey?: string; // ex: "promo-blackfriday-2025"
-  /** Ícone opcional (emoji simples) */
-  icon?: string; // ex: "🔥"
+  startAt?: string;
+  endAt?: string;
+  storageKey?: string;
+  icon?: string;
 };
 
-const stylesByVariant: Record<
-  NonNullable<Props["variant"]>,
-  { wrapper: string; cta: string }
-> = {
+const stylesByVariant = {
   red: {
-    wrapper:
-      "bg-gradient-to-r from-red-600 via-red-500 to-brand-blue text-white",
+    wrapper: "bg-gradient-to-r from-red-600 via-red-500 to-brand-blue text-white",
     cta: "bg-white text-black hover:opacity-90",
   },
   blue: {
-    wrapper:
-      "bg-gradient-to-r from-brand-blue to-blue-600 text-white",
+    wrapper: "bg-gradient-to-r from-brand-blue to-blue-600 text-white",
     cta: "bg-white text-black hover:opacity-90",
   },
   dark: {
@@ -45,7 +32,7 @@ const stylesByVariant: Record<
     wrapper: "bg-gray-100 text-gray-900",
     cta: "bg-brand-red text-white hover:bg-brand-blue",
   },
-};
+} as const;
 
 export default function PromoBanner({
   title,
@@ -59,8 +46,8 @@ export default function PromoBanner({
   icon = "🔥",
 }: Props) {
   const [closed, setClosed] = useState(false);
+  const [remaining, setRemaining] = useState<string | null>(null);
 
-  // respeita janela de tempo
   const inWindow = useMemo(() => {
     const now = new Date();
     const afterStart = startAt ? now >= new Date(startAt) : true;
@@ -68,11 +55,36 @@ export default function PromoBanner({
     return afterStart && beforeEnd;
   }, [startAt, endAt]);
 
+  // Carrega estado fechado do localStorage
   useEffect(() => {
     if (typeof window === "undefined") return;
     const isClosed = localStorage.getItem(storageKey) === "1";
     setClosed(isClosed);
   }, [storageKey]);
+
+  // Atualiza o contador
+  useEffect(() => {
+    if (!endAt) return;
+    const interval = setInterval(() => {
+      const now = new Date().getTime();
+      const end = new Date(endAt).getTime();
+      const diff = end - now;
+      if (diff <= 0) {
+        setRemaining(null);
+        clearInterval(interval);
+        return;
+      }
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const mins = Math.floor((diff / (1000 * 60)) % 60);
+      setRemaining(
+        days > 0
+          ? `Endet in ${days} Tage${days > 1 ? "n" : ""} ${hours} Std ${mins} Min`
+          : `Endet in ${hours} Std ${mins} Min`
+      );
+    }, 60_000);
+    return () => clearInterval(interval);
+  }, [endAt]);
 
   if (closed || !inWindow) return null;
 
@@ -85,23 +97,20 @@ export default function PromoBanner({
           <div className="flex items-center gap-3">
             <span className="text-2xl md:text-3xl">{icon}</span>
             <div>
-              <p className="text-base md:text-lg font-semibold leading-snug">
-                {title}
-              </p>
-              {subtitle ? (
-                <p className="text-sm md:text-base opacity-90">{subtitle}</p>
-              ) : null}
+              <p className="text-base md:text-lg font-semibold leading-snug">{title}</p>
+              {subtitle && <p className="text-sm md:text-base opacity-90">{subtitle}</p>}
+              {remaining && <p className="text-xs opacity-90 mt-1">{remaining}</p>}
             </div>
           </div>
 
-          {href ? (
+          {href && (
             <Link
               href={href}
               className={`inline-flex items-center rounded-xl px-4 py-2 text-sm font-semibold ${s.cta}`}
             >
               {ctaLabel} →
             </Link>
-          ) : null}
+          )}
         </div>
       </div>
 
