@@ -15,68 +15,20 @@ type Product = {
   badge?: "Neu" | "Aktion" | "Bestseller";
 };
 
-// 🔹 MOCK: substitui isto depois por dados reais (Shopify)
+// 🔹 MOCK: substitui por dados reais quando ligares ao Shopify
 const ALL_PRODUCTS: Product[] = [
-  {
-    id: "p1",
-    title: " iPhone 15 128GB",
-    price: 799,
-    image: "/products/iphone15.png",
-    category: "Smartphones",
-    badge: "Bestseller",
-  },
-  {
-    id: "p2",
-    title: " Samsung Galaxy S24",
-    price: 749,
-    image: "/products/galaxy-s24.png",
-    category: "Smartphones",
-    badge: "Neu",
-  },
-  {
-    id: "p3",
-    title: " LG OLED C3 55” 4K",
-    price: 1199,
-    image: "/products/lg-oled-c3.png",
-    category: "TV & Audio",
-    badge: "Aktion",
-  },
-  {
-    id: "p4",
-    title: " Sony WH-1000XM5",
-    price: 329,
-    image: "/products/sony-xm5.png",
-    category: "TV & Audio",
-  },
-  {
-    id: "p5",
-    title: " MacBook Air M2 13”",
-    price: 1099,
-    image: "/products/macbook-air-m2.png",
-    category: "Informatik",
-  },
-  {
-    id: "p6",
-    title: " Logitech MX Master 3S",
-    price: 89,
-    image: "/products/mx-master-3s.png",
-    category: "Informatik",
-  },
-  {
-    id: "p7",
-    title: " PlayStation 5 Slim",
-    price: 499,
-    image: "/products/ps5-slim.png",
-    category: "Gaming",
-  },
-  {
-    id: "p8",
-    title: " Nintendo Switch OLED",
-    price: 339,
-    image: "/products/switch-oled.png",
-    category: "Gaming",
-  },
+  { id: "p1", title: "iPhone 15 128GB", price: 799, image: "/products/iphone15.png", category: "Smartphones", badge: "Bestseller" },
+  { id: "p2", title: "Samsung Galaxy S24", price: 749, image: "/products/galaxy-s24.png", category: "Smartphones", badge: "Neu" },
+  { id: "p3", title: "LG OLED C3 55” 4K", price: 1199, image: "/products/lg-oled-c3.png", category: "TV & Audio", badge: "Aktion" },
+  { id: "p4", title: "Sony WH-1000XM5", price: 329, image: "/products/sony-xm5.png", category: "TV & Audio" },
+  { id: "p5", title: "MacBook Air M2 13”", price: 1099, image: "/products/macbook-air-m2.png", category: "Informatik" },
+  { id: "p6", title: "Logitech MX Master 3S", price: 89, image: "/products/mx-master-3s.png", category: "Informatik" },
+  { id: "p7", title: "PlayStation 5 Slim", price: 499, image: "/products/ps5-slim.png", category: "Gaming" },
+  { id: "p8", title: "Nintendo Switch OLED", price: 339, image: "/products/switch-oled.png", category: "Gaming" },
 ];
+
+// ✅ regra: Versand gratis a partir de CHF 49.–
+const hasFreeShipping = (price: number) => price >= 49;
 
 function applyQuery(
   products: Product[],
@@ -84,12 +36,10 @@ function applyQuery(
 ) {
   let list = [...products];
 
-  // filtro por categoria
   if (opts.cat && opts.cat !== "Alle") {
     list = list.filter((p) => p.category === opts.cat);
   }
 
-  // busca por texto
   if (opts.q) {
     const s = opts.q.toLowerCase();
     list = list.filter(
@@ -99,7 +49,6 @@ function applyQuery(
     );
   }
 
-  // ordenação
   switch (opts.sort) {
     case "preis_auf":
       list.sort((a, b) => a.price - b.price);
@@ -111,7 +60,6 @@ function applyQuery(
       list.sort((a, b) => a.title.localeCompare(b.title));
       break;
     default:
-      // “Relevanz” (mantém ordem original / destaque por badge)
       list.sort((a, b) => {
         const score = (p: Product) =>
           (p.badge === "Bestseller" ? 3 : 0) +
@@ -148,16 +96,10 @@ export default function ProduktePage({
       {/* Título + Contador */}
       <div className="flex items-end justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl md:text-3xl font-semibold">
-            Produkte
-          </h1>
+          <h1 className="text-2xl md:text-3xl font-semibold">Produkte</h1>
           <p className="text-gray-500">
             {filtered.length} Ergebnis{filtered.length !== 1 ? "se" : ""}{" "}
-            {q ? (
-              <>
-                für <span className="font-medium">“{q}”</span>
-              </>
-            ) : null}
+            {q ? <>für <span className="font-medium">“{q}”</span></> : null}
           </p>
         </div>
       </div>
@@ -171,9 +113,7 @@ export default function ProduktePage({
             className="rounded-lg border dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm"
           >
             {categories.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
+              <option key={c} value={c}>{c}</option>
             ))}
           </select>
 
@@ -215,16 +155,17 @@ export default function ProduktePage({
             className="group rounded-2xl border dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden hover:shadow-md transition"
           >
             <div className="relative aspect-square bg-white dark:bg-neutral-900">
-              {/* Usa Image se já tiveres os ficheiros no /public/products */}
-              <Image
-                src={p.image}
-                alt={p.title}
-                fill
-                className="object-contain p-4"
-              />
+              <Image src={p.image} alt={p.title} fill className="object-contain p-4" />
+              {/* Badge de produto (Bestseller / Neu / Aktion) */}
               {p.badge && (
                 <span className="absolute left-3 top-3 text-xs font-semibold bg-black/80 text-white rounded-md px-2 py-1">
                   {p.badge}
+                </span>
+              )}
+              {/* ✅ Badge de Versand gratis se preço ≥ 49 */}
+              {hasFreeShipping(p.price) && (
+                <span className="absolute right-3 top-3 text-[10px] font-semibold bg-green-600 text-white rounded-md px-2 py-1">
+                  Gratis&nbsp;Versand
                 </span>
               )}
             </div>
@@ -240,6 +181,12 @@ export default function ProduktePage({
                   Details →
                 </span>
               </div>
+              {/* ✅ Texto auxiliar abaixo do preço (opcional) */}
+              {hasFreeShipping(p.price) && (
+                <div className="mt-1 text-[11px] text-green-700 dark:text-green-400">
+                  Versand ab CHF 49.– kostenlos
+                </div>
+              )}
             </div>
           </a>
         ))}
