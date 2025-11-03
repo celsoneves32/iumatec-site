@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
-import "./globals.css"; // mantém se tiveres estilos globais
+import FooterBarMobile from "@/components/FooterBarMobile"; // ✅ nova barra mobile
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: "IUMATEC – Technik zu unschlagbaren Preisen",
@@ -10,11 +11,11 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.ico",
     other: [
-      { rel: "icon", url: "/favicon.svg", type: "image/svg+xml" }, // favicon moderno (SVG)
-      { rel: "apple-touch-icon", url: "/apple-touch-icon.png" }, // ícone para iPhone/iPad
+      { rel: "icon", url: "/favicon.svg", type: "image/svg+xml" },
+      { rel: "apple-touch-icon", url: "/apple-touch-icon.png" },
     ],
   },
-  manifest: "/site.webmanifest", // garante integração PWA
+  manifest: "/site.webmanifest",
   metadataBase: new URL("https://iumatec.ch"),
   openGraph: {
     title: "IUMATEC – Technik zu unschlagbaren Preisen",
@@ -38,6 +39,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="de">
       <body
+        className="font-sans antialiased bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100"
         style={{
           fontFamily:
             "system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial",
@@ -46,6 +48,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SiteHeader />
         {children}
         <SiteFooter />
+        <FooterBarMobile /> {/* ✅ nova barra fixa mobile */}
       </body>
     </html>
   );
