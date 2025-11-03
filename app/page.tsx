@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import PromoBanner from "@/components/PromoBanner";
 
 export const metadata = {
   title: "IUMATEC – Technik zu unschlagbaren Preisen",
@@ -17,41 +18,28 @@ const CATEGORIES: Card[] = [
 ];
 
 const BESTSELLER = [
-  {
-    id: "p1",
-    title: "iPhone 15 128GB",
-    price: 799,
-    image: "/products/iphone15.png",
-    href: "/produkte/p1",
-    badge: "Bestseller",
-  },
-  {
-    id: "p3",
-    title: "LG OLED C3 55” 4K",
-    price: 1199,
-    image: "/products/lg-oled-c3.png",
-    href: "/produkte/p3",
-    badge: "Aktion",
-  },
-  {
-    id: "p5",
-    title: "MacBook Air M2 13”",
-    price: 1099,
-    image: "/products/macbook-air-m2.png",
-    href: "/produkte/p5",
-  },
-  {
-    id: "p7",
-    title: "PlayStation 5 Slim",
-    price: 499,
-    image: "/products/ps5-slim.png",
-    href: "/produkte/p7",
-  },
+  { id: "p1", title: "iPhone 15 128GB", price: 799, image: "/products/iphone15.png", href: "/produkte/p1", badge: "Bestseller" },
+  { id: "p3", title: "LG OLED C3 55” 4K", price: 1199, image: "/products/lg-oled-c3.png", href: "/produkte/p3", badge: "Aktion" },
+  { id: "p5", title: "MacBook Air M2 13”", price: 1099, image: "/products/macbook-air-m2.png", href: "/produkte/p5" },
+  { id: "p7", title: "PlayStation 5 Slim", price: 499, image: "/products/ps5-slim.png", href: "/produkte/p7" },
 ];
 
 export default function Home() {
   return (
     <main className="max-w-7xl mx-auto px-4 pb-12">
+      {/* PROMO BANNER (topo da página) */}
+      <PromoBanner
+        title="Black Friday: bis zu 30% Rabatt auf ausgewählte Produkte"
+        subtitle="Nur bis Sonntag – solange Vorrat reicht."
+        href="/produkte?sort=relevanz"
+        ctaLabel="Deals ansehen"
+        variant="red"
+        startAt="2025-11-01T00:00:00Z"
+        endAt="2025-11-30T23:59:59Z"
+        storageKey="promo-blackfriday-2025"
+        icon="🛒"
+      />
+
       {/* HERO */}
       <section className="relative overflow-hidden rounded-3xl mt-6 bg-gradient-to-br from-red-600 via-red-500 to-brand-blue text-white">
         <div className="absolute inset-0 opacity-20 bg-[radial-gradient(1000px_500px_at_10%_-10%,#fff,transparent)]" />
@@ -81,7 +69,6 @@ export default function Home() {
           </div>
 
           <div className="relative h-56 md:h-72 lg:h-80">
-            {/* mock hero visual (usar qualquer imagem tua aqui se quiseres) */}
             <Image
               src="/products/iphone15.png"
               alt="Hero Produkt"
@@ -158,7 +145,7 @@ export default function Home() {
         <div className="rounded-xl border dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4 text-sm">
           🔒 Sicheres Bezahlen: Kreditkarte, TWINT, PostFinance
         </div>
-        <div className="rounded-xl border dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4 text-sm">
+        <div className="rounded-xl border dark:border- neutral-800 bg-white dark:bg-neutral-900 p-4 text-sm">
           🇨🇭 Schweizer Support – Antwort innert 24h
         </div>
       </section>
