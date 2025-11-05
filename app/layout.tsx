@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
-import FooterBarMobile from "@/components/FooterBarMobile"; // ✅ nova barra mobile
+import FooterBarMobile from "@/components/FooterBarMobile";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -40,15 +40,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="de">
       <body
         className="font-sans antialiased bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100"
-        style={{
-          fontFamily:
-            "system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial",
-        }}
+        style={{ fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial" }}
       >
         <SiteHeader />
         {children}
         <SiteFooter />
-        <FooterBarMobile /> {/* ✅ nova barra fixa mobile */}
+        <FooterBarMobile />
       </body>
     </html>
   );
