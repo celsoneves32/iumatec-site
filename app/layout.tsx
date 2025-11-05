@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import SiteHeader from "@/components/SiteHeader";
-import SiteFooter from "@/components/SiteFooter";
-import FooterBarMobile from "@/components/FooterBarMobile";
+import SiteHeader from "../components/SiteHeader";
+import SiteFooter from "../components/SiteFooter";
+import FooterBarMobile from "../components/FooterBarMobile";
 import "./globals.css";
 
 export const metadata: Metadata = {
