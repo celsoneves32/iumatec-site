@@ -27,7 +27,7 @@ const BESTSELLER = [
 export default function Home() {
   return (
     <main className="max-w-7xl mx-auto px-4 pb-12">
-      {/* PROMO BANNER (topo da página) */}
+      {/* PROMO BANNER */}
       <PromoBanner
         title="Black Friday: bis zu 30% Rabatt auf ausgewählte Produkte"
         subtitle="Nur bis Sonntag – solange Vorrat reicht."
@@ -145,7 +145,7 @@ export default function Home() {
         <div className="rounded-xl border dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4 text-sm">
           🔒 Sicheres Bezahlen: Kreditkarte, TWINT, PostFinance
         </div>
-        <div className="rounded-xl border dark:border- neutral-800 bg-white dark:bg-neutral-900 p-4 text-sm">
+        <div className="rounded-xl border dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4 text-sm">
           🇨🇭 Schweizer Support – Antwort innert 24h
         </div>
       </section>
