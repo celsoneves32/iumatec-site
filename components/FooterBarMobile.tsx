@@ -36,7 +36,6 @@ function IconUp(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
-// --- Componente principal ---
 export default function FooterBarMobile() {
   const [visible, setVisible] = useState(false);
 
