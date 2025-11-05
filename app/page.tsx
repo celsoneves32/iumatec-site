@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import PromoBanner from "@/components/PromoBanner";
+import PromoBanner from "../components/PromoBanner"; // ✅ caminho relativo
 
 export const metadata = {
   title: "IUMATEC – Technik zu unschlagbaren Preisen",
