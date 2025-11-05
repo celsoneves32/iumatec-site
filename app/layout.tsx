@@ -12,8 +12,8 @@ export const metadata: Metadata = {
     icon: "/favicon.ico",
     other: [
       { rel: "icon", url: "/favicon.svg", type: "image/svg+xml" },
-      { rel: "apple-touch-icon", url: "/apple-touch-icon.png" },
-    ],
+      { rel: "apple-touch-icon", url: "/apple-touch-icon.png" }
+    ]
   },
   manifest: "/site.webmanifest",
   metadataBase: new URL("https://iumatec.ch"),
@@ -24,15 +24,15 @@ export const metadata: Metadata = {
     url: "https://iumatec.ch",
     siteName: "IUMATEC Schweiz",
     locale: "de_CH",
-    type: "website",
+    type: "website"
   },
   twitter: {
     card: "summary_large_image",
     title: "IUMATEC – Technik zu unschlagbaren Preisen",
     description:
       "Technik und Elektronikprodukte mit schneller Lieferung in der ganzen Schweiz.",
-    site: "@iumatec",
-  },
+    site: "@iumatec"
+  }
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
