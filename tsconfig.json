@@ -16,7 +16,8 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./*"],
-      "@/components/*": ["components/*"]
+      "@/components/*": ["components/*"],
+      "lucide-react": ["stubs/lucide-react.tsx"]   // ✅ fallback para evitar erro de build
     },
 
     "forceConsistentCasingInFileNames": true,
