@@ -1,3 +1,4 @@
+// app/layout.tsx
 import type { Metadata } from "next";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
@@ -12,8 +13,8 @@ export const metadata: Metadata = {
     icon: "/favicon.ico",
     other: [
       { rel: "icon", url: "/favicon.svg", type: "image/svg+xml" },
-      { rel: "apple-touch-icon", url: "/apple-touch-icon.png" }
-    ]
+      { rel: "apple-touch-icon", url: "/apple-touch-icon.png" },
+    ],
   },
   manifest: "/site.webmanifest",
   metadataBase: new URL("https://iumatec.ch"),
@@ -24,23 +25,30 @@ export const metadata: Metadata = {
     url: "https://iumatec.ch",
     siteName: "IUMATEC Schweiz",
     locale: "de_CH",
-    type: "website"
+    type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "IUMATEC – Technik zu unschlagbaren Preisen",
     description:
       "Technik und Elektronikprodukte mit schneller Lieferung in der ganzen Schweiz.",
-    site: "@iumatec"
-  }
+    site: "@iumatec",
+  },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="de">
       <body
         className="font-sans antialiased bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100"
-        style={{ fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial" }}
+        style={{
+          fontFamily:
+            "system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial",
+        }}
       >
         <SiteHeader />
         {children}
