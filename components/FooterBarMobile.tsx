@@ -2,7 +2,7 @@
 "use client";
 import { useEffect, useState } from "react";
 
-// --- Ícones SVG inline (sem dependências externas) ---
+// Ícones SVG inline (sem lucide-react)
 function IconWhatsApp(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" {...props}>
@@ -18,7 +18,6 @@ function IconWhatsApp(props: React.SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
-
 function IconMail(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" {...props}>
@@ -41,7 +40,6 @@ function IconMail(props: React.SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
-
 function IconPhone(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" {...props}>
@@ -55,7 +53,6 @@ function IconPhone(props: React.SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
-
 function IconUp(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" {...props}>
@@ -70,10 +67,8 @@ function IconUp(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
-// --- Componente principal ---
 export default function FooterBarMobile() {
   const [visible, setVisible] = useState(false);
-
   useEffect(() => {
     const onScroll = () => setVisible(window.scrollY > 200);
     window.addEventListener("scroll", onScroll);
