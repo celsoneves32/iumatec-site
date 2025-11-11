@@ -9,6 +9,9 @@
   Entwickelt mit <strong>Next.js</strong> und <strong>TypeScript</strong>, mit Fokus auf Qualität, Performance und schnelle Lieferung.
 </p>
 
+deploy refresh
+
+
 ---
 
 ## 🚀 Verwendete Technologien
