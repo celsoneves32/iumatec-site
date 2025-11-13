@@ -1,132 +1,90 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 type Props = {
   title: string;
   subtitle?: string;
   href?: string;
   ctaLabel?: string;
-  variant?: "red" | "blue" | "dark" | "light";
+  variant?: "red" | "blue" | "dark";
+  icon?: string;
   startAt?: string;
   endAt?: string;
-  storageKey?: string;
-  icon?: string;
+  storageKey: string; // permite esconder a promoção
 };
-
-const stylesByVariant = {
-  red: {
-    wrapper: "bg-gradient-to-r from-red-600 via-red-500 to-brand-blue text-white",
-    cta: "bg-white text-black hover:opacity-90",
-  },
-  blue: {
-    wrapper: "bg-gradient-to-r from-brand-blue to-blue-600 text-white",
-    cta: "bg-white text-black hover:opacity-90",
-  },
-  dark: {
-    wrapper: "bg-neutral-900 text-white",
-    cta: "bg-white text-black hover:opacity-90",
-  },
-  light: {
-    wrapper: "bg-gray-100 text-gray-900",
-    cta: "bg-brand-red text-white hover:bg-brand-blue",
-  },
-} as const;
 
 export default function PromoBanner({
   title,
   subtitle,
-  href,
-  ctaLabel = "Jetzt sichern",
+  href = "#",
+  ctaLabel = "Jetzt ansehen",
   variant = "red",
+  icon = "🔥",
   startAt,
   endAt,
-  storageKey = "promo-banner",
-  icon = "🔥",
+  storageKey
 }: Props) {
-  const [closed, setClosed] = useState(false);
-  const [remaining, setRemaining] = useState<string | null>(null);
+  const [visible, setVisible] = useState(false);
 
-  const inWindow = useMemo(() => {
+  useEffect(() => {
+    // Se o utilizador fechou antes, não mostrar
+    if (typeof window !== "undefined") {
+      const hidden = localStorage.getItem(storageKey);
+      if (hidden === "true") return;
+    }
+
+    // Datas de ativação
     const now = new Date();
-    const afterStart = startAt ? now >= new Date(startAt) : true;
-    const beforeEnd = endAt ? now <= new Date(endAt) : true;
-    return afterStart && beforeEnd;
-  }, [startAt, endAt]);
+    if (startAt) {
+      const start = new Date(startAt);
+      if (now < start) return;
+    }
+    if (endAt) {
+      const end = new Date(endAt);
+      if (now > end) return;
+    }
 
-  // Carrega estado fechado do localStorage
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const isClosed = localStorage.getItem(storageKey) === "1";
-    setClosed(isClosed);
-  }, [storageKey]);
+    setVisible(true);
+  }, [storageKey, startAt, endAt]);
 
-  // Atualiza o contador
-  useEffect(() => {
-    if (!endAt) return;
-    const interval = setInterval(() => {
-      const now = new Date().getTime();
-      const end = new Date(endAt).getTime();
-      const diff = end - now;
-      if (diff <= 0) {
-        setRemaining(null);
-        clearInterval(interval);
-        return;
-      }
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-      const mins = Math.floor((diff / (1000 * 60)) % 60);
-      setRemaining(
-        days > 0
-          ? `Endet in ${days} Tage${days > 1 ? "n" : ""} ${hours} Std ${mins} Min`
-          : `Endet in ${hours} Std ${mins} Min`
-      );
-    }, 60_000);
-    return () => clearInterval(interval);
-  }, [endAt]);
+  if (!visible) return null;
 
-  if (closed || !inWindow) return null;
-
-  const s = stylesByVariant[variant];
+  const color =
+    variant === "red"
+      ? "from-red-600 to-red-500"
+      : variant === "blue"
+      ? "from-blue-600 to-blue-500"
+      : "from-neutral-800 to-neutral-700";
 
   return (
-    <div className={`relative overflow-hidden ${s.wrapper}`}>
-      <div className="max-w-7xl mx-auto px-4 py-4 md:py-5">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl md:text-3xl">{icon}</span>
-            <div>
-              <p className="text-base md:text-lg font-semibold leading-snug">{title}</p>
-              {subtitle && <p className="text-sm md:text-base opacity-90">{subtitle}</p>}
-              {remaining && <p className="text-xs opacity-90 mt-1">{remaining}</p>}
-            </div>
-          </div>
-
-          {href && (
-            <Link
-              href={href}
-              className={`inline-flex items-center rounded-xl px-4 py-2 text-sm font-semibold ${s.cta}`}
-            >
-              {ctaLabel} →
-            </Link>
-          )}
-        </div>
-      </div>
-
-      {/* botão fechar */}
+    <div className={`rounded-xl p-4 mb-4 bg-gradient-to-r ${color} text-white relative overflow-hidden`}>
       <button
-        aria-label="Banner schliessen"
-        className="absolute right-3 top-3 h-8 w-8 grid place-items-center rounded-full bg-white/20 hover:bg-white/30 text-white"
         onClick={() => {
-          setClosed(true);
-          try {
-            localStorage.setItem(storageKey, "1");
-          } catch {}
+          localStorage.setItem(storageKey, "true");
+          setVisible(false);
         }}
+        className="absolute right-3 top-3 text-white/80 hover:text-white"
       >
         ✕
       </button>
+
+      <div className="flex flex-col md:flex-row items-start md:items-center gap-3">
+        <div className="text-3xl">{icon}</div>
+
+        <div className="flex-1">
+          <h3 className="font-bold text-lg">{title}</h3>
+          {subtitle && <p className="text-white/85 text-sm">{subtitle}</p>}
+        </div>
+
+        <Link
+          href={href}
+          className="rounded-lg bg-white text-black px-4 py-2 font-semibold hover:bg-white/90"
+        >
+          {ctaLabel}
+        </Link>
+      </div>
     </div>
   );
 }
