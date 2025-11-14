@@ -1,71 +1,85 @@
 "use client";
 
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 
 export default function NewsletterForm() {
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<null | { ok: boolean; msg: string }>(null);
-  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">(
+    "idle"
+  );
+  const [message, setMessage] = useState("");
 
-  async function onSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    setStatus(null);
+    if (!email) return;
 
-    const emailTrim = email.trim();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrim)) {
-      setStatus({ ok: false, msg: "Bitte gültige E-Mail eingeben." });
-      return;
-    }
+    setStatus("loading");
+    setMessage("");
 
-    setLoading(true);
     try {
       const res = await fetch("/api/newsletter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: emailTrim }),
+        body: JSON.stringify({ email }),
       });
-      const data = await res.json().catch(() => ({}));
 
-      if (res.ok && data?.ok) {
-        setStatus({ ok: true, msg: "Danke! Du bist im Newsletter." });
-        setEmail("");
-      } else {
-        setStatus({ ok: false, msg: data?.error || "Etwas ist schiefgelaufen." });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Etwas ist schiefgelaufen.");
       }
-    } catch {
-      setStatus({ ok: false, msg: "Netzwerkfehler – bitte erneut versuchen." });
-    } finally {
-      setLoading(false);
+
+      setStatus("success");
+      setMessage("Danke! Du bist im Newsletter.");
+      setEmail("");
+    } catch (err: any) {
+      setStatus("error");
+      setMessage(
+        err?.message || "Etwas ist schiefgelaufen. Bitte versuche es erneut."
+      );
     }
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex gap-2">
-      <input
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="Deine E-Mail"
-        className="flex-1 rounded-lg border px-3 py-3 dark:bg-white/5 dark:border-white/10"
-        aria-label="Newsletter E-Mail"
-        required
-      />
-      <button
-        type="submit"
-        disabled={loading}
-        className="rounded-lg bg-red-600 px-5 py-3 font-semibold text-white disabled:opacity-60"
-      >
-        {loading ? "Senden…" : "Abonnieren"}
-      </button>
-
-      {status && (
-        <span
-          className={`ml-2 self-center text-sm ${
-            status.ok ? "text-green-700" : "text-red-600"
-          }`}
-        >
-          {status.msg}
+    <form onSubmit={handleSubmit} className="space-y-3 max-w-sm">
+      <label className="block text-sm font-medium">
+        Newsletter
+        <span className="block text-xs text-gray-500 dark:text-gray-400">
+          Aktionen, neue Produkte & exklusive Deals per E-Mail.
         </span>
+      </label>
+
+      <div className="flex gap-2">
+        <input
+          type="email"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="deine@email.ch"
+          className="flex-1 rounded-xl border px-3 py-2 text-sm outline-none 
+                     focus:ring-2 focus:ring-red-600 
+                     dark:bg-neutral-900 dark:border-neutral-700"
+        />
+        <button
+          type="submit"
+          disabled={status === "loading"}
+          className="rounded-xl bg-red-600 text-white px-4 py-2 text-sm font-semibold 
+                     disabled:opacity-60 disabled:cursor-not-allowed hover:bg-red-700"
+        >
+          {status === "loading" ? "Senden…" : "Anmelden"}
+        </button>
+      </div>
+
+      {message && (
+        <p
+          className={
+            status === "success"
+              ? "text-xs text-green-600"
+              : "text-xs text-red-600"
+          }
+        >
+          {message}
+        </p>
       )}
     </form>
   );
