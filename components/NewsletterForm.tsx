@@ -25,16 +25,16 @@ export default function NewsletterForm() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || "Etwas ist schiefgelaufen.");
+        throw new Error(data.error || "Es ist ein Fehler aufgetreten.");
       }
 
       setStatus("success");
-      setMessage("Danke! Du bist im Newsletter.");
+      setMessage("Danke! Du bist jetzt im Newsletter.");
       setEmail("");
     } catch (err: any) {
       setStatus("error");
       setMessage(
-        err?.message || "Etwas ist schiefgelaufen. Bitte versuche es erneut."
+        err?.message || "Es ist ein Fehler aufgetreten. Bitte versuche es erneut."
       );
     }
   }
@@ -47,22 +47,22 @@ export default function NewsletterForm() {
         p-4 sm:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)]
       "
     >
-      {/* Cabeçalho estilo MediaMarkt */}
+      {/* Header */}
       <div className="flex items-center gap-3 mb-3">
         <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-red-600 text-white text-sm font-bold">
           ✉️
         </span>
         <div>
           <h3 className="text-xs font-semibold tracking-[0.12em] uppercase text-neutral-900 dark:text-neutral-50">
-            IUMATEC Newsletter
+            Newsletter abonnieren
           </h3>
           <p className="text-xs text-neutral-500 dark:text-neutral-400">
-            Aktionen, neue Produkte & exklusive Deals direkt in dein Postfach.
+            Exklusive Aktionen, Neuheiten & Top-Deals direkt per E-Mail.
           </p>
         </div>
       </div>
 
-      {/* Formulário */}
+      {/* Form */}
       <form
         onSubmit={handleSubmit}
         className="flex flex-col gap-2 sm:flex-row sm:items-center"
@@ -72,7 +72,7 @@ export default function NewsletterForm() {
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="deine@email.ch"
+          placeholder="E-Mail-Adresse"
           className="
             flex-1 rounded-lg border border-neutral-300 
             px-3 py-2 text-sm outline-none 
@@ -92,11 +92,11 @@ export default function NewsletterForm() {
             disabled:cursor-not-allowed
           "
         >
-          {status === "loading" ? "Senden…" : "Anmelden"}
+          {status === "loading" ? "Senden…" : "Abonnieren"}
         </button>
       </form>
 
-      {/* Mensagens de feedback */}
+      {/* Messages */}
       {message && (
         <p
           className={
