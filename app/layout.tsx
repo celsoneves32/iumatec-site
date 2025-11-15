@@ -1,10 +1,12 @@
 // app/layout.tsx
 import type { Metadata } from "next";
+import Script from "next/script";
+import type { ReactNode } from "react";
+
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 import FooterBarMobile from "../components/FooterBarMobile";
 import "./globals.css";
-import Script from "next/script"; // <-- Google Analytics (IMPORTANTE)
 
 export const metadata: Metadata = {
   title: "IUMATEC – Technik zu unschlagbaren Preisen",
@@ -40,4 +42,36 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: {
-  children: React.Re
+  children: ReactNode;
+}) {
+  return (
+    <html lang="de">
+      <body
+        className="font-sans antialiased bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100"
+        style={{
+          fontFamily:
+            "system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial",
+        }}
+      >
+        <SiteHeader />
+        {children}
+        <SiteFooter />
+        <FooterBarMobile />
+
+        {/* Google Analytics – GA4 */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-7G0853WGDN"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-7G0853WGDN');
+          `}
+        </Script>
+      </body>
+    </html>
+  );
+}
