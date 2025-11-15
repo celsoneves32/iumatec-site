@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 import FooterBarMobile from "../components/FooterBarMobile";
-import CookieConsent from "../components/CookieConsent"; // ✅ novo
+import CookieBanner from "../components/CookieBanner"; // ✅ novo banner
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -58,9 +58,11 @@ export default function RootLayout({
         {children}
         <SiteFooter />
         <FooterBarMobile />
-        <CookieConsent /> {/* ✅ banner de cookies */}
 
-        {/* Google Analytics – GA4 + Consent Mode v2 */}
+        {/* Cookie Banner */}
+        <CookieBanner />
+
+        {/* Google Analytics – GA4 */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-7G0853WGDN"
           strategy="afterInteractive"
@@ -69,16 +71,7 @@ export default function RootLayout({
           {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
-            window.gtag = window.gtag || gtag;
-
             gtag('js', new Date());
-
-            // Consent Mode v2 - default: tudo negado até o utilizador decidir
-            gtag('consent', 'default', {
-              ad_storage: 'denied',
-              analytics_storage: 'denied'
-            });
-
             gtag('config', 'G-7G0853WGDN');
           `}
         </Script>
