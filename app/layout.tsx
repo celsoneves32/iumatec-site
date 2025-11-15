@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 import FooterBarMobile from "../components/FooterBarMobile";
-import CookieBanner from "../components/CookieBanner"; // ✅ novo banner
+import CookieBanner from "../components/CookieBanner";
 import "./globals.css";
 
 export const metadata: Metadata = {
