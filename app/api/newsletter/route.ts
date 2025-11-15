@@ -15,7 +15,7 @@ export async function POST(req: Request) {
     const resend = new Resend(process.env.RESEND_API_KEY);
 
     await resend.emails.send({
-      from: "IUMATEC <noreply@resend.dev>", // depois podemos trocar para @iumatec.ch
+      from: "IUMATEC <noreply@iumatec.ch>",
       to: process.env.NEWSLETTER_NOTIFY_TO!,
       subject: "Neue Newsletter-Anmeldung",
       text: `Neuer Abonnent: ${email}`,
