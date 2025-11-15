@@ -1,5 +1,4 @@
 import Link from "next/link";
-import NewsletterForm from "@/components/NewsletterForm";
 
 export default function SiteFooter() {
   return (
@@ -11,124 +10,107 @@ export default function SiteFooter() {
         {/* Logo & Kontakt */}
         <div>
           <Link href="/" aria-label="Startseite IUMATEC">
-            <img src="/logo-iumatec.svg" alt="IUMATEC" className="h-7 mb-3" />
+            <img
+              src="/logo-iumatec.svg"
+              alt="IUMATEC"
+              className="h-7 mb-3"
+            />
           </Link>
           <p className="text-gray-600 dark:text-gray-300">
-            Technik zum besten Preis – schnelle Lieferung in der Schweiz.
+            Technik zum besten Preis – schnelle Lieferung in der ganzen Schweiz.
           </p>
+
           <div className="mt-4 space-y-1 text-gray-500 dark:text-gray-400">
             <div>📍 Zürich, Schweiz 🇨🇭</div>
             <div>
               ✉️{" "}
-              <a href="mailto:support@iumatec.ch" className="hover:text-red-600">
+              <a
+                href="mailto:info@iumatec.ch"
+                className="hover:text-brand-red underline-offset-2 hover:underline"
+              >
+                info@iumatec.ch
+              </a>
+            </div>
+            <div>
+              🛟{" "}
+              <a
+                href="mailto:support@iumatec.ch"
+                className="hover:text-brand-red underline-offset-2 hover:underline"
+              >
                 support@iumatec.ch
               </a>
             </div>
           </div>
         </div>
 
-        {/* Shop */}
+        {/* Navigation */}
         <div>
-          <h4 className="font-bold mb-2 text-gray-900 dark:text-gray-100">
-            Shop
-          </h4>
-          <ul className="space-y-1 text-gray-700 dark:text-gray-300">
+          <h2 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">
+            Informationen
+          </h2>
+          <ul className="space-y-2 text-gray-600 dark:text-gray-400">
             <li>
-              <Link href="/search?q=smartphones" className="hover:text-red-600">
-                Smartphones
+              <Link href="/ueber-uns" className="hover:text-brand-red">
+                Über uns
               </Link>
             </li>
             <li>
-              <Link href="/search?q=tv" className="hover:text-red-600">
-                TV & Audio
+              <Link href="/produkte" className="hover:text-brand-red">
+                Produkte
               </Link>
             </li>
             <li>
-              <Link href="/search?q=computer" className="hover:text-red-600">
-                Informatik
-              </Link>
-            </li>
-            <li>
-              <Link href="/search?q=gaming" className="hover:text-red-600">
-                Gaming
+              <Link href="/kontakt" className="hover:text-brand-red">
+                Kontakt
               </Link>
             </li>
           </ul>
         </div>
 
-        {/* Information */}
+        {/* Rechtliches */}
         <div>
-          <h4 className="font-bold mb-2 text-gray-900 dark:text-gray-100">
-            Information
-          </h4>
-          <ul className="space-y-1 text-gray-700 dark:text-gray-300">
+          <h2 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">
+            Rechtliches
+          </h2>
+          <ul className="space-y-2 text-gray-600 dark:text-gray-400">
             <li>
-              <Link href="/kundenservice" className="hover:text-red-600">
-                Kundenservice
-              </Link>
-            </li>
-            <li>
-              <Link href="/ueber-uns" className="hover:text-red-600">
-                Über uns
-              </Link>
-            </li>
-            <li>
-              <Link href="/versand" className="hover:text-red-600">
-                Versand & Lieferung
-              </Link>
-            </li>
-            <li>
-              <Link href="/zahlungsarten" className="hover:text-red-600">
-                Zahlungsarten
-              </Link>
-            </li>
-            <li>
-              <Link href="/agb" className="hover:text-red-600">
+              <Link href="/agb" className="hover:text-brand-red">
                 AGB
               </Link>
             </li>
             <li>
-              <Link href="/datenschutz" className="hover:text-red-600">
-                Datenschutzerklärung
+              <Link href="/datenschutz" className="hover:text-brand-red">
+                Datenschutz
               </Link>
             </li>
             <li>
-              <Link href="/impressum" className="hover:text-red-600">
+              <Link href="/impressum" className="hover:text-brand-red">
                 Impressum
               </Link>
             </li>
           </ul>
         </div>
 
-        {/* Newsletter */}
+        {/* USP / Trust */}
         <div>
-          <h4 className="font-bold mb-2 text-gray-900 dark:text-gray-100">
-            Newsletter
-          </h4>
-          <NewsletterForm />
-          <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-            Mit der Anmeldung stimmen Sie unserer{" "}
-            <Link href="/datenschutz" className="underline">
-              Datenschutzerklärung
-            </Link>{" "}
-            zu.
-          </p>
-
-          <div className="mt-4 text-gray-500 dark:text-gray-400">
-            Zahlungsarten:
-          </div>
-          <div className="mt-2 flex items-center gap-2 opacity-80">
-            <img src="/payments/twint.svg" alt="TWINT" className="h-6" />
-            <img src="/payments/visa.svg" alt="VISA" className="h-6" />
-            <img src="/payments/mastercard.svg" alt="Mastercard" className="h-6" />
-            <img src="/payments/applepay.svg" alt="Apple Pay" className="h-6" />
-            <img src="/payments/googlepay.svg" alt="Google Pay" className="h-6" />
-          </div>
+          <h2 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">
+            Warum IUMATEC?
+          </h2>
+          <ul className="space-y-2 text-gray-600 dark:text-gray-400">
+            <li>✅ Schnelle Lieferung in der ganzen Schweiz</li>
+            <li>✅ Schweizer Support innerhalb von 24h</li>
+            <li>✅ Sichere Bezahlung (Kreditkarte, TWINT, PostFinance)</li>
+          </ul>
         </div>
       </div>
 
-      <div className="border-t py-4 text-center text-xs text-gray-500 dark:text-gray-400 dark:border-neutral-800">
-        © {new Date().getFullYear()} IUMATEC. Alle Rechte vorbehalten.
+      <div className="border-t dark:border-neutral-800">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-500 dark:text-gray-400">
+          <span>
+            © {new Date().getFullYear()} IUMATEC. Alle Rechte vorbehalten.
+          </span>
+          <span>Made mit ❤️ in der Schweiz.</span>
+        </div>
       </div>
     </footer>
   );
