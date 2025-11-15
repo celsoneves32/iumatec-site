@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import PromoBanner from "@/components/PromoBanner"; // ✅ caminho absoluto correto
+import NewsletterSignup from "@/components/NewsletterSignup"; // ✅ novo import
 
 export const metadata = {
   title: "IUMATEC – Technik zu unschlagbaren Preisen",
@@ -11,17 +12,63 @@ export const metadata = {
 type Card = { href: string; title: string; subtitle: string; emoji: string };
 
 const CATEGORIES: Card[] = [
-  { href: "/produkte?cat=Smartphones", title: "Smartphones", subtitle: "Apple • Samsung u.v.m.", emoji: "📱" },
-  { href: "/produkte?cat=TV & Audio", title: "TV & Audio", subtitle: "OLED • Sound • Kino", emoji: "📺" },
-  { href: "/produkte?cat=Informatik", title: "Informatik", subtitle: "Laptops • Zubehör", emoji: "💻" },
-  { href: "/produkte?cat=Gaming", title: "Gaming", subtitle: "Konsolen • Zubehör", emoji: "🎮" },
+  {
+    href: "/produkte?cat=Smartphones",
+    title: "Smartphones",
+    subtitle: "Apple • Samsung u.v.m.",
+    emoji: "📱",
+  },
+  {
+    href: "/produkte?cat=TV & Audio",
+    title: "TV & Audio",
+    subtitle: "OLED • Sound • Kino",
+    emoji: "📺",
+  },
+  {
+    href: "/produkte?cat=Informatik",
+    title: "Informatik",
+    subtitle: "Laptops • Zubehör",
+    emoji: "💻",
+  },
+  {
+    href: "/produkte?cat=Gaming",
+    title: "Gaming",
+    subtitle: "Konsolen • Zubehör",
+    emoji: "🎮",
+  },
 ];
 
 const BESTSELLER = [
-  { id: "p1", title: "iPhone 15 128GB", price: 799, image: "/products/iphone15.png", href: "/produkte/p1", badge: "Bestseller" },
-  { id: "p3", title: "LG OLED C3 55” 4K", price: 1199, image: "/products/lg-oled-c3.png", href: "/produkte/p3", badge: "Aktion" },
-  { id: "p5", title: "MacBook Air M2 13”", price: 1099, image: "/products/macbook-air-m2.png", href: "/produkte/p5" },
-  { id: "p7", title: "PlayStation 5 Slim", price: 499, image: "/products/ps5-slim.png", href: "/produkte/p7" },
+  {
+    id: "p1",
+    title: "iPhone 15 128GB",
+    price: 799,
+    image: "/products/iphone15.png",
+    href: "/produkte/p1",
+    badge: "Bestseller",
+  },
+  {
+    id: "p3",
+    title: "LG OLED C3 55” 4K",
+    price: 1199,
+    image: "/products/lg-oled-c3.png",
+    href: "/produkte/p3",
+    badge: "Aktion",
+  },
+  {
+    id: "p5",
+    title: "MacBook Air M2 13”",
+    price: 1099,
+    image: "/products/macbook-air-m2.png",
+    href: "/produkte/p5",
+  },
+  {
+    id: "p7",
+    title: "PlayStation 5 Slim",
+    price: 499,
+    image: "/products/ps5-slim.png",
+    href: "/produkte/p7",
+  },
 ];
 
 export default function Home() {
@@ -49,7 +96,8 @@ export default function Home() {
               Technik zu unschlagbaren Preisen
             </h1>
             <p className="mt-3 md:mt-4 text-white/85 text-sm md:text-base">
-              Smartphones, TV & Audio, Informatik, Gaming – schnelle Lieferung in der ganzen Schweiz.
+              Smartphones, TV & Audio, Informatik, Gaming – schnelle Lieferung
+              in der ganzen Schweiz.
             </p>
 
             <div className="mt-5 flex flex-wrap gap-3">
@@ -84,7 +132,10 @@ export default function Home() {
       <section className="mt-10">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl md:text-2xl font-semibold">Kategorien</h2>
-          <Link href="/produkte" className="text-brand-red hover:underline font-medium">
+          <Link
+            href="/produkte"
+            className="text-brand-red hover:underline font-medium"
+          >
             Alle Produkte →
           </Link>
         </div>
@@ -118,7 +169,12 @@ export default function Home() {
               className="group rounded-2xl border dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden hover:shadow-md transition"
             >
               <div className="relative aspect-square bg-white dark:bg-neutral-900">
-                <Image src={p.image} alt={p.title} fill className="object-contain p-4" />
+                <Image
+                  src={p.image}
+                  alt={p.title}
+                  fill
+                  className="object-contain p-4"
+                />
                 {p.badge && (
                   <span className="absolute left-3 top-3 text-xs font-semibold bg-black/80 text-white rounded-md px-2 py-1">
                     {p.badge}
@@ -126,15 +182,26 @@ export default function Home() {
                 )}
               </div>
               <div className="p-3">
-                <h3 className="text-sm font-medium line-clamp-2 min-h-[2.75rem]">{p.title}</h3>
+                <h3 className="text-sm font-medium line-clamp-2 min-h-[2.75rem]">
+                  {p.title}
+                </h3>
                 <div className="mt-2 flex items-center justify-between">
-                  <span className="text-base font-semibold">CHF {p.price.toFixed(2)}</span>
-                  <span className="text-xs text-gray-500 group-hover:text-brand-red transition">Details →</span>
+                  <span className="text-base font-semibold">
+                    CHF {p.price.toFixed(2)}
+                  </span>
+                  <span className="text-xs text-gray-500 group-hover:text-brand-red transition">
+                    Details →
+                  </span>
                 </div>
               </div>
             </Link>
           ))}
         </div>
+      </section>
+
+      {/* NEWSLETTER */}
+      <section className="mt-12">
+        <NewsletterSignup />
       </section>
 
       {/* USP BAR */}
