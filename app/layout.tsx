@@ -4,6 +4,7 @@ import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 import FooterBarMobile from "../components/FooterBarMobile";
 import "./globals.css";
+import Script from "next/script"; // <-- Google Analytics (IMPORTANTE)
 
 export const metadata: Metadata = {
   title: "IUMATEC – Technik zu unschlagbaren Preisen",
@@ -39,22 +40,4 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
-}) {
-  return (
-    <html lang="de">
-      <body
-        className="font-sans antialiased bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100"
-        style={{
-          fontFamily:
-            "system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial",
-        }}
-      >
-        <SiteHeader />
-        {children}
-        <SiteFooter />
-        <FooterBarMobile />
-      </body>
-    </html>
-  );
-}
+  children: React.Re
