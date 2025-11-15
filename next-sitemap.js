@@ -1,15 +1,18 @@
 /** @type {import('next-sitemap').IConfig} */
 module.exports = {
   siteUrl: "https://iumatec.ch",
+
   generateRobotsTxt: true,
-  sitemapSize: 5000,
+
+  // evita incluir urls erradas
   exclude: [
     "/api/*",
-    "/produkte*?*",  // remove qualquer coisa com query string
+    "/produkte*?*",        // remove páginas com parâmetros
+    "/produkte?*",         // remove qualquer query
   ],
 
   transform: async (config, route) => {
-    // Ignorar rotas com parâmetros (evita erros XML)
+    // ignorar completamente rotas com query string
     if (route.includes("?")) return null;
 
     return {
