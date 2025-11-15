@@ -51,18 +51,16 @@ export default function NewsletterSignup() {
   return (
     <section className="w-full bg-neutral-900 text-white py-10 px-4">
       <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center gap-6">
-        {/* Texto à esquerda (tipo MediaMarkt: forte, direto) */}
         <div className="flex-1 text-center md:text-left">
           <h2 className="text-2xl md:text-3xl font-bold tracking-tight">
             Newsletter IUMATEC
           </h2>
           <p className="mt-2 text-sm md:text-base text-neutral-300">
-            Ofertas exclusivas, promoções e novidades em tecnologia — direto no
+            Ofertas exclusivas, promoções e novidades em tecnologia – direto no
             teu email.
           </p>
         </div>
 
-        {/* Formulário à direita */}
         <form
           onSubmit={handleSubmit}
           className="flex-1 flex flex-col sm:flex-row items-center gap-3 w-full"
@@ -86,7 +84,6 @@ export default function NewsletterSignup() {
         </form>
       </div>
 
-      {/* Mensagem de feedback */}
       {status !== "idle" && message && (
         <div className="max-w-5xl mx-auto mt-3 px-4">
           <p
