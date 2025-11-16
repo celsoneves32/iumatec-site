@@ -6,7 +6,6 @@ import type { ReactNode } from "react";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 import FooterBarMobile from "../components/FooterBarMobile";
-import CookieBanner from "../components/CookieBanner";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -47,6 +46,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="de">
+      {/* Cookiebot – tem de ser o PRIMEIRO script */}
+      <Script
+        id="cookiebot"
+        src="https://consent.cookiebot.com/uc.js"
+        data-cbid="6846392b-664e-4cfd-a3e0-d16501f16bd6"
+        data-blockingmode="auto"
+        type="text/javascript"
+        strategy="beforeInteractive"
+      />
+
       <body
         className="font-sans antialiased bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100"
         style={{
@@ -59,15 +68,18 @@ export default function RootLayout({
         <SiteFooter />
         <FooterBarMobile />
 
-        {/* Cookie Banner */}
-        <CookieBanner />
-
-        {/* Google Analytics – GA4 */}
+        {/* Google Analytics – GA4 (bloqueado pelo Cookiebot até o utilizador aceitar estatísticas) */}
         <Script
+          id="ga4-src"
           src="https://www.googletagmanager.com/gtag/js?id=G-7G0853WGDN"
           strategy="afterInteractive"
+          data-cookieconsent="statistics"
         />
-        <Script id="google-analytics" strategy="afterInteractive">
+        <Script
+          id="ga4-inline"
+          strategy="afterInteractive"
+          data-cookieconsent="statistics"
+        >
           {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
