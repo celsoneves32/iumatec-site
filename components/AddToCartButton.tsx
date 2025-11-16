@@ -14,7 +14,6 @@ export default function AddToCartButton({
   price,
 }: AddToCartButtonProps) {
   const handleClick = () => {
-    // GA4: evento add_to_cart
     gtagEvent({
       action: "add_to_cart",
       params: {
@@ -31,8 +30,7 @@ export default function AddToCartButton({
       },
     });
 
-    // ⚠️ Aqui no futuro também vamos chamar a função real de "adicionar ao carrinho"
-    // ex.: addToCart(product)
+    // aqui depois ligamos ao carrinho real
   };
 
   return (
