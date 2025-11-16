@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import AddToCartButton from "@/components/AddToCartButton";
 
 export const metadata = {
   title: "Produktdetails | IUMATEC Schweiz",
@@ -19,13 +20,72 @@ type Product = {
 
 // 🔹 Mock data (depois substituir por Shopify fetch)
 const PRODUCTS: Product[] = [
-  { id: "p1", title: "iPhone 15 128GB", price: 799, image: "/products/iphone15.png", description: "Das neue iPhone 15 mit A16 Bionic Chip, Dynamic Island und 48 MP Kamera.", category: "Smartphones", badge: "Bestseller" },
-  { id: "p2", title: "Samsung Galaxy S24", price: 749, image: "/products/galaxy-s24.png", description: "Leistungsstarkes Galaxy S24 mit KI-Features und Dynamic AMOLED Display.", category: "Smartphones", badge: "Neu" },
-  { id: "p3", title: "LG OLED C3 55” 4K", price: 1199, image: "/products/lg-oled-c3.png", description: "Brillante Farben und perfektes Schwarz – OLED evo Technologie von LG.", category: "TV & Audio", badge: "Aktion" },
-  { id: "p4", title: "Sony WH-1000XM5", price: 329, image: "/products/sony-xm5.png", description: "Premium Noise Cancelling Kopfhörer mit bis zu 30 h Laufzeit.", category: "TV & Audio" },
-  { id: "p5", title: "MacBook Air M2 13”", price: 1099, image: "/products/macbook-air-m2.png", description: "Ultraleichtes Design, M2 Chip und 18 h Batterielaufzeit.", category: "Informatik" },
-  { id: "p7", title: "PlayStation 5 Slim", price: 499, image: "/products/ps5-slim.png", description: "Die neue, kompakte PS5 Slim mit 1 TB Speicher und 4K-Gaming-Power.", category: "Gaming" },
-  { id: "p8", title: "Nintendo Switch OLED", price: 339, image: "/products/switch-oled.png", description: "Brillantes OLED-Display, verbessertes Audio und vielseitiges Gaming-Erlebnis.", category: "Gaming" },
+  {
+    id: "p1",
+    title: "iPhone 15 128GB",
+    price: 799,
+    image: "/products/iphone15.png",
+    description:
+      "Das neue iPhone 15 mit A16 Bionic Chip, Dynamic Island und 48 MP Kamera.",
+    category: "Smartphones",
+    badge: "Bestseller",
+  },
+  {
+    id: "p2",
+    title: "Samsung Galaxy S24",
+    price: 749,
+    image: "/products/galaxy-s24.png",
+    description:
+      "Leistungsstarkes Galaxy S24 mit KI-Features und Dynamic AMOLED Display.",
+    category: "Smartphones",
+    badge: "Neu",
+  },
+  {
+    id: "p3",
+    title: "LG OLED C3 55” 4K",
+    price: 1199,
+    image: "/products/lg-oled-c3.png",
+    description:
+      "Brillante Farben und perfektes Schwarz – OLED evo Technologie von LG.",
+    category: "TV & Audio",
+    badge: "Aktion",
+  },
+  {
+    id: "p4",
+    title: "Sony WH-1000XM5",
+    price: 329,
+    image: "/products/sony-xm5.png",
+    description:
+      "Premium Noise Cancelling Kopfhörer mit bis zu 30 h Laufzeit.",
+    category: "TV & Audio",
+  },
+  {
+    id: "p5",
+    title: "MacBook Air M2 13”",
+    price: 1099,
+    image: "/products/macbook-air-m2.png",
+    description:
+      "Ultraleichtes Design, M2 Chip und 18 h Batterielaufzeit.",
+    category: "Informatik",
+  },
+  {
+    id: "p7",
+    title: "PlayStation 5 Slim",
+    price: 499,
+    image: "/products/ps5-slim.png",
+    description:
+      "Die neue, kompakte PS5 Slim mit 1 TB Speicher und 4K-Gaming-Power.",
+    category: "Gaming",
+  },
+  {
+    id: "p8",
+    title: "Nintendo Switch OLED",
+    price: 339,
+    image: "/products/switch-oled.png",
+    description:
+      "Brillantes OLED-Display, verbessertes Audio und vielseitiges Gaming-Erlebnis.",
+    category: "Gaming",
+  },
 ];
 
 const hasFreeShipping = (price: number) => price >= 49;
@@ -36,7 +96,9 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
   if (!product) {
     return (
       <main className="max-w-5xl mx-auto px-4 py-12 text-center">
-        <h1 className="text-2xl font-semibold mb-2">Produkt nicht gefunden</h1>
+        <h1 className="text-2xl font-semibold mb-2">
+          Produkt nicht gefunden
+        </h1>
         <Link href="/produkte" className="text-brand-red hover:underline">
           Zurück zur Übersicht →
         </Link>
@@ -97,9 +159,12 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
             </div>
           )}
 
-          <button className="bg-brand-red text-white rounded-xl px-6 py-3 font-semibold hover:bg-brand-blue transition">
-            In den Warenkorb
-          </button>
+          {/* Botão com evento GA4 add_to_cart */}
+          <AddToCartButton
+            id={product.id}
+            title={product.title}
+            price={product.price}
+          />
 
           <p className="text-xs text-gray-500 mt-3">
             Lieferzeit: 1–3 Werktage • Rückgabe innerhalb 14 Tage
