@@ -1,20 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, FormEvent } from "react";
 
 export default function NewsletterSignup() {
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">(
-    "idle"
-  );
+  const [status, setStatus] =
+    useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     if (!email || !email.includes("@")) {
       setStatus("error");
-      setMessage("Por favor, introduz um email válido.");
+      setMessage("Bitte gib eine gültige E-Mail-Adresse ein.");
       return;
     }
 
@@ -34,17 +33,22 @@ export default function NewsletterSignup() {
 
       if (!res.ok) {
         setStatus("error");
-        setMessage(data?.error || "Ocorreu um erro. Tenta outra vez.");
+        setMessage(
+          data?.error ||
+            "Es ist ein Fehler aufgetreten. Bitte versuche es erneut."
+        );
         return;
       }
 
       setStatus("success");
-      setMessage("Obrigado! A tua inscrição foi registada.");
+      setMessage("Danke! Deine Anmeldung wurde registriert.");
       setEmail("");
     } catch (err) {
       console.error(err);
       setStatus("error");
-      setMessage("Erro de ligação. Tenta novamente mais tarde.");
+      setMessage(
+        "Verbindungsfehler. Bitte versuche es später erneut."
+      );
     }
   }
 
@@ -56,8 +60,7 @@ export default function NewsletterSignup() {
             Newsletter IUMATEC
           </h2>
           <p className="mt-2 text-sm md:text-base text-neutral-300">
-            Ofertas exclusivas, promoções e novidades em tecnologia – direto no
-            teu email.
+            Exklusive Angebote, Aktionen und Technik-News – direkt in dein E-Mail-Postfach.
           </p>
         </div>
 
@@ -69,7 +72,7 @@ export default function NewsletterSignup() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="Insere o teu email"
+            placeholder="E-Mail-Adresse eingeben"
             className="w-full sm:flex-1 px-4 py-3 rounded-full text-black text-sm outline-none border border-neutral-300 focus:border-red-600 focus:ring-2 focus:ring-red-600/60 transition"
             disabled={status === "loading"}
           />
@@ -79,7 +82,7 @@ export default function NewsletterSignup() {
             disabled={status === "loading"}
             className="w-full sm:w-auto px-6 py-3 rounded-full font-semibold uppercase text-sm tracking-wide bg-red-600 hover:bg-red-700 active:bg-red-800 disabled:opacity-60 disabled:cursor-not-allowed transition shadow-md"
           >
-            {status === "loading" ? "A enviar..." : "Subscrever"}
+            {status === "loading" ? "Senden…" : "Abonnieren"}
           </button>
         </form>
       </div>
@@ -100,3 +103,4 @@ export default function NewsletterSignup() {
     </section>
   );
 }
+
