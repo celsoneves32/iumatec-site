@@ -1,40 +1,51 @@
 "use client";
 
-import { gtagEvent } from "@/lib/gtag";
-
 type AddToCartButtonProps = {
-  id: string;
-  title: string;
+  productId: string;
+  productName: string;
   price: number;
 };
 
+declare global {
+  interface Window {
+    gtag?: (...args: any[]) => void;
+  }
+}
+
 export default function AddToCartButton({
-  id,
-  title,
+  productId,
+  productName,
   price,
 }: AddToCartButtonProps) {
   const handleClick = () => {
-    // Log no console para ver se o clique está a funcionar
-    console.log("[ADD_TO_CART] click", { id, title, price });
+    // Evento GA4 – add_to_cart
+    if (typeof window !== "undefined" && typeof window.gtag === "function") {
+      window.gtag("event", "add_to_cart", {
+        currency: "CHF",
+        value: price,
+        items: [
+          {
+            item_id: productId,
+            item_name: productName,
+            price,
+            quantity: 1,
+          },
+        ],
+      });
+      console.log("GA4 add_to_cart enviado:", {
+        productId,
+        productName,
+        price,
+      });
+    } else {
+      console.log("gtag ainda não está disponível");
+    }
 
-    // Evento GA4: add_to_cart
-    gtagEvent("add_to_cart", {
-      currency: "CHF",
-      value: price,
-      items: [
-        {
-          item_id: id,
-          item_name: title,
-          price,
-          quantity: 1,
-        },
-      ],
-    });
+    // 👉 Aqui mais tarde vamos pôr a lógica real do carrinho
   };
 
   return (
     <button
-      type="button"
       onClick={handleClick}
       className="bg-brand-red text-white rounded-xl px-6 py-3 font-semibold hover:bg-brand-blue transition"
     >
