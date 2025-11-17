@@ -3,9 +3,9 @@ import Link from "next/link";
 import AddToCartButton from "@/components/AddToCartButton";
 
 export const metadata = {
-  title: "Produktdetails | IUMATEC Schweiz",
+  title: "Produkte | IUMATEC Schweiz",
   description:
-    "Technik-Angebote zu unschlagbaren Preisen – schnelle Lieferung in der ganzen Schweiz.",
+    "Entdecke unsere Technik-Angebote zu unschlagbaren Preisen – schnelle Lieferung in der ganzen Schweiz.",
 };
 
 type Product = {
@@ -18,7 +18,7 @@ type Product = {
   badge?: "Bestseller" | "Aktion" | "Neu";
 };
 
-// 🔹 Mock data (depois substituir por Shopify fetch)
+// 🔹 Mock data (pode ser igual ao do [id]/page.tsx)
 const PRODUCTS: Product[] = [
   {
     id: "p1",
@@ -90,134 +90,84 @@ const PRODUCTS: Product[] = [
 
 const hasFreeShipping = (price: number) => price >= 49;
 
-export default function ProductDetail({ params }: { params: { id: string } }) {
-  const product = PRODUCTS.find((p) => p.id === params.id);
-
-  if (!product) {
-    return (
-      <main className="max-w-5xl mx-auto px-4 py-12 text-center">
-        <h1 className="text-2xl font-semibold mb-2">Produkt nicht gefunden</h1>
-        <Link href="/produkte" className="text-brand-red hover:underline">
-          Zurück zur Übersicht →
-        </Link>
-      </main>
-    );
-  }
-
-  const similar = PRODUCTS.filter(
-    (p) => p.category === product.category && p.id !== product.id
-  ).slice(0, 4);
-
+export default function ProductsPage() {
   return (
     <main className="max-w-7xl mx-auto px-4 py-10">
-      <div className="grid md:grid-cols-2 gap-10">
-        {/* Bild */}
-        <div className="relative aspect-square rounded-2xl border dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden">
-          <Image
-            src={product.image}
-            alt={product.title}
-            fill
-            className="object-contain p-6"
-            priority
-          />
-          {product.badge && (
-            <span className="absolute left-4 top-4 text-xs font-semibold bg-black/80 text-white rounded-md px-2 py-1">
-              {product.badge}
-            </span>
-          )}
-          {hasFreeShipping(product.price) && (
-            <span className="absolute right-4 top-4 text-[10px] font-semibold bg-green-600 text-white rounded-md px-2 py-1">
-              Gratis Versand
-            </span>
-          )}
-        </div>
+      <header className="mb-8">
+        <h1 className="text-2xl md:text-3xl font-semibold mb-2">
+          Produkte
+        </h1>
+        <p className="text-gray-500">
+          Technik zu unschlagbaren Preisen – schnelle Lieferung in der ganzen Schweiz.
+        </p>
+      </header>
 
-        {/* Beschreibung */}
-        <div>
-          <h1 className="text-2xl md:text-3xl font-semibold mb-2">
-            {product.title}
-          </h1>
-          <p className="text-gray-500 mb-6">{product.description}</p>
+      <section
+        aria-label="Produktübersicht"
+        className="grid gap-4 sm:gap-6 grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+      >
+        {PRODUCTS.map((product) => (
+          <article
+            key={product.id}
+            className="group rounded-2xl border dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden hover:shadow-md transition flex flex-col"
+          >
+            <Link
+              href={`/produkte/${product.id}`}
+              className="relative aspect-square bg-white dark:bg-neutral-900 block"
+            >
+              <Image
+                src={product.image}
+                alt={product.title}
+                fill
+                className="object-contain p-4"
+              />
+              {product.badge && (
+                <span className="absolute left-3 top-3 text-xs font-semibold bg-black/80 text-white rounded-md px-2 py-1">
+                  {product.badge}
+                </span>
+              )}
+              {hasFreeShipping(product.price) && (
+                <span className="absolute right-3 top-3 text-[10px] font-semibold bg-green-600 text-white rounded-md px-2 py-1">
+                  Gratis Versand
+                </span>
+              )}
+            </Link>
 
-          <div className="flex items-baseline gap-4 mb-4">
-            <span className="text-3xl font-bold">
-              CHF {product.price.toFixed(2)}
-            </span>
-            {product.badge && (
-              <span className="bg-red-600 text-white text-xs font-semibold px-2 py-1 rounded-md">
-                {product.badge}
-              </span>
-            )}
-          </div>
-
-          {hasFreeShipping(product.price) && (
-            <div className="text-green-700 dark:text-green-400 text-sm mb-4">
-              ✅ Gratis Versand ab CHF 49.– in der ganzen Schweiz
-            </div>
-          )}
-
-          {/* 👉 Botão com evento GA4 */}
-          <AddToCartButton
-            productId={product.id}
-            productName={product.title}
-            price={product.price}
-          />
-
-          <p className="text-xs text-gray-500 mt-3">
-            Lieferzeit: 1–3 Werktage • Rückgabe innerhalb 14 Tage
-          </p>
-        </div>
-      </div>
-
-      {/* ÄHNLICHE PRODUKTE */}
-      {similar.length > 0 && (
-        <section className="mt-14">
-          <h2 className="text-xl md:text-2xl font-semibold mb-4">
-            Ähnliche Produkte
-          </h2>
-          <div className="grid gap-4 sm:gap-6 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-            {similar.map((p) => (
-              <Link
-                key={p.id}
-                href={`/produkte/${p.id}`}
-                className="group rounded-2xl border dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden hover:shadow-md transition"
-              >
-                <div className="relative aspect-square bg-white dark:bg-neutral-900">
-                  <Image
-                    src={p.image}
-                    alt={p.title}
-                    fill
-                    className="object-contain p-4"
-                  />
-                  {p.badge && (
-                    <span className="absolute left-3 top-3 text-xs font-semibold bg-black/80 text-white rounded-md px-2 py-1">
-                      {p.badge}
-                    </span>
-                  )}
-                  {hasFreeShipping(p.price) && (
-                    <span className="absolute right-3 top-3 text-[10px] font-semibold bg-green-600 text-white rounded-md px-2 py-1">
-                      Gratis Versand
-                    </span>
-                  )}
-                </div>
-                <div className="p-3">
-                  <h3 className="text-sm font-medium line-clamp-2 min-h-[2.75rem]">
-                    {p.title}
-                  </h3>
-                  <div className="mt-2 flex items-center justify-between">
-                    <span className="text-base font-semibold">
-                      CHF {p.price.toFixed(2)}
-                    </span>
-                    <span className="text-xs text-gray-500 group-hover:text-brand-red transition">
-                      Details →
-                    </span>
-                  </div>
-                </div>
+            <div className="p-3 flex flex-col gap-2 flex-1">
+              <Link href={`/produkte/${product.id}`}>
+                <h2 className="text-sm font-medium line-clamp-2 min-h-[2.75rem]">
+                  {product.title}
+                </h2>
               </Link>
-            ))}
-          </div>
-        </section>
-      )}
+
+              <p className="text-xs text-gray-500 line-clamp-2 min-h-[2.25rem]">
+                {product.description}
+              </p>
+
+              <div className="mt-1 flex items-center justify-between">
+                <span className="text-base font-semibold">
+                  CHF {product.price.toFixed(2)}
+                </span>
+                <Link
+                  href={`/produkte/${product.id}`}
+                  className="text-xs text-gray-500 group-hover:text-brand-red transition"
+                >
+                  Details →
+                </Link>
+              </div>
+
+              {/* 👉 Botão com evento GA4 usando o novo AddToCartButton */}
+              <div className="mt-2">
+                <AddToCartButton
+                  id={product.id}
+                  title={product.title}
+                  price={product.price}
+                />
+              </div>
+            </div>
+          </article>
+        ))}
+      </section>
     </main>
   );
 }
