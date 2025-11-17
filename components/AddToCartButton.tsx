@@ -8,7 +8,7 @@ type AddToCartButtonProps = {
 
 export default function AddToCartButton({ id, title, price }: AddToCartButtonProps) {
   const handleClick = () => {
-    // Evento GA4 de add_to_cart (exemplo – ajusta como quiseres)
+    // Evento GA4 de add_to_cart (ajusta conforme tua config GA4)
     if (typeof window !== "undefined" && (window as any).gtag) {
       (window as any).gtag("event", "add_to_cart", {
         currency: "CHF",
@@ -24,7 +24,7 @@ export default function AddToCartButton({ id, title, price }: AddToCartButtonPro
       });
     }
 
-    // Aqui depois integras com o teu carrinho real
+    // TODO: integrar depois com o carrinho real
     console.log("Add to cart:", { id, title, price });
   };
 
