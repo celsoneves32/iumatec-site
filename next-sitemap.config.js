@@ -1,28 +1,15 @@
 /** @type {import('next-sitemap').IConfig} */
 module.exports = {
-  // URL base do teu site em produção
   siteUrl: "https://iumatec.ch",
-
-  // Gera automaticamente /sitemap.xml e /robots.txt
   generateRobotsTxt: true,
-
-  // Opcional: tamanho máximo de cada sitemap
-  sitemapSize: 7000,
-
-  // Valores genéricos de SEO
-  changefreq: "daily",
+  sitemapSize: 5000,
+  changefreq: "weekly",
   priority: 0.7,
-
-  // Rotas que não devem aparecer no sitemap
-  exclude: ["/api/*", "/_next/*"],
-
+  exclude: ["/admin/*", "/api/*"],
   robotsTxtOptions: {
     policies: [
-      {
-        userAgent: "*",
-        allow: "/",
-        disallow: ["/api/", "/_next/", "/admin"],
-      },
+      { userAgent: "*", allow: "/" },
+      { userAgent: "*", disallow: ["/admin", "/api"] },
     ],
   },
 };
