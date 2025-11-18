@@ -1,15 +1,28 @@
 /** @type {import('next-sitemap').IConfig} */
+
+const siteUrl = process.env.SITE_URL || "https://www.iumatec.ch";
+
 module.exports = {
-  siteUrl: "https://iumatec.ch",
+  siteUrl,
   generateRobotsTxt: true,
+
+  // Opcional: bom para lojas
   sitemapSize: 5000,
   changefreq: "weekly",
   priority: 0.7,
-  exclude: ["/admin/*", "/api/*"],
+
+  // Rotas que não devem ir para o sitemap
+  exclude: ["/api/*", "/admin/*"],
+
   robotsTxtOptions: {
     policies: [
-      { userAgent: "*", allow: "/" },
-      { userAgent: "*", disallow: ["/admin", "/api"] },
+      {
+        userAgent: "*",
+        allow: "/",
+      },
+    ],
+    additionalSitemaps: [
+      `${siteUrl}/sitemap.xml`,
     ],
   },
 };
