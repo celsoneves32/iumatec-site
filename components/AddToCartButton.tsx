@@ -1,24 +1,14 @@
 "use client";
 
-import { useCart } from "./CartContext";
-
 type AddToCartButtonProps = {
   id: string;
   title: string;
   price: number;
-  image?: string;
 };
 
-export default function AddToCartButton({
-  id,
-  title,
-  price,
-  image,
-}: AddToCartButtonProps) {
-  const { addItem } = useCart();
-
+export default function AddToCartButton({ id, title, price }: AddToCartButtonProps) {
   const handleClick = () => {
-    // GA4 (mantém o que já tinhas se quiseres)
+    // Evento GA4 de add_to_cart (ajusta se for preciso)
     if (typeof window !== "undefined" && (window as any).gtag) {
       (window as any).gtag("event", "add_to_cart", {
         currency: "CHF",
@@ -34,14 +24,11 @@ export default function AddToCartButton({
       });
     }
 
-    // Adicionar ao carrinho
-    addItem({ id, title, price, image });
-
-    // opcional: toast/snackbar mais tarde
+    // TODO: integrar com o carrinho real (state, contexto, etc.)
     console.log("Add to cart:", { id, title, price });
   };
 
-  return
+  return (
     <button
       type="button"
       onClick={handleClick}
