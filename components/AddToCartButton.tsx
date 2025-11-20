@@ -1,33 +1,44 @@
+"use client";
 
-{
-  "name": "iumatec-site",
-  "version": "1.0.1",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "postbuild": "next-sitemap"
-  },
-  "dependencies": {
-    "next": "14.2.3",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
-    "next-sitemap": "^4.2.3",
-    "resend": "^3.0.0",
-    "stripe": "^14.0.0"
-  },
-  "devDependencies": {
-    "@types/node": "^20.0.0",
-    "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0",
-    "@types/stripe": "^12.0.0",
-    "autoprefixer": "^10.4.19",
-    "eslint": "^8.56.0",
-    "eslint-config-next": "^14.2.3",
-    "postcss": "^8.4.38",
-    "tailwindcss": "^3.4.1",
-    "typescript": "^5.4.0"
-  }
+type AddToCartButtonProps = {
+  id: string;
+  title: string;
+  price: number;
+};
+
+export default function AddToCartButton({
+  id,
+  title,
+  price,
+}: AddToCartButtonProps) {
+  const handleClick = () => {
+    // Evento GA4 de add_to_cart (ajusta se for preciso)
+    if (typeof window !== "undefined" && (window as any).gtag) {
+      (window as any).gtag("event", "add_to_cart", {
+        currency: "CHF",
+        value: price,
+        items: [
+          {
+            item_id: id,
+            item_name: title,
+            price,
+            quantity: 1,
+          },
+        ],
+      });
+    }
+
+    // TODO: integrar com o carrinho real (state, contexto, etc.)
+    console.log("Add to cart:", { id, title, price });
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      className="w-full rounded-md bg-red-600 px-4 py-3 text-sm font-semibold text-white shadow hover:bg-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+    >
+      In den Warenkorb
+    </button>
+  );
 }
