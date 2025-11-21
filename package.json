@@ -15,7 +15,8 @@
     "react-dom": "18.2.0",
     "next-sitemap": "^4.2.3",
     "resend": "^3.0.0",
-    "stripe": "^16.0.0"
+    "stripe": "^16.0.0",
+    "@stripe/stripe-js": "^3.4.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
