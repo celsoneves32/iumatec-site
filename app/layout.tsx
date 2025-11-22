@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 import FooterBarMobile from "../components/FooterBarMobile";
-import { CartProvider } from "../components/CartContext"; // ✅ NOVO
+import { CartProvider } from "@/components/CartContext"; // ✅ NOVO
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -86,7 +86,7 @@ export default function RootLayout({
           `}
         </Script>
 
-        {/* ✅ Tudo o que precisa de carrinho fica dentro do CartProvider */}
+        {/* ✅ Tudo o site dentro do CartProvider */}
         <CartProvider>
           <SiteHeader />
           {children}
@@ -111,3 +111,4 @@ export default function RootLayout({
     </html>
   );
 }
+
