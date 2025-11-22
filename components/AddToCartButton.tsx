@@ -1,7 +1,7 @@
-// components/AddToCartButton.tsx
 "use client";
 
-import { useCart } from "./CartContext";
+import { useCart } from "@/components/CartContext";
+import { useRouter } from "next/navigation";
 
 type AddToCartButtonProps = {
   id: string;
@@ -15,12 +15,10 @@ export default function AddToCartButton({
   price,
 }: AddToCartButtonProps) {
   const { addItem } = useCart();
+  const router = useRouter();
 
   const handleClick = () => {
-    // 1) Atualiza o estado global do carrinho
-    addItem({ id, title, price }, 1);
-
-    // 2) Evento GA4 de add_to_cart
+    // Evento GA4 de add_to_cart (ajusta se for preciso)
     if (typeof window !== "undefined" && (window as any).gtag) {
       (window as any).gtag("event", "add_to_cart", {
         currency: "CHF",
@@ -35,6 +33,12 @@ export default function AddToCartButton({
         ],
       });
     }
+
+    // ✅ adiciona ao carrinho
+    addItem({ id, title, price }, 1);
+
+    // Opcional: ir direto para o carrinho
+    // router.push("/cart");
   };
 
   return (
