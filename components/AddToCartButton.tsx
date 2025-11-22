@@ -1,4 +1,7 @@
+// components/AddToCartButton.tsx
 "use client";
+
+import { useCart } from "./CartContext";
 
 type AddToCartButtonProps = {
   id: string;
@@ -11,8 +14,13 @@ export default function AddToCartButton({
   title,
   price,
 }: AddToCartButtonProps) {
+  const { addItem } = useCart();
+
   const handleClick = () => {
-    // Evento GA4 de add_to_cart (ajusta se for preciso)
+    // 1) Atualiza o estado global do carrinho
+    addItem({ id, title, price }, 1);
+
+    // 2) Evento GA4 de add_to_cart
     if (typeof window !== "undefined" && (window as any).gtag) {
       (window as any).gtag("event", "add_to_cart", {
         currency: "CHF",
@@ -27,9 +35,6 @@ export default function AddToCartButton({
         ],
       });
     }
-
-    // TODO: integrar com o carrinho real (state, contexto, etc.)
-    console.log("Add to cart:", { id, title, price });
   };
 
   return (
