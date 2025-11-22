@@ -1,7 +1,14 @@
+// app/api/checkout/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+
+if (!stripeSecretKey) {
+  throw new Error("STRIPE_SECRET_KEY não está definido nas variáveis de ambiente.");
+}
+
+const stripe = new Stripe(stripeSecretKey, {
   apiVersion: "2024-06-20",
 });
 
@@ -27,11 +34,17 @@ export async function POST(req: NextRequest) {
       },
     }));
 
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
+
+    if (!baseUrl) {
+      throw new Error("NEXT_PUBLIC_SITE_URL não está definido.");
+    }
+
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       line_items,
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/checkout/success`,
-      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/cart`,
+      success_url: `${baseUrl}/checkout/success`,
+      cancel_url: `${baseUrl}/cart`,
     });
 
     return NextResponse.json({ url: session.url });
