@@ -1,30 +1,39 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 
-// Garantir que esta rota corre em Node (necessário para o SDK da Stripe)
-export const runtime = "nodejs";
-
-// Ler a secret key do ambiente
+// Lê a chave mas não faz throw no topo
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 
+// Se não estiver definida, apenas registamos no log do servidor
 if (!stripeSecretKey) {
-  // Isto aparece apenas no servidor (log da Vercel), não no browser
-  throw new Error(
-    "STRIPE_SECRET_KEY não está definida nas variáveis de ambiente."
+  console.error(
+    "⚠ STRIPE_SECRET_KEY não está definida nas variáveis de ambiente."
   );
 }
 
-// Instância da Stripe
-const stripe = new Stripe(stripeSecretKey, {
-  apiVersion: "2024-06-20",
-});
+// Criamos o cliente Stripe só se existir chave
+const stripe = stripeSecretKey
+  ? new Stripe(stripeSecretKey, {
+      apiVersion: "2024-06-20",
+    })
+  : null;
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const items = body?.items;
+    // Segurança extra: se por algum motivo a chave não estiver definida
+    if (!stripe) {
+      return NextResponse.json(
+        {
+          error:
+            "Zahlungsdienst ist momentan nicht verfügbar. Bitte versuchen Sie es später erneut.",
+        },
+        { status: 500 }
+      );
+    }
 
-    if (!Array.isArray(items) || items.length === 0) {
+    const { items } = await req.json();
+
+    if (!items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json(
         { error: "Keine Artikel im Warenkorb." },
         { status: 400 }
@@ -35,39 +44,33 @@ export async function POST(req: NextRequest) {
       quantity: item.quantity ?? 1,
       price_data: {
         currency: "chf",
-        unit_amount: Math.round(Number(item.price) * 100), // CHF → Rappen
+        unit_amount: Math.round(item.price * 100), // CHF → Rappen
         product_data: {
-          name: item.title ?? "Ohne Titel",
+          name: item.title,
         },
       },
     }));
 
-    // URL base do site (produção ou localhost)
-    const siteUrl =
-      process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+    const successUrl = process.env.NEXT_PUBLIC_SITE_URL
+      ? `${process.env.NEXT_PUBLIC_SITE_URL}/checkout/success`
+      : "https://iumatec.ch/checkout/success";
+
+    const cancelUrl = process.env.NEXT_PUBLIC_SITE_URL
+      ? `${process.env.NEXT_PUBLIC_SITE_URL}/cart`
+      : "https://iumatec.ch/cart";
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       line_items,
-      success_url: `${siteUrl}/checkout/success`,
-      cancel_url: `${siteUrl}/cart`,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
     });
-
-    if (!session.url) {
-      return NextResponse.json(
-        { error: "Stripe-Checkout-URL konnte nicht erzeugt werden." },
-        { status: 500 }
-      );
-    }
 
     return NextResponse.json({ url: session.url });
   } catch (err: any) {
     console.error("Stripe checkout error:", err);
-
     return NextResponse.json(
-      {
-        error: "Es ist ein Fehler beim Stripe-Checkout aufgetreten.",
-      },
+      { error: err?.message || "Stripe-Fehler." },
       { status: 500 }
     );
   }
