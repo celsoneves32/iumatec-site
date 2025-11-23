@@ -1,5 +1,7 @@
 "use client";
+
 import { useCart } from "@/context/CartContext";
+import { useState } from "react";
 
 type AddToCartButtonProps = {
   id: string;
@@ -7,12 +9,21 @@ type AddToCartButtonProps = {
   price: number;
 };
 
-export default function AddToCartButton({ id, title, price }: AddToCartButtonProps) {
+export default function AddToCartButton({
+  id,
+  title,
+  price,
+}: AddToCartButtonProps) {
   const { addItem } = useCart();
+  const [adding, setAdding] = useState(false);
 
   const handleClick = () => {
+    setAdding(true);
+
+    // Adiciona ao carrinho
     addItem({ id, title, price, quantity: 1 });
 
+    // Evento Google Analytics
     if (typeof window !== "undefined" && (window as any).gtag) {
       (window as any).gtag("event", "add_to_cart", {
         currency: "CHF",
@@ -27,15 +38,26 @@ export default function AddToCartButton({ id, title, price }: AddToCartButtonPro
         ],
       });
     }
+
+    // animação curta
+    setTimeout(() => setAdding(false), 500);
   };
 
   return (
     <button
       type="button"
       onClick={handleClick}
-      className="w-full rounded-md bg-red-600 px-4 py-3 text-sm font-semibold text-white shadow hover:bg-red-700"
+      disabled={adding}
+      className={`w-full rounded-xl px-4 py-3 text-sm font-semibold shadow 
+      transition-all duration-200 
+      text-white
+      ${
+        adding
+          ? "bg-red-700 cursor-default"
+          : "bg-red-600 hover:bg-red-700 active:scale-[0.98]"
+      }`}
     >
-      In den Warenkorb
+      {adding ? "Wird hinzugefügt..." : "In den Warenkorb"}
     </button>
   );
 }
