@@ -15,7 +15,7 @@ export type CartItem = {
   quantity: number;
 };
 
-type CartContextValue = {
+export type CartContextValue = {
   items: CartItem[];
   addItem: (item: CartItem) => void;
   removeItem: (id: string) => void;
@@ -58,11 +58,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
     );
   };
 
+  // 🔹 total de itens no carrinho
   const totalItems = useMemo(
     () => items.reduce((sum, item) => sum + item.quantity, 0),
     [items]
   );
 
+  // 🔹 total em CHF
   const totalPrice = useMemo(
     () => items.reduce((sum, item) => sum + item.price * item.quantity, 0),
     [items]
