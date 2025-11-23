@@ -1,7 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
-import PromoBanner from "@/components/PromoBanner"; // ✅ continua a vir de /components
-import NewsletterSignup from "./components/NewsletterSignup"; // ✅ agora vem de app/components
+import PromoBanner from "@/components/PromoBanner";
+import NewsletterSignup from "./components/NewsletterSignup";
+import AddToCartButton from "@/components/AddToCartButton"; // ✅ botão de carrinho
 
 export const metadata = {
   title: "IUMATEC – Technik zu unschlagbaren Preisen",
@@ -163,38 +164,45 @@ export default function Home() {
         <h2 className="text-xl md:text-2xl font-semibold mb-4">Bestseller</h2>
         <div className="grid gap-4 sm:gap-6 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {BESTSELLER.map((p) => (
-            <Link
+            <div
               key={p.id}
-              href={p.href}
-              className="group rounded-2xl border dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden hover:shadow-md transition"
+              className="group rounded-2xl border dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden hover:shadow-md transition flex flex-col"
             >
-              <div className="relative aspect-square bg-white dark:bg-neutral-900">
-                <Image
-                  src={p.image}
-                  alt={p.title}
-                  fill
-                  className="object-contain p-4"
-                />
-                {p.badge && (
-                  <span className="absolute left-3 top-3 text-xs font-semibold bg-black/80 text-white rounded-md px-2 py-1">
-                    {p.badge}
-                  </span>
-                )}
-              </div>
-              <div className="p-3">
-                <h3 className="text-sm font-medium line-clamp-2 min-h-[2.75rem]">
-                  {p.title}
-                </h3>
-                <div className="mt-2 flex items-center justify-between">
-                  <span className="text-base font-semibold">
-                    CHF {p.price.toFixed(2)}
-                  </span>
-                  <span className="text-xs text-gray-500 group-hover:text-brand-red transition">
-                    Details →
-                  </span>
+              {/* Parte clicável – imagem + título + preço + “Details” */}
+              <Link href={p.href} className="block flex-1">
+                <div className="relative aspect-square bg-white dark:bg-neutral-900">
+                  <Image
+                    src={p.image}
+                    alt={p.title}
+                    fill
+                    className="object-contain p-4"
+                  />
+                  {p.badge && (
+                    <span className="absolute left-3 top-3 text-xs font-semibold bg-black/80 text-white rounded-md px-2 py-1">
+                      {p.badge}
+                    </span>
+                  )}
                 </div>
+                <div className="px-3 pt-3 pb-2">
+                  <h3 className="text-sm font-medium line-clamp-2 min-h-[2.75rem]">
+                    {p.title}
+                  </h3>
+                  <div className="mt-2 flex items-center justify-between">
+                    <span className="text-base font-semibold">
+                      CHF {p.price.toFixed(2)}
+                    </span>
+                    <span className="text-xs text-gray-500 group-hover:text-brand-red transition">
+                      Details →
+                    </span>
+                  </div>
+                </div>
+              </Link>
+
+              {/* Botão de carrinho */}
+              <div className="px-3 pb-3">
+                <AddToCartButton id={p.id} title={p.title} price={p.price} />
               </div>
-            </Link>
+            </div>
           ))}
         </div>
       </section>
