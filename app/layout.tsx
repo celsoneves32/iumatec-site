@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 import FooterBarMobile from "../components/FooterBarMobile";
-import { CartProvider } from "@/components/CartContext"; // ✅ NOVO
+import { CartProvider } from "@/context/CartContext"; // ✅ ATUALIZADO
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -103,6 +103,7 @@ export default function RootLayout({
           {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
+
             gtag('js', new Date());
             gtag('config', 'G-7G0853WGDN');
           `}
@@ -111,4 +112,3 @@ export default function RootLayout({
     </html>
   );
 }
-
