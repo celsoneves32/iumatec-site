@@ -1,37 +1,37 @@
-"use client";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-
-const navLinks = [
-  { href: "/", label: "Startseite" },
-  { href: "/produkte", label: "Produkte" },
-  { href: "/kontakt", label: "Kontakt" },
-  { href: "/impressum", label: "Impressum" },
-];
+import CartStatus from "./CartStatus";
 
 export default function SiteHeader() {
-  const pathname = usePathname();
-
   return (
-    <header className="border-b bg-white/80 backdrop-blur dark:bg-neutral-900/80 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-        <Link href="/" aria-label="IUMATEC Startseite">
-          <img src="/logo-iumatec.svg" alt="IUMATEC" className="h-8" />
+    <header className="border-b border-neutral-200 dark:border-neutral-800 bg-white/80 dark:bg-neutral-950/80 backdrop-blur">
+      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-6">
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-2">
+          <img
+            src="/logo-iumatec.svg"
+            alt="IUMATEC"
+            className="h-7 w-auto"
+          />
         </Link>
 
-        <nav className="flex space-x-6 text-sm font-medium text-gray-700 dark:text-gray-200">
-          {navLinks.map(({ href, label }) => (
-            <Link
-              key={href}
-              href={href}
-              className={`hover:underline ${
-                pathname === href ? "text-red-600" : ""
-              }`}
-            >
-              {label}
-            </Link>
-          ))}
+        {/* Navegação principal */}
+        <nav className="hidden md:flex items-center gap-6 text-sm">
+          <Link href="/" className="hover:text-red-600">
+            Startseite
+          </Link>
+          <Link href="/produkte" className="hover:text-red-600">
+            Produkte
+          </Link>
+          <Link href="/kontakt" className="hover:text-red-600">
+            Kontakt
+          </Link>
+          <Link href="/impressum" className="hover:text-red-600">
+            Impressum
+          </Link>
         </nav>
+
+        {/* ✅ Status do carrinho */}
+        <CartStatus />
       </div>
     </header>
   );
