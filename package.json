@@ -15,7 +15,8 @@
     "react-dom": "18.2.0",
     "next-sitemap": "^4.2.3",
     "resend": "^3.0.0",
-    "stripe": "^16.0.0"
+    "stripe": "^16.0.0",
+    "@supabase/supabase-js": "^2.48.1"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
