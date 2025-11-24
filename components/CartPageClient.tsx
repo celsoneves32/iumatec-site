@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 
@@ -13,16 +14,49 @@ export default function CartPageClient() {
     clearCart,
   } = useCart();
 
+  const [loadingCheckout, setLoadingCheckout] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleCheckout = async () => {
+    try {
+      setLoadingCheckout(true);
+      setError(null);
+
+      const res = await fetch("/api/create-checkout-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Fehler beim Starten des Checkouts.");
+      }
+
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url; // 🔁 redireciona para o Stripe
+      } else {
+        throw new Error("Keine Checkout-URL erhalten.");
+      }
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || "Unbekannter Fehler beim Checkout.");
+    } finally {
+      setLoadingCheckout(false);
+    }
+  };
+
   if (items.length === 0) {
     return (
       <main className="max-w-5xl mx-auto px-4 py-10">
         <h1 className="text-2xl font-semibold mb-4">Warenkorb</h1>
         <p>Dein Warenkorb ist leer.</p>
         <Link
-          href="/"
+          href="/produkte"
           className="mt-4 inline-block text-sm text-red-600 hover:underline"
         >
-          Zurück zur Startseite
+          Jetzt Produkte entdecken →
         </Link>
       </main>
     );
@@ -39,6 +73,12 @@ export default function CartPageClient() {
           Warenkorb leeren
         </button>
       </div>
+
+      {error && (
+        <div className="rounded-md bg-red-50 text-red-700 text-sm px-3 py-2">
+          {error}
+        </div>
+      )}
 
       <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
         {items.map((item) => (
@@ -94,12 +134,18 @@ export default function CartPageClient() {
       </div>
 
       <div className="flex justify-end">
-        <Link
-          href="/checkout"
-          className="px-4 py-2 rounded-md bg-red-600 text-white text-sm font-semibold hover:bg-red-700"
+        <button
+          onClick={handleCheckout}
+          disabled={loadingCheckout}
+          className={`px-6 py-3 rounded-md text-sm font-semibold text-white shadow
+            ${
+              loadingCheckout
+                ? "bg-red-700 cursor-default"
+                : "bg-red-600 hover:bg-red-700"
+            }`}
         >
-          Zur Kasse
-        </Link>
+          {loadingCheckout ? "Weiterleitung..." : "Zur Kasse"}
+        </button>
       </div>
     </main>
   );
