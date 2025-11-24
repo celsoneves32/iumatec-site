@@ -2,21 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-06-20",
-});
-
-// 🔹 Garante que corre em Node.js (necessário para Stripe + supabase-js)
 export const runtime = "nodejs";
-// (opcional, mas bom para webhooks)
 export const dynamic = "force-dynamic";
 
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-// Lê o corpo bruto da request para validar assinatura
+// ler corpo bruto para validar assinatura
 async function buffer(req: Request | NextRequest): Promise<Buffer> {
   const arrayBuffer = await req.arrayBuffer();
   return Buffer.from(arrayBuffer);
@@ -29,25 +18,46 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Missing signature" }, { status: 400 });
   }
 
+  const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!stripeSecretKey || !webhookSecret) {
+    console.error("❌ Stripe env vars missing.");
+    return NextResponse.json(
+      { error: "Stripe ist nicht richtig konfiguriert." },
+      { status: 500 }
+    );
+  }
+
+  if (!supabaseUrl || !supabaseServiceRoleKey) {
+    console.error("❌ Supabase env vars missing.");
+    return NextResponse.json(
+      { error: "Supabase ist nicht richtig konfiguriert." },
+      { status: 500 }
+    );
+  }
+
+  const stripe = new Stripe(stripeSecretKey, {
+    apiVersion: "2024-06-20",
+  });
+
+  const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
+
   let event: Stripe.Event;
   const buf = await buffer(req);
 
   try {
-    event = stripe.webhooks.constructEvent(
-      buf,
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET!
-    );
+    event = stripe.webhooks.constructEvent(buf, sig, webhookSecret);
   } catch (err: any) {
     console.error("❌ Webhook signature failed:", err.message);
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
-  // 👉 Só tratamos quando o checkout foi concluído
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
 
-    // Itens vêm de metadata.items (string JSON)
     let items: any[] = [];
     try {
       if (session.metadata?.items) {
