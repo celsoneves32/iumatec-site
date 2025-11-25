@@ -12,10 +12,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    // 🔐 Lê e “limpa” a chave do Stripe do ambiente
+    const stripeSecretKeyRaw = process.env.STRIPE_SECRET_KEY;
+    const stripeSecretKey = stripeSecretKeyRaw?.trim();
+
     if (!stripeSecretKey) {
       console.error(
-        "⚠ STRIPE_SECRET_KEY não está definida nas variáveis de ambiente."
+        "⚠ STRIPE_SECRET_KEY não está definida ou está vazia nas variáveis de ambiente."
       );
       return NextResponse.json(
         { error: "Stripe ist nicht richtig konfiguriert." },
@@ -44,7 +47,7 @@ export async function POST(req: NextRequest) {
       success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/checkout/success`,
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/cart`,
       metadata: {
-        items: JSON.stringify(items),
+        items: JSON.stringify(items), // vai para o webhook
       },
     });
 
