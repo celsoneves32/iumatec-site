@@ -39,7 +39,7 @@ export default function CartPage() {
 
       const data = await res.json();
       if (data.url) {
-        window.location.href = data.url; // redirect para Stripe
+        window.location.href = data.url; // redireciona para Stripe
       } else {
         throw new Error("Keine Checkout-URL erhalten.");
       }
