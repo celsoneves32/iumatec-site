@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
+import MediaMarktButton from "@/components/MediaMarktButton";
 
 export default function CartPageClient() {
   const {
@@ -30,12 +31,14 @@ export default function CartPageClient() {
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || "Fehler beim Starten des Checkouts.");
+        throw new Error(
+          data.error || "Fehler beim Starten des Checkouts."
+        );
       }
 
       const data = await res.json();
       if (data.url) {
-        window.location.href = data.url; // 🔁 redireciona para o Stripe
+        window.location.href = data.url; // redireciona para Stripe
       } else {
         throw new Error("Keine Checkout-URL erhalten.");
       }
@@ -64,14 +67,17 @@ export default function CartPageClient() {
 
   return (
     <main className="max-w-5xl mx-auto px-4 py-10 space-y-6">
-      <div className="flex items-center justify-between">
+      {/* Cabeçalho do carrinho */}
+      <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">Warenkorb</h1>
-        <button
+        <MediaMarktButton
+          type="button"
+          variant="secondary"
+          size="sm"
           onClick={clearCart}
-          className="text-sm text-red-600 hover:underline"
         >
           Warenkorb leeren
-        </button>
+        </MediaMarktButton>
       </div>
 
       {error && (
@@ -80,11 +86,12 @@ export default function CartPageClient() {
         </div>
       )}
 
+      {/* Lista de itens */}
       <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
         {items.map((item) => (
           <li
             key={item.id}
-            className="flex items-center justify-between py-3"
+            className="flex flex-wrap items-center justify-between gap-4 py-3"
           >
             <div>
               <div className="font-medium">{item.title}</div>
@@ -92,7 +99,9 @@ export default function CartPageClient() {
                 {item.quantity} × CHF {item.price.toFixed(2)}
               </div>
             </div>
+
             <div className="flex items-center gap-4">
+              {/* Controlo de quantidade */}
               <div className="flex items-center gap-2">
                 <button
                   onClick={() =>
@@ -104,48 +113,54 @@ export default function CartPageClient() {
                 </button>
                 <span className="text-sm">{item.quantity}</span>
                 <button
-                  onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                  onClick={() =>
+                    updateQuantity(item.id, item.quantity + 1)
+                  }
                   className="px-2 py-1 text-xs border rounded"
                 >
                   +
                 </button>
               </div>
-              <span className="font-semibold">
+
+              <span className="font-semibold min-w-[80px] text-right">
                 CHF {(item.price * item.quantity).toFixed(2)}
               </span>
-              <button
+
+              <MediaMarktButton
+                type="button"
+                variant="ghost"
+                size="sm"
                 onClick={() => removeItem(item.id)}
-                className="text-xs text-neutral-500 hover:text-red-600"
               >
                 Entfernen
-              </button>
+              </MediaMarktButton>
             </div>
           </li>
         ))}
       </ul>
 
-      <div className="flex items-center justify-between border-t pt-4 mt-4">
-        <span className="text-sm text-neutral-500">
-          {totalItems} Artikel gesamt
-        </span>
-        <span className="text-lg font-semibold">
-          Total: CHF {totalPrice.toFixed(2)}
-        </span>
-      </div>
+      {/* Totais + Checkout */}
+      <div className="flex flex-col gap-4 border-t pt-4 mt-4">
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-neutral-500">
+            {totalItems} Artikel gesamt
+          </span>
+          <span className="text-lg font-semibold">
+            Total: CHF {totalPrice.toFixed(2)}
+          </span>
+        </div>
 
-      <div className="flex justify-end">
-        <button
-          onClick={handleCheckout}
-          disabled={loadingCheckout}
-          className={`px-6 py-3 rounded-md text-sm font-semibold text-white shadow
-            ${
-              loadingCheckout
-                ? "bg-red-700 cursor-default"
-                : "bg-red-600 hover:bg-red-700"
-            }`}
-        >
-          {loadingCheckout ? "Weiterleitung..." : "Zur Kasse"}
-        </button>
+        <div className="flex justify-end">
+          <MediaMarktButton
+            type="button"
+            variant="primary"
+            size="md"
+            onClick={handleCheckout}
+            disabled={loadingCheckout}
+          >
+            {loadingCheckout ? "Weiterleitung..." : "Zur Kasse"}
+          </MediaMarktButton>
+        </div>
       </div>
     </main>
   );
