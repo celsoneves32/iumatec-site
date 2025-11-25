@@ -1,20 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-06-20",
-});
-
 export async function POST(req: NextRequest) {
   try {
     const { items } = await req.json();
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json(
-        { error: "Warenkorb ist leer." },
+        { error: "Keine Artikel im Warenkorb." },
         { status: 400 }
       );
     }
+
+    const rawKey = process.env.STRIPE_SECRET_KEY;
+    const stripeSecretKey = rawKey?.trim();
+
+    if (!stripeSecretKey) {
+      console.error("⚠ STRIPE_SECRET_KEY fehlt oder ist leer.");
+      return NextResponse.json(
+        { error: "Stripe ist nicht richtig konfiguriert." },
+        { status: 500 }
+      );
+    }
+
+    const stripe = new Stripe(stripeSecretKey, {
+      apiVersion: "2024-06-20",
+    });
 
     const line_items = items.map((item: any) => ({
       quantity: item.quantity,
@@ -38,10 +49,10 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ url: session.url });
-  } catch (error) {
-    console.error("Checkout Error:", error);
+  } catch (err: any) {
+    console.error("Stripe Checkout Error:", err);
     return NextResponse.json(
-      { error: "Stripe ist nicht richtig konfiguriert." },
+      { error: err?.message || "Fehler beim Erstellen der Checkout-Session." },
       { status: 500 }
     );
   }
