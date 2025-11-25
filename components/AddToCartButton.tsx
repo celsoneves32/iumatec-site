@@ -1,7 +1,8 @@
 "use client";
 
-import { useCart } from "@/context/CartContext";
 import { useState } from "react";
+import { useCart } from "@/context/CartContext";
+import MediaMarktButton from "@/components/MediaMarktButton";
 
 type AddToCartButtonProps = {
   id: string;
@@ -39,25 +40,20 @@ export default function AddToCartButton({
       });
     }
 
-    // animação curta
+    // pequena animação
     setTimeout(() => setAdding(false), 500);
   };
 
   return (
-    <button
+    <MediaMarktButton
       type="button"
       onClick={handleClick}
       disabled={adding}
-      className={`w-full rounded-xl px-4 py-3 text-sm font-semibold shadow 
-      transition-all duration-200 
-      text-white
-      ${
-        adding
-          ? "bg-red-700 cursor-default"
-          : "bg-red-600 hover:bg-red-700 active:scale-[0.98]"
-      }`}
+      variant="primary"
+      size="md"
+      fullWidth
     >
       {adding ? "Wird hinzugefügt..." : "In den Warenkorb"}
-    </button>
+    </MediaMarktButton>
   );
 }
