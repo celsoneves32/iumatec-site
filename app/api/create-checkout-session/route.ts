@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
     if (!stripeSecretKey) {
       console.error("⚠ STRIPE_SECRET_KEY fehlt oder ist leer.");
       return NextResponse.json(
-        { error: "Stripe ist nicht richtig konfiguriert." },
+        { error: "ENV_STRIPE_SECRET_KEY_FEHLT" },
         { status: 500 }
       );
     }
@@ -57,3 +57,4 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
