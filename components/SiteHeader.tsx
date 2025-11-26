@@ -1,6 +1,6 @@
 import Link from "next/link";
 import CartStatus from "./CartStatus";
-import AccountButton from "./AccountButton";
+import AccountButton from "@/components/AccountButton"; // 👈 novo
 
 export default function SiteHeader() {
   return (
@@ -8,7 +8,11 @@ export default function SiteHeader() {
       <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-6">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
-          <img src="/logo-iumatec.svg" alt="IUMATEC" className="h-7 w-auto" />
+          <img
+            src="/logo-iumatec.svg"
+            alt="IUMATEC"
+            className="h-7 w-auto"
+          />
         </Link>
 
         {/* Navegação principal */}
