@@ -1,9 +1,10 @@
+// app/admin/orders/page.tsx
 import { createClient } from "@supabase/supabase-js";
 
 export const dynamic = "force-dynamic";
 
 type OrderRow = {
-  id: number;
+  id: string; // uuid em Supabase
   stripe_session_id: string;
   customer_email: string | null;
   total_amount: number | null;
@@ -47,6 +48,7 @@ export default async function AdminOrdersPage({
 }) {
   const requiredToken = process.env.ADMIN_DASHBOARD_TOKEN;
 
+  // Protecção simples via ?token=...
   if (requiredToken && searchParams.token !== requiredToken) {
     return (
       <main className="max-w-xl mx-auto px-4 py-16">
@@ -125,9 +127,7 @@ export default async function AdminOrdersPage({
                     </td>
                     <td className="px-4 py-2 align-top text-right whitespace-nowrap">
                       {order.total_amount != null ? (
-                        <>
-                          CHF {order.total_amount.toFixed(2)}
-                        </>
+                        <>CHF {order.total_amount.toFixed(2)}</>
                       ) : (
                         "-"
                       )}
