@@ -1,47 +1,42 @@
-"use client";
-
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { getSupabaseBrowserClient } from "@/lib/supabaseBrowser";
+import CartStatus from "./CartStatus";
+import AccountButton from "@/components/AccountButton"; // 👈 novo
 
-type UserState = "loading" | "loggedIn" | "loggedOut";
-
-export default function AccountButton() {
-  const [state, setState] = useState<UserState>("loading");
-
-  useEffect(() => {
-    const supabase = getSupabaseBrowserClient();
-
-    supabase.auth.getSession().then(({ data }) => {
-      setState(data.session ? "loggedIn" : "loggedOut");
-    });
-
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      setState(session ? "loggedIn" : "loggedOut");
-    });
-
-    return () => {
-      sub.subscription.unsubscribe();
-    };
-  }, []);
-
+export default function SiteHeader() {
   return (
-    <Link
-      href="/account"
-      className="inline-flex items-center gap-1 rounded-full border border-neutral-200 px-3 py-1.5 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
-      aria-label="Mein Konto"
-    >
-      {/* ícone simples de user */}
-      <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-neutral-800 text-white text-xs">
-        <span>👤</span>
-      </span>
-      <span>
-        {state === "loading"
-          ? "Konto"
-          : state === "loggedIn"
-          ? "Mein Konto"
-          : "Login"}
-      </span>
-    </Link>
+    <header className="border-b border-neutral-200 dark:border-neutral-800 bg-white/80 dark:bg-neutral-950/80 backdrop-blur">
+      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-6">
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-2">
+          <img
+            src="/logo-iumatec.svg"
+            alt="IUMATEC"
+            className="h-7 w-auto"
+          />
+        </Link>
+
+        {/* Navegação principal */}
+        <nav className="hidden md:flex items-center gap-6 text-sm">
+          <Link href="/" className="hover:text-red-600">
+            Startseite
+          </Link>
+          <Link href="/produkte" className="hover:text-red-600">
+            Produkte
+          </Link>
+          <Link href="/kontakt" className="hover:text-red-600">
+            Kontakt
+          </Link>
+          <Link href="/impressum" className="hover:text-red-600">
+            Impressum
+          </Link>
+        </nav>
+
+        {/* Conta + Carrinho */}
+        <div className="flex items-center gap-3">
+          <AccountButton />
+          <CartStatus />
+        </div>
+      </div>
+    </header>
   );
 }
