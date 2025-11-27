@@ -1,4 +1,4 @@
-// app/layout.tsx
+// app/layout.tsx 
 import type { Metadata } from "next";
 import Script from "next/script";
 import type { ReactNode } from "react";
@@ -8,6 +8,11 @@ import SiteFooter from "../components/SiteFooter";
 import FooterBarMobile from "../components/FooterBarMobile";
 import { CartProvider } from "@/context/CartContext"; // ✅ ATUALIZADO
 import "./globals.css";
+
+// 👉 forçar tudo a ser dinâmico (sem geração estática)
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
+export const revalidate = 0;
 
 export const metadata: Metadata = {
   title: "IUMATEC – Technik zu unschlagbaren Preisen",
