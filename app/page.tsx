@@ -1,8 +1,7 @@
-import Image from "next/image";
+// app/page.tsx
 import Link from "next/link";
-import PromoBanner from "@/components/PromoBanner";
-import NewsletterSignup from "./components/NewsletterSignup";
-import AddToCartButton from "@/components/AddToCartButton"; // ✅ botão de carrinho
+import Image from "next/image";
+import PaymentMethodsBar from "@/components/PaymentMethodsBar";
 
 export const metadata = {
   title: "IUMATEC – Technik zu unschlagbaren Preisen",
@@ -10,220 +9,159 @@ export const metadata = {
     "Smartphones, TV & Audio, Informatik, Gaming – schnelle Lieferung in der ganzen Schweiz.",
 };
 
-type Card = { href: string; title: string; subtitle: string; emoji: string };
-
-const CATEGORIES: Card[] = [
-  {
-    href: "/produkte?cat=Smartphones",
-    title: "Smartphones",
-    subtitle: "Apple • Samsung u.v.m.",
-    emoji: "📱",
-  },
-  {
-    href: "/produkte?cat=TV & Audio",
-    title: "TV & Audio",
-    subtitle: "OLED • Sound • Kino",
-    emoji: "📺",
-  },
-  {
-    href: "/produkte?cat=Informatik",
-    title: "Informatik",
-    subtitle: "Laptops • Zubehör",
-    emoji: "💻",
-  },
-  {
-    href: "/produkte?cat=Gaming",
-    title: "Gaming",
-    subtitle: "Konsolen • Zubehör",
-    emoji: "🎮",
-  },
-];
-
-const BESTSELLER = [
-  {
-    id: "p1",
-    title: "iPhone 15 128GB",
-    price: 799,
-    image: "/products/iphone15.png",
-    href: "/produkte/p1",
-    badge: "Bestseller",
-  },
-  {
-    id: "p3",
-    title: "LG OLED C3 55” 4K",
-    price: 1199,
-    image: "/products/lg-oled-c3.png",
-    href: "/produkte/p3",
-    badge: "Aktion",
-  },
-  {
-    id: "p5",
-    title: "MacBook Air M2 13”",
-    price: 1099,
-    image: "/products/macbook-air-m2.png",
-    href: "/produkte/p5",
-  },
-  {
-    id: "p7",
-    title: "PlayStation 5 Slim",
-    price: 499,
-    image: "/products/ps5-slim.png",
-    href: "/produkte/p7",
-  },
-];
-
-export default function Home() {
+export default function HomePage() {
   return (
-    <main className="max-w-7xl mx-auto px-4 pb-12">
-      {/* PROMO BANNER */}
-      <PromoBanner
-        title="Black Friday: bis zu 30% Rabatt auf ausgewählte Produkte"
-        subtitle="Nur bis Sonntag – solange Vorrat reicht."
-        href="/produkte?sort=relevanz"
-        ctaLabel="Deals ansehen"
-        variant="red"
-        startAt="2025-11-01T00:00:00Z"
-        endAt="2025-11-30T23:59:59Z"
-        storageKey="promo-blackfriday-2025"
-        icon="🛒"
-      />
+    <main className="min-h-screen bg-white dark:bg-neutral-950">
+      {/* Hero */}
+      <section className="border-b border-neutral-200/80 dark:border-neutral-800 bg-gradient-to-b from-neutral-50 to-white dark:from-neutral-950 dark:to-neutral-900">
+        <div className="mx-auto flex max-w-7xl flex-col gap-8 px-4 py-10 lg:flex-row lg:items-center lg:py-14">
+          {/* Texto */}
+          <div className="flex-1 space-y-5">
+            <span className="inline-flex items-center rounded-full border border-red-600/20 bg-red-50 px-3 py-1 text-xs font-medium text-red-700 dark:bg-red-900/20 dark:text-red-200">
+              🔥 Technik-Deals für die ganze Schweiz
+            </span>
 
-      {/* HERO */}
-      <section className="relative overflow-hidden rounded-3xl mt-6 bg-gradient-to-br from-red-600 via-red-500 to-brand-blue text-white">
-        <div className="absolute inset-0 opacity-20 bg-[radial-gradient(1000px_500px_at_10%_-10%,#fff,transparent)]" />
-        <div className="relative grid md:grid-cols-2 gap-6 p-8 md:p-12">
-          <div className="flex flex-col justify-center">
-            <h1 className="text-3xl md:text-5xl font-extrabold leading-tight">
-              Technik zu unschlagbaren Preisen
+            <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50 sm:text-4xl lg:text-5xl">
+              IUMATEC – Technik zu{" "}
+              <span className="text-red-600">unschlagbaren Preisen</span>
             </h1>
-            <p className="mt-3 md:mt-4 text-white/85 text-sm md:text-base">
-              Smartphones, TV & Audio, Informatik, Gaming – schnelle Lieferung
-              in der ganzen Schweiz.
+
+            <p className="max-w-xl text-sm sm:text-base text-neutral-600 dark:text-neutral-300">
+              Smartphones, Laptops, TV &amp; Audio, Gaming und mehr – direkt aus
+              der Schweiz mit schneller Lieferung und persönlichem Support.
             </p>
 
-            <div className="mt-5 flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-3">
               <Link
-                href="/produkte?sort=relevanz"
-                className="inline-flex items-center rounded-xl bg-white text-black px-4 py-2 font-semibold hover:opacity-90"
+                href="/produkte"
+                className="inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
               >
-                Angebote ansehen
+                Jetzt Angebote entdecken
               </Link>
               <Link
-                href="/produkte?cat=Smartphones"
-                className="inline-flex items-center rounded-xl bg-white/10 backdrop-blur px-4 py-2 font-semibold hover:bg-white/15"
+                href="/kontakt"
+                className="inline-flex items-center justify-center rounded-lg border border-neutral-300 bg-white px-5 py-2.5 text-sm font-medium text-neutral-800 hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:hover:bg-neutral-800"
               >
-                Smartphones
+                Kontakt &amp; Beratung
               </Link>
+            </div>
+
+            {/* Pequenas “trust badges” */}
+            <div className="flex flex-wrap gap-4 text-xs text-neutral-500 dark:text-neutral-400">
+              <div className="flex items-center gap-2">
+                <span>🚚</span>
+                <span>Schnelle Lieferung in der ganzen Schweiz</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span>✅</span>
+                <span>Geprüfte Markenprodukte</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span>📍</span>
+                <span>Schweizer Online-Shop</span>
+              </div>
             </div>
           </div>
 
-          <div className="relative h-56 md:h-72 lg:h-80">
-            <Image
-              src="/products/iphone15.png"
-              alt="Hero Produkt"
-              fill
-              className="object-contain drop-shadow-xl"
-              priority
-            />
+          {/* Imagem / banner */}
+          <div className="flex-1">
+            <div className="relative mx-auto max-w-md overflow-hidden rounded-2xl border border-neutral-200/80 bg-black shadow-xl dark:border-neutral-700">
+              <Image
+                src="/hero-tech.jpg"
+                alt="Elektronik-Produkte bei IUMATEC"
+                width={800}
+                height={600}
+                className="h-full w-full object-cover opacity-90"
+              />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+              <div className="absolute bottom-4 left-4 right-4 space-y-1 text-xs sm:text-sm text-white">
+                <p className="font-semibold">
+                  Top-Deals: Smartphones, TV, Laptops &amp; Gaming
+                </p>
+                <p className="text-white/80">
+                  Täglich neue Angebote – solange Vorrat reicht.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* CATEGORIES */}
-      <section className="mt-10">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl md:text-2xl font-semibold">Kategorien</h2>
+      {/* Barra de métodos de pagamento */}
+      <div className="mx-auto max-w-7xl px-4">
+        <PaymentMethodsBar />
+      </div>
+
+      {/* Categorias principais */}
+      <section className="mx-auto mt-10 max-w-7xl px-4 pb-14">
+        <div className="mb-4 flex items-center justify-between gap-2">
+          <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50">
+            Beliebte Kategorien
+          </h2>
           <Link
             href="/produkte"
-            className="text-brand-red hover:underline font-medium"
+            className="text-xs font-medium text-red-600 hover:text-red-700"
           >
-            Alle Produkte →
+            Alle Produkte ansehen →
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {CATEGORIES.map((c) => (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {CATEGORIES.map((cat) => (
             <Link
-              key={c.title}
-              href={c.href}
-              className="group rounded-2xl border dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4 hover:shadow-md transition"
+              key={cat.slug}
+              href={cat.href}
+              className="group flex flex-col justify-between rounded-xl border border-neutral-200/80 bg-white p-4 text-sm shadow-sm transition hover:-translate-y-0.5 hover:border-red-500/60 hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900"
             >
-              <div className="text-2xl">{c.emoji}</div>
-              <div className="mt-2 font-semibold">{c.title}</div>
-              <div className="text-sm text-gray-500">{c.subtitle}</div>
-              <div className="mt-2 text-xs text-brand-red opacity-0 group-hover:opacity-100 transition">
-                Jetzt entdecken →
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <div className="font-semibold text-neutral-900 dark:text-neutral-50">
+                  {cat.title}
+                </div>
+                <span className="rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-medium text-red-600 group-hover:bg-red-600 group-hover:text-white dark:bg-red-900/30">
+                  {cat.badge}
+                </span>
               </div>
+              <p className="mb-3 text-xs text-neutral-500 dark:text-neutral-400">
+                {cat.description}
+              </p>
+              <span className="mt-auto text-xs font-medium text-red-600 group-hover:text-red-700">
+                Jetzt ansehen →
+              </span>
             </Link>
           ))}
-        </div>
-      </section>
-
-      {/* BESTSELLER */}
-      <section className="mt-10">
-        <h2 className="text-xl md:text-2xl font-semibold mb-4">Bestseller</h2>
-        <div className="grid gap-4 sm:gap-6 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {BESTSELLER.map((p) => (
-            <div
-              key={p.id}
-              className="group rounded-2xl border dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden hover:shadow-md transition flex flex-col"
-            >
-              {/* Parte clicável – imagem + título + preço + “Details” */}
-              <Link href={p.href} className="block flex-1">
-                <div className="relative aspect-square bg-white dark:bg-neutral-900">
-                  <Image
-                    src={p.image}
-                    alt={p.title}
-                    fill
-                    className="object-contain p-4"
-                  />
-                  {p.badge && (
-                    <span className="absolute left-3 top-3 text-xs font-semibold bg-black/80 text-white rounded-md px-2 py-1">
-                      {p.badge}
-                    </span>
-                  )}
-                </div>
-                <div className="px-3 pt-3 pb-2">
-                  <h3 className="text-sm font-medium line-clamp-2 min-h-[2.75rem]">
-                    {p.title}
-                  </h3>
-                  <div className="mt-2 flex items-center justify-between">
-                    <span className="text-base font-semibold">
-                      CHF {p.price.toFixed(2)}
-                    </span>
-                    <span className="text-xs text-gray-500 group-hover:text-brand-red transition">
-                      Details →
-                    </span>
-                  </div>
-                </div>
-              </Link>
-
-              {/* Botão de carrinho */}
-              <div className="px-3 pb-3">
-                <AddToCartButton id={p.id} title={p.title} price={p.price} />
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* NEWSLETTER */}
-      <section className="mt-12">
-        <NewsletterSignup />
-      </section>
-
-      {/* USP BAR */}
-      <section className="mt-12 grid gap-3 sm:grid-cols-3">
-        <div className="rounded-xl border dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4 text-sm">
-          🚚 Schnelle Lieferung in der ganzen Schweiz
-        </div>
-        <div className="rounded-xl border dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4 text-sm">
-          🔒 Sicheres Bezahlen: Kreditkarte, TWINT, PostFinance
-        </div>
-        <div className="rounded-xl border dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4 text-sm">
-          🇨🇭 Schweizer Support – Antwort innert 24h
         </div>
       </section>
     </main>
   );
 }
+
+const CATEGORIES = [
+  {
+    slug: "smartphones",
+    title: "Smartphones & Tablets",
+    href: "/produkte?kat=smartphones",
+    badge: "Top Seller",
+    description: "Apple, Samsung, Xiaomi und mehr – neu & refurbished.",
+  },
+  {
+    slug: "tv-audio",
+    title: "TV & Audio",
+    href: "/produkte?kat=tv-audio",
+    badge: "Heimkino",
+    description: "4K-TVs, Soundbars, Kopfhörer für dein Zuhause.",
+  },
+  {
+    slug: "informatik",
+    title: "Informatik",
+    href: "/produkte?kat=informatik",
+    badge: "Office & Home",
+    description: "Laptops, PCs, Monitore und Zubehör für Alltag & Büro.",
+  },
+  {
+    slug: "gaming",
+    title: "Gaming",
+    href: "/produkte?kat=gaming",
+    badge: "Hot",
+    description: "Konsolen, Games und Zubehör für dein Setup.",
+  },
+];
