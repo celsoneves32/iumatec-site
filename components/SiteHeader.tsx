@@ -3,6 +3,7 @@ import Link from "next/link";
 import CartStatus from "./CartStatus";
 import AccountButton from "@/components/AccountButton";
 import HeaderSearch from "@/components/HeaderSearch";
+import FavoriteButton from "@/components/FavoriteButton"; // 👈 novo
 
 export default function SiteHeader() {
   return (
@@ -23,9 +24,10 @@ export default function SiteHeader() {
           <HeaderSearch />
         </div>
 
-        {/* Ícones conta + carrinho */}
+        {/* Ícones conta + favoritos + carrinho */}
         <div className="flex items-center gap-3">
           <AccountButton />
+          <FavoriteButton />   {/* 👈 novo */}
           <CartStatus />
         </div>
       </div>
