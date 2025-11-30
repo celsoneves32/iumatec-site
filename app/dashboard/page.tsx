@@ -3,25 +3,30 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 
 export default function DashboardPage() {
-  const { user } = useAuth();
+  const { data: session, status } = useSession();
   const router = useRouter();
 
   useEffect(() => {
-    if (!user) {
+    if (status === "unauthenticated") {
       router.replace("/login?from=/dashboard");
     }
-  }, [user, router]);
+  }, [status, router]);
 
-  if (!user) {
+  if (status === "loading") {
     return null;
   }
 
+  if (!session?.user) {
+    return null;
+  }
+
+  const user = session.user;
   const firstName =
-    user.name?.split(" ")[0] || user.email.split("@")[0] || "Kunde";
+    user.name?.split(" ")[0] || user.email?.split("@")[0] || "Kunde";
 
   return (
     <main className="max-w-6xl mx-auto px-4 py-8 space-y-8">
@@ -86,9 +91,8 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* Secção detalhada em 2 colunas */}
+      {/* 2 colunas de informação extra */}
       <section className="grid gap-6 lg:grid-cols-2">
-        {/* Dados pessoais */}
         <div className="rounded-2xl border border-neutral-200 bg-white p-5 space-y-3">
           <h2 className="text-sm font-semibold">Persönliche Daten</h2>
           <p className="text-xs text-neutral-600">
@@ -107,7 +111,6 @@ export default function DashboardPage() {
           </dl>
         </div>
 
-        {/* Kommunikation / Newsletter / Einstellungen */}
         <div className="rounded-2xl border border-neutral-200 bg-white p-5 space-y-3">
           <h2 className="text-sm font-semibold">Kommunikation</h2>
           <p className="text-xs text-neutral-600">
@@ -130,7 +133,6 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* Placeholder für Bestellhistorie */}
       <section className="rounded-2xl border border-neutral-200 bg-white p-5">
         <h2 className="text-sm font-semibold mb-2">Bestellhistorie</h2>
         <p className="text-xs text-neutral-600 mb-3">
