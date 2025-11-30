@@ -2,6 +2,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import AddToCartButton from "@/components/AddToCartButton";
+import AddToFavoritesButton from "@/components/AddToFavoritesButton";
 import { PRODUCTS } from "@/data/products";
 
 export const metadata = {
@@ -73,12 +74,16 @@ export default function ProductsPage() {
                 </p>
               </div>
 
-              <div className="mt-3">
-                <AddToCartButton
-                  id={product.id}
-                  title={product.title}
-                  price={product.price}
-                />
+              {/* Carrinho + Favoritos */}
+              <div className="mt-3 flex items-center justify-between gap-2">
+                <div className="flex-1">
+                  <AddToCartButton
+                    id={product.id}
+                    title={product.title}
+                    price={product.price}
+                  />
+                </div>
+                <AddToFavoritesButton productId={product.id} />
               </div>
             </div>
           </article>
