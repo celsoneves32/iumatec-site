@@ -1,4 +1,4 @@
-// app/layout.tsx 
+// app/layout.tsx
 import type { Metadata } from "next";
 import Script from "next/script";
 import type { ReactNode } from "react";
@@ -6,7 +6,8 @@ import type { ReactNode } from "react";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 import FooterBarMobile from "../components/FooterBarMobile";
-import { CartProvider } from "@/context/CartContext"; // ✅ ATUALIZADO
+import { CartProvider } from "@/context/CartContext"; // ✅ carrinho
+import { AuthProvider } from "@/context/AuthContext"; // ✅ novo: auth
 import "./globals.css";
 
 // 👉 forçar tudo a ser dinâmico (sem geração estática)
@@ -91,13 +92,15 @@ export default function RootLayout({
           `}
         </Script>
 
-        {/* ✅ Tudo o site dentro do CartProvider */}
-        <CartProvider>
-          <SiteHeader />
-          {children}
-          <SiteFooter />
-          <FooterBarMobile />
-        </CartProvider>
+        {/* ✅ Tudo o site dentro do AuthProvider + CartProvider */}
+        <AuthProvider>
+          <CartProvider>
+            <SiteHeader />
+            {children}
+            <SiteFooter />
+            <FooterBarMobile />
+          </CartProvider>
+        </AuthProvider>
 
         {/* Google Analytics – GA4 */}
         <Script
