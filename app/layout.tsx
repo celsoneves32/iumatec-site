@@ -1,16 +1,16 @@
+// app/layout.tsx
 import type { Metadata } from "next";
 import Script from "next/script";
 import type { ReactNode } from "react";
+import { SessionProvider } from "next-auth/react";
 
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 import FooterBarMobile from "../components/FooterBarMobile";
 import { CartProvider } from "@/context/CartContext";
-import { AuthProvider } from "@/context/AuthContext";
-import { FavoritesProvider } from "@/context/FavoritesContext"; // 👈 novo
+import { FavoritesProvider } from "@/context/FavoritesContext";
 import "./globals.css";
 
-// 👉 forçar tudo a ser dinâmico (sem geração estática)
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 export const revalidate = 0;
@@ -46,11 +46,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="de">
       <body
@@ -60,7 +56,6 @@ export default function RootLayout({
             "system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial",
         }}
       >
-        {/* Cookiebot CMP – tem de carregar antes de tudo */}
         <Script
           id="Cookiebot"
           src="https://consent.cookiebot.com/uc.js"
@@ -69,7 +64,6 @@ export default function RootLayout({
           strategy="beforeInteractive"
         />
 
-        {/* Google Consent Mode defaults (snippet da Cookiebot) */}
         <Script
           id="cookiebot-consent-mode"
           strategy="beforeInteractive"
@@ -92,8 +86,7 @@ export default function RootLayout({
           `}
         </Script>
 
-        {/* Providers globais */}
-        <AuthProvider>
+        <SessionProvider>
           <FavoritesProvider>
             <CartProvider>
               <SiteHeader />
@@ -102,9 +95,8 @@ export default function RootLayout({
               <FooterBarMobile />
             </CartProvider>
           </FavoritesProvider>
-        </AuthProvider>
+        </SessionProvider>
 
-        {/* Google Analytics – GA4 */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-7G0853WGDN"
           strategy="afterInteractive"
