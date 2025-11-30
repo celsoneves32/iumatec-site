@@ -2,55 +2,71 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
-import { supabaseBrowser } from "@/lib/supabaseClient";
+import { useAuth } from "@/context/AuthContext";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-
+  const { user, login } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("redirectTo") || "/account";
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
-  async function handleSubmit(e: FormEvent) {
+  const from = searchParams.get("from") || "/dashboard";
+
+  // Se já está logado → manda direto para /dashboard (ou “from”)
+  if (user) {
+    router.replace(from);
+    return null;
+  }
+
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    setErrorMsg(null);
-    setLoading(true);
 
-    const { error } = await supabaseBrowser.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    setLoading(false);
-
-    if (error) {
-      setErrorMsg(error.message);
+    if (!email || !password) {
+      setError("Bitte E-Mail und Passwort eingeben.");
       return;
     }
 
-    router.push(redirectTo);
-  }
+    // ⚠️ LOGIN FAKE – só para testes, ainda sem backend
+    login({
+      name: name || email.split("@")[0],
+      email,
+    });
+
+    router.replace(from);
+  };
 
   return (
     <main className="max-w-md mx-auto px-4 py-10">
       <h1 className="text-2xl font-semibold mb-2">Anmelden</h1>
       <p className="text-sm text-neutral-600 mb-6">
-        Melden Sie sich mit Ihrem IUMATEC-Konto an, um Bestellungen zu sehen.
+        Demo-Login nur für das IUMATEC-Projekt (noch kein echtes Kundenkonto).
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
+          <label className="block text-sm font-medium mb-1">
+            Name (optional)
+          </label>
+          <input
+            type="text"
+            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Max Muster"
+          />
+        </div>
+
+        <div>
           <label className="block text-sm font-medium mb-1">E-Mail</label>
           <input
             type="email"
-            required
+            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+            placeholder="kunde@example.ch"
           />
         </div>
 
@@ -58,34 +74,22 @@ export default function LoginPage() {
           <label className="block text-sm font-medium mb-1">Passwort</label>
           <input
             type="password"
-            required
+            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+            placeholder="••••••••"
           />
         </div>
 
-        {errorMsg && (
-          <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-md px-3 py-2">
-            {errorMsg}
-          </p>
-        )}
+        {error && <p className="text-sm text-red-600">{error}</p>}
 
         <button
           type="submit"
-          disabled={loading}
-          className="w-full rounded-full bg-red-600 text-white text-sm font-semibold py-2.5 hover:bg-red-700 disabled:opacity-60"
+          className="w-full rounded-md bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700"
         >
-          {loading ? "Anmelden..." : "Anmelden"}
+          Einloggen
         </button>
       </form>
-
-      <p className="mt-4 text-xs text-neutral-600">
-        Noch kein Konto?{" "}
-        <Link href="/register" className="text-red-600 hover:underline">
-          Jetzt registrieren
-        </Link>
-      </p>
     </main>
   );
 }
