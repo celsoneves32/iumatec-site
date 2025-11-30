@@ -9,33 +9,24 @@ export default function AccountButton() {
   const pathname = usePathname();
   const loginHref = `/login?from=${encodeURIComponent(pathname ?? "/")}`;
 
-  // ❌ Não logado → mostrar botão Login
+  const btnClass =
+    "px-4 py-2 rounded-xl border border-neutral-300 text-sm font-semibold hover:bg-neutral-100 transition";
+
   if (!user) {
     return (
-      <Link
-        href={loginHref}
-        className="text-sm font-medium px-3 py-1.5 rounded-full border border-neutral-200 hover:bg-neutral-100"
-      >
+      <Link href={loginHref} className={btnClass}>
         Login
       </Link>
     );
   }
 
-  // ✅ Logado → “Mein Konto” + Logout
   return (
-    <div className="flex items-center gap-2">
-      <Link
-        href="/dashboard"
-        className="hidden sm:inline-flex text-sm font-medium px-3 py-1.5 rounded-full border border-neutral-200 hover:bg-neutral-100"
-      >
+    <div className="flex items-center gap-3">
+      <Link href="/dashboard" className={btnClass}>
         Mein Konto
       </Link>
 
-      <button
-        type="button"
-        onClick={logout}
-        className="text-xs text-neutral-500 hover:text-neutral-800 underline"
-      >
+      <button type="button" onClick={logout} className={btnClass}>
         Logout
       </button>
     </div>
