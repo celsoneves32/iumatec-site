@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
+import { useSession, signOut } from "next-auth/react";
 
 function UserIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -43,11 +43,12 @@ function LogoutIcon(props: React.SVGProps<SVGSVGElement>) {
 }
 
 export default function AccountButton() {
-  const { user, logout } = useAuth();
+  const { data: session } = useSession();
   const pathname = usePathname();
   const loginHref = `/login?from=${encodeURIComponent(pathname ?? "/")}`;
 
-  // Não logado → um botão com ícone + "Login"
+  const user = session?.user;
+
   if (!user) {
     return (
       <Link
@@ -60,7 +61,6 @@ export default function AccountButton() {
     );
   }
 
-  // Logado → ícone Konto + ícone Logout
   return (
     <div className="flex items-center gap-2">
       <Link
@@ -73,7 +73,7 @@ export default function AccountButton() {
 
       <button
         type="button"
-        onClick={logout}
+        onClick={() => signOut({ callbackUrl: "/" })}
         className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1.5 text-sm font-semibold text-neutral-800 hover:bg-neutral-100 transition"
       >
         <LogoutIcon className="h-4 w-4" />
