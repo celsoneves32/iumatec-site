@@ -2,6 +2,7 @@
 "use client";
 
 import Link from "next/link";
+import { useFavorites } from "@/context/FavoritesContext";
 
 function HeartIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -21,8 +22,8 @@ function HeartIcon(props: React.SVGProps<SVGSVGElement>) {
 }
 
 export default function FavoriteButton() {
-  // 👉 no futuro podes ligar isto a um contexto de favoritos
-  const count = 0; // por enquanto sempre 0
+  const { ids } = useFavorites();
+  const count = ids.length;
 
   return (
     <Link
