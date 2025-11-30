@@ -70,7 +70,7 @@ export const PRODUCTS: Product[] = [
     category: "Informatik",
   },
 
-  // ⭐ NOVO PRODUTO DE TESTE POR CHF 1.– ⭐
+  // ⭐ Produkt de teste por CHF 1.– ⭐
   {
     id: "test1",
     title: "Testprodukt – Nur CHF 1.–",
@@ -83,4 +83,6 @@ export const PRODUCTS: Product[] = [
   },
 ];
 
-export function getProductByI
+export function getProductById(id: string): Product | undefined {
+  return PRODUCTS.find((p) => p.id === id);
+}
