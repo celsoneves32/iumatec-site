@@ -1,0 +1,43 @@
+// app/api/register/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { hash } from "bcryptjs";
+
+export async function POST(req: NextRequest) {
+  try {
+    const { name, email, password } = await req.json();
+
+    if (!email || !password) {
+      return NextResponse.json(
+        { error: "E-Mail und Passwort erforderlich." },
+        { status: 400 }
+      );
+    }
+
+    const existing = await prisma.user.findUnique({ where: { email } });
+    if (existing) {
+      return NextResponse.json(
+        { error: "Es existiert bereits ein Konto mit dieser E-Mail." },
+        { status: 400 }
+      );
+    }
+
+    const hashed = await hash(password, 10);
+
+    await prisma.user.create({
+      data: {
+        name: name || null,
+        email,
+        password: hashed,
+      },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error("Register error", err);
+    return NextResponse.json(
+      { error: "Registrierung fehlgeschlagen." },
+      { status: 500 }
+    );
+  }
+}
