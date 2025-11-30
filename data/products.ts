@@ -1,4 +1,5 @@
 // data/products.ts
+
 export type Product = {
   id: string;
   title: string;
@@ -68,8 +69,18 @@ export const PRODUCTS: Product[] = [
       "Zuverlässiger Laptop für Office, E-Mails und Homeoffice.",
     category: "Informatik",
   },
+
+  // ⭐ NOVO PRODUTO DE TESTE POR CHF 1.– ⭐
+  {
+    id: "test1",
+    title: "Testprodukt – Nur CHF 1.–",
+    price: 1,
+    image: "https://via.placeholder.com/600x400?text=Testprodukt+CHF+1",
+    description:
+      "Dies ist ein Testprodukt. Nur zum Testen des Bestellprozesses.",
+    category: "Test",
+    badge: "Aktion",
+  },
 ];
 
-export function getProductById(id: string): Product | undefined {
-  return PRODUCTS.find((p) => p.id === id);
-}
+export function getProductByI
