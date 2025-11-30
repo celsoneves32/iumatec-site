@@ -1,7 +1,9 @@
+// app/login/page.tsx
 "use client";
 
 import { FormEvent, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 
 export default function LoginPage() {
@@ -15,7 +17,7 @@ export default function LoginPage() {
 
   const from = searchParams.get("from") || "/dashboard";
 
-  // Se já está logado → manda direto para /dashboard (ou “from”)
+  // Se já está logado → redireciona
   if (user) {
     router.replace(from);
     return null;
@@ -23,13 +25,14 @@ export default function LoginPage() {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
+    setError("");
 
     if (!email || !password) {
       setError("Bitte E-Mail und Passwort eingeben.");
       return;
     }
 
-    // ⚠️ LOGIN FAKE – só para testes, ainda sem backend
+    // ⚠️ Login DEMO – sem verificação real de password
     login({
       name: name || email.split("@")[0],
       email,
@@ -42,7 +45,8 @@ export default function LoginPage() {
     <main className="max-w-md mx-auto px-4 py-10">
       <h1 className="text-2xl font-semibold mb-2">Anmelden</h1>
       <p className="text-sm text-neutral-600 mb-6">
-        Demo-Login nur für das IUMATEC-Projekt (noch kein echtes Kundenkonto).
+        Demo-Login für das IUMATEC-Projekt. Später wird hier ein echtes
+        Kundenlogin (z.B. mit E-Mail-Bestätigung) integriert.
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -81,7 +85,11 @@ export default function LoginPage() {
           />
         </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && (
+          <p className="text-sm text-red-600">
+            {error}
+          </p>
+        )}
 
         <button
           type="submit"
@@ -90,6 +98,17 @@ export default function LoginPage() {
           Einloggen
         </button>
       </form>
+
+      <p className="mt-6 text-xs text-neutral-600">
+        Noch kein Konto?{" "}
+        <Link
+          href={`/register?from=${encodeURIComponent(from)}`}
+          className="font-semibold text-red-600 hover:underline"
+        >
+          Jetzt registrieren
+        </Link>
+        .
+      </p>
     </main>
   );
 }
