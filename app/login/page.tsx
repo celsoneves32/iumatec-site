@@ -4,26 +4,24 @@
 import { FormEvent, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { useAuth } from "@/context/AuthContext";
+import { signIn, useSession } from "next-auth/react";
 
 export default function LoginPage() {
-  const { user, login } = useAuth();
+  const { data: session } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
   const from = searchParams.get("from") || "/dashboard";
 
-  // Se já está logado → redireciona
-  if (user) {
+  if (session?.user) {
     router.replace(from);
     return null;
   }
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -32,11 +30,16 @@ export default function LoginPage() {
       return;
     }
 
-    // ⚠️ Login DEMO – sem verificação real de password
-    login({
-      name: name || email.split("@")[0],
+    const res = await signIn("credentials", {
+      redirect: false,
       email,
+      password,
     });
+
+    if (res?.error) {
+      setError(res.error);
+      return;
+    }
 
     router.replace(from);
   };
@@ -45,24 +48,10 @@ export default function LoginPage() {
     <main className="max-w-md mx-auto px-4 py-10">
       <h1 className="text-2xl font-semibold mb-2">Anmelden</h1>
       <p className="text-sm text-neutral-600 mb-6">
-        Demo-Login für das IUMATEC-Projekt. Später wird hier ein echtes
-        Kundenlogin (z.B. mit E-Mail-Bestätigung) integriert.
+        Melde dich mit deinem IUMATEC-Konto an.
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Name (optional)
-          </label>
-          <input
-            type="text"
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Max Muster"
-          />
-        </div>
-
         <div>
           <label className="block text-sm font-medium mb-1">E-Mail</label>
           <input
