@@ -24,7 +24,6 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
-  // Carregar user do localStorage (para não perder login ao recarregar)
   useEffect(() => {
     if (typeof window === "undefined") return;
     const stored = window.localStorage.getItem("iumatec_user");
