@@ -4,10 +4,10 @@
 import { FormEvent, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { useAuth } from "@/context/AuthContext";
+import { useSession, signIn } from "next-auth/react";
 
 export default function RegisterPage() {
-  const { user, login } = useAuth();
+  const { data: session } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -16,16 +16,16 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const from = searchParams.get("from") || "/dashboard";
 
-  // Se já tem login, manda para dashboard
-  if (user) {
+  if (session?.user) {
     router.replace(from);
     return null;
   }
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -44,13 +44,34 @@ export default function RegisterPage() {
       return;
     }
 
-    // ⚠️ Demo-Register: aqui só gravamos em memória/localStorage via AuthContext
-    login({
-      name: name.trim(),
-      email: email.trim(),
-    });
+    try {
+      setLoading(true);
+      const res = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
 
-    router.replace(from);
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Registrierung fehlgeschlagen.");
+        setLoading(false);
+        return;
+      }
+
+      // após registar, faz login automático
+      await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+      });
+
+      router.replace(from);
+    } catch (err) {
+      console.error(err);
+      setError("Registrierung fehlgeschlagen.");
+      setLoading(false);
+    }
   };
 
   return (
@@ -58,8 +79,7 @@ export default function RegisterPage() {
       <h1 className="text-2xl font-semibold mb-2">Registrieren</h1>
       <p className="text-sm text-neutral-600 mb-6">
         Erstelle ein IUMATEC-Konto, um schneller zu bestellen und deine
-        Daten im Blick zu behalten. (Demo-Version, noch ohne echtes
-        Kundenkonto-System.)
+        Daten im Blick zu behalten.
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -117,9 +137,10 @@ export default function RegisterPage() {
 
         <button
           type="submit"
-          className="w-full rounded-md bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700"
+          disabled={loading}
+          className="w-full rounded-md bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700 disabled:bg-red-300 disabled:cursor-not-allowed"
         >
-          Konto erstellen
+          {loading ? "Konto wird erstellt…" : "Konto erstellen"}
         </button>
       </form>
 
