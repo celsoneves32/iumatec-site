@@ -3,9 +3,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import AddToCartButton from "@/components/AddToCartButton";
+import AddToFavoritesButton from "@/components/AddToFavoritesButton";
 import { getProductById, PRODUCTS } from "@/data/products";
 
-// Metadata dinâmica com base no produto
 type PageProps = {
   params: { id: string };
 };
@@ -82,12 +82,16 @@ export default function ProductDetailPage({ params }: PageProps) {
             </p>
           </div>
 
-          <div className="mt-2 max-w-xs">
-            <AddToCartButton
-              id={product!.id}
-              title={product!.title}
-              price={product!.price}
-            />
+          {/* Botões: Carrinho + Favoritos */}
+          <div className="mt-2 flex flex-col sm:flex-row gap-3 max-w-md">
+            <div className="flex-1">
+              <AddToCartButton
+                id={product!.id}
+                title={product!.title}
+                price={product!.price}
+              />
+            </div>
+            <AddToFavoritesButton productId={product!.id} />
           </div>
 
           <div className="mt-4 rounded-2xl border border-neutral-200 p-4 bg-neutral-50 text-xs text-neutral-600">
@@ -101,7 +105,7 @@ export default function ProductDetailPage({ params }: PageProps) {
         </div>
       </div>
 
-      {/* Produkte-Slider simples em baixo (weiter stöbern) */}
+      {/* Mais produtos em baixo */}
       <section className="mt-10 border-t border-neutral-200 pt-6">
         <h2 className="text-sm font-semibold mb-4">
           Weitere Produkte entdecken
@@ -140,4 +144,3 @@ export default function ProductDetailPage({ params }: PageProps) {
     </main>
   );
 }
-
