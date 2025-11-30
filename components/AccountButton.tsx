@@ -1,42 +1,43 @@
+"use client";
+
 import Link from "next/link";
-import CartStatus from "./CartStatus";
-import AccountButton from "@/components/AccountButton"; // 👈 novo
+import { usePathname } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
-export default function SiteHeader() {
+export default function AccountButton() {
+  const { user, logout } = useAuth();
+  const pathname = usePathname();
+  const loginHref = `/login?from=${encodeURIComponent(pathname ?? "/")}`;
+
+  // ❌ Não logado → mostrar botão Login
+  if (!user) {
+    return (
+      <Link
+        href={loginHref}
+        className="text-sm font-medium px-3 py-1.5 rounded-full border border-neutral-200 hover:bg-neutral-100"
+      >
+        Login
+      </Link>
+    );
+  }
+
+  // ✅ Logado → “Mein Konto” + Logout
   return (
-    <header className="border-b border-neutral-200 dark:border-neutral-800 bg-white/80 dark:bg-neutral-950/80 backdrop-blur">
-      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-6">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2">
-          <img
-            src="/logo-iumatec.svg"
-            alt="IUMATEC"
-            className="h-7 w-auto"
-          />
-        </Link>
+    <div className="flex items-center gap-2">
+      <Link
+        href="/dashboard"
+        className="hidden sm:inline-flex text-sm font-medium px-3 py-1.5 rounded-full border border-neutral-200 hover:bg-neutral-100"
+      >
+        Mein Konto
+      </Link>
 
-        {/* Navegação principal */}
-        <nav className="hidden md:flex items-center gap-6 text-sm">
-          <Link href="/" className="hover:text-red-600">
-            Startseite
-          </Link>
-          <Link href="/produkte" className="hover:text-red-600">
-            Produkte
-          </Link>
-          <Link href="/kontakt" className="hover:text-red-600">
-            Kontakt
-          </Link>
-          <Link href="/impressum" className="hover:text-red-600">
-            Impressum
-          </Link>
-        </nav>
-
-        {/* Conta + Carrinho */}
-        <div className="flex items-center gap-3">
-          <AccountButton />
-          <CartStatus />
-        </div>
-      </div>
-    </header>
+      <button
+        type="button"
+        onClick={logout}
+        className="text-xs text-neutral-500 hover:text-neutral-800 underline"
+      >
+        Logout
+      </button>
+    </div>
   );
 }
