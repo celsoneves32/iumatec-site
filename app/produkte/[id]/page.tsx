@@ -1,9 +1,10 @@
+// app/produkte/page.tsx
 import Image from "next/image";
 import Link from "next/link";
 import AddToCartButton from "@/components/AddToCartButton";
 
 export const metadata = {
-  title: "Produktdetails | IUMATEC Schweiz",
+  title: "Produkte | IUMATEC Schweiz",
   description:
     "Technik-Angebote zu unschlagbaren Preisen – schnelle Lieferung in der ganzen Schweiz.",
 };
@@ -18,209 +19,141 @@ type Product = {
   badge?: "Bestseller" | "Aktion" | "Neu";
 };
 
-// 🔹 Mock data (depois substituir por Shopify fetch)
+// 🔹 Mock-Produkte mit IMAGENS TEMPORÁRIAS (via.placeholder.com)
 const PRODUCTS: Product[] = [
   {
     id: "p1",
-    title: "iPhone 15 128GB",
-    price: 799,
-    image: "/products/iphone15.png",
+    title: 'Samsung 65" 4K QLED',
+    price: 899,
+    image: "https://via.placeholder.com/600x400?text=65%22+4K+TV",
     description:
-      "Das neue iPhone 15 mit A16 Bionic Chip, Dynamic Island und 48 MP Kamera.",
-    category: "Smartphones",
+      "Brillantes 4K-QLED-Display – perfekt für Filme, Sport und Gaming.",
+    category: "TV & Audio",
     badge: "Bestseller",
   },
   {
     id: "p2",
-    title: "Samsung Galaxy S24",
-    price: 749,
-    image: "/products/galaxy-s24.png",
+    title: "iPhone 15 128GB",
+    price: 799,
+    image: "https://via.placeholder.com/600x400?text=iPhone+15",
     description:
-      "Leistungsstarkes Galaxy S24 mit KI-Features und Dynamic AMOLED Display.",
+      "Das neue iPhone 15 mit starkem Chip und 48 MP Kamera.",
     category: "Smartphones",
     badge: "Neu",
   },
   {
     id: "p3",
-    title: "LG OLED C3 55” 4K",
-    price: 1199,
-    image: "/products/lg-oled-c3.png",
+    title: "Gaming Laptop RTX 4060",
+    price: 1299,
+    image: "https://via.placeholder.com/600x400?text=Gaming+Laptop",
     description:
-      "Brillante Farben und perfektes Schwarz – OLED evo Technologie von LG.",
-    category: "TV & Audio",
+      "Leistungsstarker Laptop für Gaming und Arbeit mit RTX 4060.",
+    category: "Informatik",
     badge: "Aktion",
   },
   {
     id: "p4",
-    title: "Sony WH-1000XM5",
-    price: 329,
-    image: "/products/sony-xm5.png",
+    title: "PlayStation 5 Bundle",
+    price: 599,
+    image: "https://via.placeholder.com/600x400?text=PlayStation+5",
     description:
-      "Premium Noise Cancelling Kopfhörer mit bis zu 30 h Laufzeit.",
-    category: "TV & Audio",
+      "Konsole der neuen Generation – inkl. Controller und Spiel.",
+    category: "Gaming",
   },
   {
     id: "p5",
-    title: "MacBook Air M2 13”",
-    price: 1099,
-    image: "/products/macbook-air-m2.png",
+    title: "Bluetooth Soundbar",
+    price: 199,
+    image: "https://via.placeholder.com/600x400?text=Soundbar",
     description:
-      "Ultraleichtes Design, M2 Chip und 18 h Batterielaufzeit.",
+      "Kompakte Soundbar für besseren TV-Sound und Musik.",
+    category: "TV & Audio",
+  },
+  {
+    id: "p6",
+    title: "Office Laptop 15\"",
+    price: 649,
+    image: "https://via.placeholder.com/600x400?text=Office+Laptop",
+    description:
+      "Zuverlässiger Laptop für Office, E-Mails und Homeoffice.",
     category: "Informatik",
-  },
-  {
-    id: "p7",
-    title: "PlayStation 5 Slim",
-    price: 499,
-    image: "/products/ps5-slim.png",
-    description:
-      "Die neue, kompakte PS5 Slim mit 1 TB Speicher und 4K-Gaming-Power.",
-    category: "Gaming",
-  },
-  {
-    id: "p8",
-    title: "Nintendo Switch OLED",
-    price: 339,
-    image: "/products/switch-oled.png",
-    description:
-      "Brillantes OLED-Display, verbessertes Audio und vielseitiges Gaming-Erlebnis.",
-    category: "Gaming",
   },
 ];
 
-const hasFreeShipping = (price: number) => price >= 49;
-
-export default function ProductDetail({ params }: { params: { id: string } }) {
-  const product = PRODUCTS.find((p) => p.id === params.id);
-
-  if (!product) {
-    return (
-      <main className="max-w-5xl mx-auto px-4 py-12 text-center">
-        <h1 className="text-2xl font-semibold mb-2">
-          Produkt nicht gefunden
-        </h1>
-        <Link href="/produkte" className="text-brand-red hover:underline">
-          Zurück zur Übersicht →
-        </Link>
-      </main>
-    );
-  }
-
-  // ähnliche Produkte derselben Kategorie (max 4)
-  const similar = PRODUCTS.filter(
-    (p) => p.category === product.category && p.id !== product.id
-  ).slice(0, 4);
-
+export default function ProductsPage() {
   return (
-    <main className="max-w-7xl mx-auto px-4 py-10">
-      <div className="grid md:grid-cols-2 gap-10">
-        {/* Bild */}
-        <div className="relative aspect-square rounded-2xl border dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden">
-          <Image
-            src={product.image}
-            alt={product.title}
-            fill
-            className="object-contain p-6"
-            priority
-          />
-          {product.badge && (
-            <span className="absolute left-4 top-4 text-xs font-semibold bg-black/80 text-white rounded-md px-2 py-1">
-              {product.badge}
-            </span>
-          )}
-          {hasFreeShipping(product.price) && (
-            <span className="absolute right-4 top-4 text-[10px] font-semibold bg-green-600 text-white rounded-md px-2 py-1">
-              Gratis Versand
-            </span>
-          )}
-        </div>
-
-        {/* Beschreibung */}
+    <main className="max-w-7xl mx-auto px-4 py-8">
+      <header className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl md:text-3xl font-semibold mb-2">
-            {product.title}
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Produkte
           </h1>
-          <p className="text-gray-500 mb-6">{product.description}</p>
-
-          <div className="flex items-baseline gap-4 mb-4">
-            <span className="text-3xl font-bold">
-              CHF {product.price.toFixed(2)}
-            </span>
-            {product.badge && (
-              <span className="bg-red-600 text-white text-xs font-semibold px-2 py-1 rounded-md">
-                {product.badge}
-              </span>
-            )}
-          </div>
-
-          {hasFreeShipping(product.price) && (
-            <div className="text-green-700 dark:text-green-400 text-sm mb-4">
-              ✅ Gratis Versand ab CHF 49.– in der ganzen Schweiz
-            </div>
-          )}
-
-          {/* Botão com evento GA4 add_to_cart */}
-          <AddToCartButton
-            id={product.id}
-            title={product.title}
-            price={product.price}
-          />
-
-          <p className="text-xs text-gray-500 mt-3">
-            Lieferzeit: 1–3 Werktage • Rückgabe innerhalb 14 Tage
+          <p className="text-sm text-neutral-600">
+            Technik zu unschlagbaren Preisen – sofort lieferbar in der
+            ganzen Schweiz.
           </p>
         </div>
-      </div>
+      </header>
 
-      {/* ÄHNLICHE PRODUKTE */}
-      {similar.length > 0 && (
-        <section className="mt-14">
-          <h2 className="text-xl md:text-2xl font-semibold mb-4">
-            Ähnliche Produkte
-          </h2>
-          <div className="grid gap-4 sm:gap-6 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-            {similar.map((p) => (
-              <Link
-                key={p.id}
-                href={`/produkte/${p.id}`}
-                className="group rounded-2xl border dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden hover:shadow-md transition"
-              >
-                <div className="relative aspect-square bg-white dark:bg-neutral-900">
-                  <Image
-                    src={p.image}
-                    alt={p.title}
-                    fill
-                    className="object-contain p-4"
-                  />
-                  {p.badge && (
-                    <span className="absolute left-3 top-3 text-xs font-semibold bg-black/80 text-white rounded-md px-2 py-1">
-                      {p.badge}
-                    </span>
-                  )}
-                  {hasFreeShipping(p.price) && (
-                    <span className="absolute right-3 top-3 text-[10px] font-semibold bg-green-600 text-white rounded-md px-2 py-1">
-                      Gratis Versand
-                    </span>
-                  )}
-                </div>
-                <div className="p-3">
-                  <h3 className="text-sm font-medium line-clamp-2 min-h-[2.75rem]">
-                    {p.title}
-                  </h3>
-                  <div className="mt-2 flex items-center justify-between">
-                    <span className="text-base font-semibold">
-                      CHF {p.price.toFixed(2)}
-                    </span>
-                    <span className="text-xs text-gray-500 group-hover:text-brand-red transition">
-                      Details →
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
+      {/* Grid de produtos */}
+      <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {PRODUCTS.map((product) => (
+          <article
+            key={product.id}
+            className="group rounded-2xl border border-neutral-200 bg-white shadow-sm hover:shadow-md transition-shadow flex flex-col"
+          >
+            <Link
+              href={`/produkte/${product.id}`}
+              className="block relative w-full aspect-[4/3] overflow-hidden rounded-t-2xl"
+            >
+              <Image
+                src={product.image}
+                alt={product.title}
+                width={600}
+                height={400}
+                className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform"
+                priority={false}
+              />
+              {product.badge && (
+                <span className="absolute left-3 top-3 rounded-full bg-red-600 px-3 py-1 text-xs font-semibold text-white shadow">
+                  {product.badge}
+                </span>
+              )}
+            </Link>
+
+            <div className="flex flex-1 flex-col p-4 gap-2">
+              <div className="flex-1">
+                <p className="text-[11px] uppercase tracking-wide text-neutral-500">
+                  {product.category}
+                </p>
+                <Link
+                  href={`/produkte/${product.id}`}
+                  className="line-clamp-2 text-sm font-semibold text-neutral-900 group-hover:text-red-600"
+                >
+                  {product.title}
+                </Link>
+                <p className="mt-1 line-clamp-2 text-xs text-neutral-600">
+                  {product.description}
+                </p>
+              </div>
+
+              <div className="mt-2 flex items-center justify-between">
+                <p className="text-base font-semibold text-neutral-900">
+                  CHF {product.price.toFixed(2)}
+                </p>
+              </div>
+
+              <div className="mt-3">
+                <AddToCartButton
+                  id={product.id}
+                  title={product.title}
+                  price={product.price}
+                />
+              </div>
+            </div>
+          </article>
+        ))}
+      </section>
     </main>
   );
 }
