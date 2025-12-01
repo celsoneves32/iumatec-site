@@ -10,12 +10,14 @@ export default function DashboardPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
+  // se não estiver autenticado, mandar para login
   useEffect(() => {
     if (status === "unauthenticated") {
       router.replace("/login?from=/dashboard");
     }
   }, [status, router]);
 
+  // enquanto carrega, não mostra nada
   if (status === "loading") {
     return null;
   }
