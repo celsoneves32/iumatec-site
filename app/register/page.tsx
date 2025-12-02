@@ -59,7 +59,7 @@ export default function RegisterPage() {
         return;
       }
 
-      // após registar, faz login automático
+      // login automático depois de registar
       await signIn("credentials", {
         redirect: false,
         email,
