@@ -10,15 +10,15 @@ export default function CartPage() {
   const { data: session } = useSession();
   const router = useRouter();
 
-  const {
-    items,
-    total,
-    clearCart,
-    removeItem,
-    updateQuantity,
-  } = useCart();
+  const { items, clearCart, removeItem, updateQuantity } = useCart();
 
   const hasItems = items.length > 0;
+
+  // 👉 calcular total aqui, em vez de vir do contexto
+  const total = items.reduce(
+    (sum: number, item: any) => sum + item.price * item.quantity,
+    0
+  );
 
   const handleDecrease = (id: string, currentQty: number) => {
     if (currentQty <= 1) return;
