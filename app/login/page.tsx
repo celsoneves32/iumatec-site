@@ -10,12 +10,14 @@ export default function LoginPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
   const from = searchParams.get("from") || "/dashboard";
 
+  // Se já está logado, manda para o destino
   if (session?.user) {
     router.replace(from);
     return null;
@@ -37,7 +39,12 @@ export default function LoginPage() {
     });
 
     if (res?.error) {
-      setError(res.error);
+      // Mensagem padrão do NextAuth é "CredentialsSignin"
+      if (res.error === "CredentialsSignin") {
+        setError("E-Mail oder Passwort ist falsch.");
+      } else {
+        setError(res.error);
+      }
       return;
     }
 
@@ -48,7 +55,8 @@ export default function LoginPage() {
     <main className="max-w-md mx-auto px-4 py-10">
       <h1 className="text-2xl font-semibold mb-2">Anmelden</h1>
       <p className="text-sm text-neutral-600 mb-6">
-        Melde dich mit deinem IUMATEC-Konto an.
+        Melde dich mit deinem IUMATEC-Konto an, um Bestellungen und
+        Kontodaten zu verwalten.
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
