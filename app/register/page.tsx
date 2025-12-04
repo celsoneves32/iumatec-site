@@ -1,51 +1,31 @@
-// app/register/page.tsx
 "use client";
 
-import { FormEvent, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { useSession, signIn } from "next-auth/react";
+import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function RegisterPage() {
-  const { data: session } = useSession();
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
-  const from = searchParams.get("from") || "/dashboard";
-
-  if (session?.user) {
-    router.replace(from);
-    return null;
-  }
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setError("");
-
-    if (!name.trim() || !email.trim() || !password || !password2) {
-      setError("Bitte alle Felder ausfüllen.");
-      return;
-    }
-
-    if (password.length < 6) {
-      setError("Das Passwort muss mindestens 6 Zeichen lang sein.");
-      return;
-    }
+    setError(null);
 
     if (password !== password2) {
       setError("Die Passwörter stimmen nicht überein.");
       return;
     }
 
+    setLoading(true);
+
     try {
-      setLoading(true);
       const res = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -53,43 +33,36 @@ export default function RegisterPage() {
       });
 
       const data = await res.json();
+
       if (!res.ok) {
         setError(data.error || "Registrierung fehlgeschlagen.");
         setLoading(false);
         return;
       }
 
-      // login automático depois de registar
-      await signIn("credentials", {
-        redirect: false,
-        email,
-        password,
-      });
-
-      router.replace(from);
+      router.push("/login");
     } catch (err) {
-      console.error(err);
-      setError("Registrierung fehlgeschlagen.");
+      setError("Unerwarteter Fehler bei der Registrierung.");
       setLoading(false);
     }
   };
 
   return (
     <main className="max-w-md mx-auto px-4 py-10">
-      <h1 className="text-2xl font-semibold mb-2">Registrieren</h1>
+      <h1 className="text-2xl font-semibold mb-2">Konto erstellen</h1>
       <p className="text-sm text-neutral-600 mb-6">
-        Erstelle ein IUMATEC-Konto, um schneller zu bestellen und deine
-        Daten im Blick zu behalten.
+        Lege jetzt dein IUMATEC-Konto an, um schneller zu bestellen und deine
+        Daten zu verwalten.
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-1">Name</label>
+          <label className="block text-sm font-medium mb-1">Name (optional)</label>
           <input
             type="text"
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
             placeholder="Max Muster"
           />
         </div>
@@ -98,9 +71,10 @@ export default function RegisterPage() {
           <label className="block text-sm font-medium mb-1">E-Mail</label>
           <input
             type="email"
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
             placeholder="kunde@example.ch"
           />
         </div>
@@ -109,10 +83,10 @@ export default function RegisterPage() {
           <label className="block text-sm font-medium mb-1">Passwort</label>
           <input
             type="password"
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••••"
+            className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
           />
         </div>
 
@@ -122,15 +96,15 @@ export default function RegisterPage() {
           </label>
           <input
             type="password"
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            required
             value={password2}
             onChange={(e) => setPassword2(e.target.value)}
-            placeholder="••••••••"
+            className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
           />
         </div>
 
         {error && (
-          <p className="text-sm text-red-600">
+          <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
             {error}
           </p>
         )}
@@ -138,21 +112,17 @@ export default function RegisterPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-md bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700 disabled:bg-red-300 disabled:cursor-not-allowed"
+          className="w-full rounded-lg bg-red-600 text-white text-sm font-semibold py-2.5 hover:bg-red-700 disabled:opacity-60"
         >
-          {loading ? "Konto wird erstellt…" : "Konto erstellen"}
+          {loading ? "Konto wird erstellt..." : "Registrieren"}
         </button>
       </form>
 
-      <p className="mt-6 text-xs text-neutral-600">
-        Du hast bereits ein Konto?{" "}
-        <Link
-          href={`/login?from=${encodeURIComponent(from)}`}
-          className="font-semibold text-red-600 hover:underline"
-        >
-          Jetzt anmelden
+      <p className="mt-4 text-sm text-neutral-600">
+        Schon ein Konto?{" "}
+        <Link href="/login" className="text-red-600 hover:underline">
+          Jetzt einloggen.
         </Link>
-        .
       </p>
     </main>
   );
