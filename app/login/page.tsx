@@ -1,54 +1,45 @@
-// app/login/page.tsx
 "use client";
 
+import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
-import { signIn, useSession } from "next-auth/react";
 
 export default function LoginPage() {
-  const { data: session } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const from = searchParams.get("from") || "/dashboard";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-
-  const from = searchParams.get("from") || "/dashboard";
-
-  // Se já está logado, manda para o destino
-  if (session?.user) {
-    router.replace(from);
-    return null;
-  }
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setError("");
+    setError(null);
+    setLoading(true);
 
-    if (!email || !password) {
-      setError("Bitte E-Mail und Passwort eingeben.");
-      return;
-    }
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-    const res = await signIn("credentials", {
-      redirect: false,
-      email,
-      password,
-    });
+      const data = await res.json();
 
-    if (res?.error) {
-      // Mensagem padrão do NextAuth é "CredentialsSignin"
-      if (res.error === "CredentialsSignin") {
-        setError("E-Mail oder Passwort ist falsch.");
-      } else {
-        setError(res.error);
+      if (!res.ok) {
+        setError(data.error || "Login fehlgeschlagen.");
+        setLoading(false);
+        return;
       }
-      return;
-    }
 
-    router.replace(from);
+      router.push(from);
+      router.refresh();
+    } catch (err) {
+      setError("Unerwarteter Fehler beim Login.");
+      setLoading(false);
+    }
   };
 
   return (
@@ -64,9 +55,10 @@ export default function LoginPage() {
           <label className="block text-sm font-medium mb-1">E-Mail</label>
           <input
             type="email"
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
             placeholder="kunde@example.ch"
           />
         </div>
@@ -75,36 +67,33 @@ export default function LoginPage() {
           <label className="block text-sm font-medium mb-1">Passwort</label>
           <input
             type="password"
-            className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+            required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••••"
+            className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
           />
         </div>
 
         {error && (
-          <p className="text-sm text-red-600">
+          <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
             {error}
           </p>
         )}
 
         <button
           type="submit"
-          className="w-full rounded-md bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700"
+          disabled={loading}
+          className="w-full rounded-lg bg-red-600 text-white text-sm font-semibold py-2.5 hover:bg-red-700 disabled:opacity-60"
         >
-          Einloggen
+          {loading ? "Wird eingeloggt..." : "Einloggen"}
         </button>
       </form>
 
-      <p className="mt-6 text-xs text-neutral-600">
+      <p className="mt-4 text-sm text-neutral-600">
         Noch kein Konto?{" "}
-        <Link
-          href={`/register?from=${encodeURIComponent(from)}`}
-          className="font-semibold text-red-600 hover:underline"
-        >
-          Jetzt registrieren
+        <Link href="/register" className="text-red-600 hover:underline">
+          Jetzt registrieren.
         </Link>
-        .
       </p>
     </main>
   );
