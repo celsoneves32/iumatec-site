@@ -1,3 +1,4 @@
+// app/api/register/route.ts
 import { supabase } from "@/lib/supabase";
 import { hash } from "bcryptjs";
 
@@ -12,16 +13,16 @@ export async function POST(req: Request) {
       );
     }
 
-    // Verifica se já existe
+    // Verificar se já existe utilizador com esse email
     const { data: existing } = await supabase
       .from("User")
       .select("*")
       .eq("email", email)
-      .single();
+      .maybeSingle();
 
     if (existing) {
       return Response.json(
-        { error: "Benutzer existiert bereits." },
+        { error: "Ein Konto mit dieser E-Mail existiert bereits." },
         { status: 400 }
       );
     }
@@ -34,10 +35,20 @@ export async function POST(req: Request) {
       password: hashed,
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error("Supabase insert error", error);
+      return Response.json(
+        { error: "Fehler beim Anlegen des Kontos." },
+        { status: 500 }
+      );
+    }
 
     return Response.json({ success: true });
   } catch (err: any) {
-    return Response.json({ error: err.message }, { status: 500 });
+    console.error(err);
+    return Response.json(
+      { error: "Unerwarteter Fehler beim Registrieren." },
+      { status: 500 }
+    );
   }
 }
