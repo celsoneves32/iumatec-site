@@ -1,39 +1,62 @@
+// app/api/login/route.ts
 import { supabase } from "@/lib/supabase";
 import { compare } from "bcryptjs";
 import { SignJWT } from "jose";
+
+const SECRET = new TextEncoder().encode(process.env.NEXTAUTH_SECRET || "changeme");
 
 export async function POST(req: Request) {
   try {
     const { email, password } = await req.json();
 
-    const { data: user } = await supabase
+    if (!email || !password) {
+      return Response.json(
+        { error: "E-Mail und Passwort sind erforderlich." },
+        { status: 400 }
+      );
+    }
+
+    const { data: user, error } = await supabase
       .from("User")
       .select("*")
       .eq("email", email)
       .single();
 
-    if (!user) {
+    if (error || !user) {
       return Response.json(
-        { error: "Benutzer existiert nicht." },
+        { error: "Kein Konto mit dieser E-Mail gefunden." },
         { status: 400 }
       );
     }
 
-    const match = await compare(password, user.password);
-    if (!match) {
+    const ok = await compare(password, user.password);
+    if (!ok) {
       return Response.json(
-        { error: "Falsches Passwort." },
+        { error: "E-Mail oder Passwort ist falsch." },
         { status: 400 }
       );
     }
 
     const token = await new SignJWT({ userId: user.id })
       .setProtectedHeader({ alg: "HS256" })
+      .setIssuedAt()
       .setExpirationTime("7d")
-      .sign(new TextEncoder().encode(process.env.NEXTAUTH_SECRET));
+      .sign(SECRET);
 
-    return Response.json({ success: true, token });
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: {
+        "Set-Cookie": `iumatec_token=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${
+          7 * 24 * 60 * 60
+        }`,
+        "Content-Type": "application/json",
+      },
+    });
   } catch (err: any) {
-    return Response.json({ error: err.message }, { status: 500 });
+    console.error(err);
+    return Response.json(
+      { error: "Unerwarteter Fehler beim Login." },
+      { status: 500 }
+    );
   }
 }
