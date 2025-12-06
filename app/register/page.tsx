@@ -1,3 +1,4 @@
+// app/register/page.tsx
 "use client";
 
 import Link from "next/link";
@@ -21,7 +22,7 @@ export default function RegisterPage() {
     setError(null);
 
     if (!email || !password) {
-      setError("Bitte gib mindestens E-Mail-Adresse und Passwort ein.");
+      setError("Bitte gib mindestens deine E-Mail-Adresse und ein Passwort ein.");
       return;
     }
 
