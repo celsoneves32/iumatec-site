@@ -14,14 +14,14 @@ const authOptions: NextAuthOptions = {
   },
   providers: [
     CredentialsProvider({
-      name: "Credentials",
+      name: "Login mit E-Mail",
       credentials: {
         email: { label: "E-Mail-Adresse", type: "email" },
         password: { label: "Passwort", type: "password" },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials.password) {
-          // Falta de dados básicos
+          // Basisdaten fehlen
           throw new Error(
             "Bitte gib deine E-Mail-Adresse und dein Passwort ein."
           );
@@ -34,18 +34,14 @@ const authOptions: NextAuthOptions = {
 
         // Aus Datenschutzgründen immer dieselbe Fehlermeldung
         if (!user) {
-          throw new Error(
-            "E-Mail-Adresse oder Passwort ist nicht korrekt."
-          );
+          throw new Error("E-Mail-Adresse oder Passwort ist nicht korrekt.");
         }
 
         // Passwort prüfen (bcrypt)
         const isValid = await compare(credentials.password, user.password);
 
         if (!isValid) {
-          throw new Error(
-            "E-Mail-Adresse oder Passwort ist nicht korrekt."
-          );
+          throw new Error("E-Mail-Adresse oder Passwort ist nicht korrekt.");
         }
 
         // Login erfolgreich → minimale User-Daten zurückgeben
