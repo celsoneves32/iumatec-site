@@ -6,43 +6,49 @@ import { compare } from "bcryptjs";
 
 const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
-
   session: {
     strategy: "jwt",
   },
-
   pages: {
     signIn: "/login",
   },
-
   providers: [
     CredentialsProvider({
       name: "Credentials",
       credentials: {
-        email: { label: "E-Mail", type: "text" },
+        email: { label: "E-Mail-Adresse", type: "email" },
         password: { label: "Passwort", type: "password" },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials.password) {
-          throw new Error("E-Mail und Passwort erforderlich.");
+          // Falta de dados básicos
+          throw new Error(
+            "Bitte gib deine E-Mail-Adresse und dein Passwort ein."
+          );
         }
 
-        // Buscar utilizador na base de dados
+        // Nutzer in der Datenbank suchen
         const user = await prisma.user.findUnique({
           where: { email: credentials.email },
         });
 
+        // Aus Datenschutzgründen immer dieselbe Fehlermeldung
         if (!user) {
-          throw new Error("Kein Konto mit dieser E-Mail gefunden.");
+          throw new Error(
+            "E-Mail-Adresse oder Passwort ist nicht korrekt."
+          );
         }
 
-        // Comparar password (bcrypt)
+        // Passwort prüfen (bcrypt)
         const isValid = await compare(credentials.password, user.password);
+
         if (!isValid) {
-          throw new Error("E-Mail oder Passwort ist falsch.");
+          throw new Error(
+            "E-Mail-Adresse oder Passwort ist nicht korrekt."
+          );
         }
 
-        // Utilizador válido → devolve dados mínimos
+        // Login erfolgreich → minimale User-Daten zurückgeben
         return {
           id: user.id,
           name: user.name ?? "",
@@ -51,22 +57,20 @@ const authOptions: NextAuthOptions = {
       },
     }),
   ],
-
   callbacks: {
     async jwt({ token, user }) {
-      // Quando faz login, "user" vem preenchido
+      // Beim Login kommt "user" einmalig
       if (user) {
         token.name = user.name;
         token.email = user.email;
       }
       return token;
     },
-
     async session({ session, token }) {
-      // Passar info do token para o session.user
+      // Infos aus dem Token in die Session schieben
       if (session.user && token) {
-        session.user.name = token.name as string | null;
-        session.user.email = token.email as string | null;
+        session.user.name = (token.name as string) ?? null;
+        session.user.email = (token.email as string) ?? null;
       }
       return session;
     },
