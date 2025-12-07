@@ -70,7 +70,6 @@ async function getProductsByCollectionHandle(
       query,
       variables: { query: `handle:${handle}` },
     }),
-    // força server-side, sem cache
     cache: "no-store",
   });
 
@@ -131,7 +130,6 @@ export default async function CategoryPage({ params }: PageProps) {
 
   const cat = findCategoryByHandle(handle);
   if (!cat) {
-    // handle não corresponde à nossa estrutura → 404
     notFound();
   }
 
@@ -140,7 +138,6 @@ export default async function CategoryPage({ params }: PageProps) {
   const pageTitle = item?.title ?? section.title;
 
   const data = await getProductsByCollectionHandle(handle);
-
   const products = data?.products ?? [];
 
   return (
@@ -165,7 +162,7 @@ export default async function CategoryPage({ params }: PageProps) {
         )}
       </nav>
 
-      {/* Título + descrição básica */}
+      {/* Título + intro */}
       <header className="mb-6">
         <h1 className="text-2xl md:text-3xl font-semibold tracking-tight mb-2">
           {pageTitle}
