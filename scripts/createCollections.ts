@@ -1,4 +1,7 @@
 // scripts/createCollections.ts
+// Script para criar todas as Collections no Shopify via Admin API
+// Corre com:  npm run create:collections
+
 import "dotenv/config";
 
 type CollectionDef = {
@@ -13,15 +16,15 @@ const API_VERSION = process.env.SHOPIFY_ADMIN_API_VERSION || "2024-04";
 
 if (!STORE_DOMAIN || !ADMIN_TOKEN) {
   throw new Error(
-    "SHOPIFY_STORE_DOMAIN ou SHOPIFY_ADMIN_ACCESS_TOKEN em falta no .env"
+    "SHOPIFY_STORE_DOMAIN ou SHOPIFY_ADMIN_ACCESS_TOKEN em falta no .env.local"
   );
 }
 
 const ADMIN_API_URL = `https://${STORE_DOMAIN}/admin/api/${API_VERSION}/graphql.json`;
 
-// 👉 LISTA DE TODAS AS COLLECTIONS A CRIAR
+// 👉 LISTA DE TODAS AS COLLECTIONS A CRIAR (handles mais descritivos)
 const collections: CollectionDef[] = [
-  // Top-level
+  // ---------------- TOP-LEVEL / SORTIMENT ----------------
   {
     handle: "computer-gaming",
     title: "Computer & Gaming",
@@ -29,35 +32,35 @@ const collections: CollectionDef[] = [
       "Alles für Gaming, Arbeiten und Entertainment – von Notebooks über Konsolen bis zu PC-Komponenten.",
   },
   {
-    handle: "telefonie-tablet-smartwatch",
+    handle: "telefonie-tablet-und-smartwatch",
     title: "Telefonie, Tablet & Smartwatch",
     bodyHtml:
       "Smartphones, Tablets, Smartwatches und Zubehör für deinen Alltag.",
   },
   {
-    handle: "tv-audio",
+    handle: "tv-und-audio",
     title: "TV & Audio",
     bodyHtml:
       "Fernseher, Soundbars und Heimkino-Systeme mit brillanter Bild- und Tonqualität.",
   },
   {
-    handle: "haushalt-kueche",
+    handle: "haushalt-und-kueche",
     title: "Haushalt & Küche",
     bodyHtml: "Haushaltsgeräte und Küchenhelfer für ein modernes Zuhause.",
   },
   {
-    handle: "garten-grill",
+    handle: "garten-und-grill",
     title: "Garten & Grill",
     bodyHtml: "Gartenpflege, Grills und Outdoor-Zubehör für jede Saison.",
   },
   {
-    handle: "foto-video",
+    handle: "foto-und-video",
     title: "Foto & Video",
     bodyHtml:
       "Kameras, Objektive, Drohnen und Zubehör für professionelle Aufnahmen.",
   },
   {
-    handle: "zubehoer-kabel",
+    handle: "zubehoer-und-kabel",
     title: "Zubehör & Kabel",
     bodyHtml:
       "Adapter, Ladegeräte, Kabel und essentielles Zubehör für alle Geräte.",
@@ -68,7 +71,7 @@ const collections: CollectionDef[] = [
     bodyHtml: "Top-Angebote und Technik-Deals – nur für kurze Zeit.",
   },
 
-  // COLUNA 1 – GAMING
+  // ---------------- COLUNA 1 – GAMING ----------------
   {
     handle: "gaming",
     title: "Gaming",
@@ -85,7 +88,7 @@ const collections: CollectionDef[] = [
     bodyHtml: "Games für PS5, Xbox, Nintendo Switch.",
   },
   {
-    handle: "spielkonsolen-zubehoer",
+    handle: "spielkonsolen-und-zubehoer",
     title: "Spielkonsolen Zubehör",
     bodyHtml: "Controller, Cases, Ladegeräte & Add-ons.",
   },
@@ -100,7 +103,7 @@ const collections: CollectionDef[] = [
     bodyHtml: "Virtuelle Realität – Headsets & Zubehör.",
   },
   {
-    handle: "gamecards-prepaid-karten",
+    handle: "gamecards-und-prepaid-karten",
     title: "Gamecards & Prepaid-Karten",
     bodyHtml: "Guthaben für PSN, Xbox, Nintendo, Steam.",
   },
@@ -115,34 +118,34 @@ const collections: CollectionDef[] = [
     bodyHtml: "Ergonomische Stühle für lange Sessions.",
   },
 
-  // COLUNA 2 – NOTEBOOKS
+  // ---------------- COLUNA 2 – NOTEBOOKS ----------------
   {
     handle: "notebooks",
     title: "Notebooks",
     bodyHtml: "Laptops für Arbeit, Studium & Freizeit.",
   },
   {
-    handle: "notebook-akku",
+    handle: "notebook-akkus",
     title: "Notebook Akku",
     bodyHtml: "Ersatz-Akkus für alle Modelle.",
   },
   {
-    handle: "notebook-bildschirmfolie",
+    handle: "notebook-bildschirm-und-schutzfolien",
     title: "Notebook Bildschirmfolie",
-    bodyHtml: "Displayschutz & Sichtschutzfolien.",
+    bodyHtml: "Displayschutz & Sichtschutzfolien für Notebooks.",
   },
   {
-    handle: "notebook-dockingstation",
+    handle: "notebook-dockingstationen",
     title: "Notebook Dockingstation",
     bodyHtml: "Mehr Anschlüsse für dein Notebook.",
   },
   {
-    handle: "notebook-netzteil",
+    handle: "notebook-netzteile",
     title: "Notebook Netzteil",
     bodyHtml: "Original und kompatible Netzteile.",
   },
   {
-    handle: "notebook-sicherheitsschloss",
+    handle: "notebook-sicherheitsschloesser",
     title: "Notebook Sicherheitsschloss",
     bodyHtml: "Diebstahlschutz für Laptops.",
   },
@@ -152,14 +155,14 @@ const collections: CollectionDef[] = [
     bodyHtml: "Kabel, Adapter, Kühlung & mehr.",
   },
   {
-    handle: "taschen-huellen-notebooks",
+    handle: "notebook-taschen-und-huellen",
     title: "Taschen & Hüllen Notebooks",
-    bodyHtml: "Schutzhüllen und Transporttaschen.",
+    bodyHtml: "Schutzhüllen und Transporttaschen für Notebooks.",
   },
 
-  // COLUNA 3 – DRUCKER & PERIPHERIE
+  // ---------------- COLUNA 3 – DRUCKER & PERIPHERIE ----------------
   {
-    handle: "drucker-scanner",
+    handle: "drucker-und-scanner",
     title: "Drucker & Scanner",
     bodyHtml: "Laserdrucker, Tintendrucker, Scanner & mehr.",
   },
@@ -169,9 +172,9 @@ const collections: CollectionDef[] = [
     bodyHtml: "3D-Drucker für Einsteiger & Profis.",
   },
   {
-    handle: "3d-druckmaterial",
+    handle: "3d-druckmaterial-und-filamente",
     title: "3D Druckmaterial",
-    bodyHtml: "Filamente & Zubehör.",
+    bodyHtml: "Filamente & Zubehör für 3D-Druck.",
   },
   {
     handle: "tintendrucker",
@@ -189,7 +192,7 @@ const collections: CollectionDef[] = [
     bodyHtml: "Scanner und Zubehör.",
   },
   {
-    handle: "druckerpatronen-toner",
+    handle: "druckerpatronen-und-toner",
     title: "Druckerpatronen & Toner",
     bodyHtml: "Tinte, Toner und Verbrauchsmaterial.",
   },
@@ -199,22 +202,22 @@ const collections: CollectionDef[] = [
     bodyHtml: "Tintenpatronen für alle Marken.",
   },
   {
-    handle: "toner-trommeln",
+    handle: "toner-und-trommeln",
     title: "Toner & Trommeln",
     bodyHtml: "Toner und Bildtrommeln.",
   },
   {
-    handle: "peripherie",
+    handle: "pc-peripherie",
     title: "Peripherie",
     bodyHtml: "PC-Peripherie für jeden Einsatz.",
   },
   {
-    handle: "maeuse",
+    handle: "pc-maeuse",
     title: "Mäuse",
     bodyHtml: "Computer-Mäuse für Gaming oder Arbeit.",
   },
   {
-    handle: "tastaturen",
+    handle: "pc-tastaturen",
     title: "Tastaturen",
     bodyHtml: "Mechanische und klassische Tastaturen.",
   },
@@ -224,24 +227,24 @@ const collections: CollectionDef[] = [
     bodyHtml: "Webcams für Meetings & Streaming.",
   },
   {
-    handle: "pc-audio",
+    handle: "pc-audio-und-headsets",
     title: "PC Audio",
     bodyHtml: "Lautsprecher, Headsets & Soundkarten.",
   },
   {
-    handle: "grafiktablets",
+    handle: "grafiktablets-und-zeichentablets",
     title: "Grafiktablets",
     bodyHtml: "Zeichentablets für kreative Arbeit.",
   },
 
-  // COLUNA 4 – SPEICHER, KOMPONENTEN, PCs, KABEL
+  // ---------------- COLUNA 4 – SPEICHER, KOMPONENTEN, PCs, KABEL ----------------
   {
-    handle: "speicher-laufwerke",
+    handle: "speicher-und-laufwerke",
     title: "Speicher & Laufwerke",
     bodyHtml: "SSD, HDD, USB-Sticks und mehr.",
   },
   {
-    handle: "ssd",
+    handle: "ssd-festplatten",
     title: "SSD",
     bodyHtml: "Solid State Drives für schnellen Speicher.",
   },
@@ -251,12 +254,12 @@ const collections: CollectionDef[] = [
     bodyHtml: "Klassische Festplatten zur Datenspeicherung.",
   },
   {
-    handle: "usb-sticks",
+    handle: "usb-sticks-und-speichersticks",
     title: "USB Sticks",
     bodyHtml: "USB-Sticks in allen Grössen.",
   },
   {
-    handle: "crypto-wallet",
+    handle: "hardware-und-crypto-wallets",
     title: "Crypto Wallet",
     bodyHtml: "Wallets für sichere Kryptowährung-Aufbewahrung.",
   },
@@ -266,52 +269,52 @@ const collections: CollectionDef[] = [
     bodyHtml: "Alle wichtigen Teile für PC-Builds.",
   },
   {
-    handle: "prozessoren",
+    handle: "pc-prozessoren",
     title: "Prozessoren",
     bodyHtml: "CPUs für Desktop & Workstations.",
   },
   {
-    handle: "arbeitsspeicher",
+    handle: "arbeitsspeicher-ram",
     title: "Arbeitsspeicher",
     bodyHtml: "RAM für bessere Performance.",
   },
   {
-    handle: "grafikkarten",
+    handle: "grafikkarten-gpu",
     title: "Grafikkarten",
     bodyHtml: "GPUs für Gaming und Workloads.",
   },
   {
-    handle: "gehaeuse",
+    handle: "pc-gehaeuse",
     title: "Gehäuse",
     bodyHtml: "PC-Gehäuse in allen Formfaktoren.",
   },
   {
-    handle: "netzteile",
+    handle: "pc-netzteile",
     title: "Netzteile",
     bodyHtml: "PSUs für stabile Stromversorgung.",
   },
   {
-    handle: "pcs-monitore",
+    handle: "pcs-und-monitore",
     title: "PCs & Monitore",
     bodyHtml: "Fertige PCs und Monitore.",
   },
   {
-    handle: "tower-desktop-pcs",
+    handle: "tower-und-desktop-pcs",
     title: "Tower & Desktop PCs",
     bodyHtml: "Leistungsstarke Desktop-Systeme.",
   },
   {
-    handle: "monitore",
+    handle: "pc-monitore",
     title: "Monitore",
     bodyHtml: "Monitore für Gaming und Arbeit.",
   },
   {
-    handle: "monitor-zubehoer",
+    handle: "monitor-zubehoer-und-halterungen",
     title: "Monitor Zubehör",
     bodyHtml: "Halterungen, Kabel & mehr.",
   },
   {
-    handle: "computer-kabel-adapter",
+    handle: "computer-kabel-und-adapter",
     title: "Computer Kabel & Adapter",
     bodyHtml: "Essentielle Kabel und Adapter.",
   },
