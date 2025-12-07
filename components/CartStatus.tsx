@@ -17,7 +17,6 @@ export default function CartStatus() {
       href="/cart"
       className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white/80 px-3 py-1 text-xs font-medium text-neutral-800 hover:border-red-500 hover:text-red-600"
     >
-      {/* Ícone simples de carrinho em SVG */}
       <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-neutral-300">
         <svg
           aria-hidden="true"
@@ -30,9 +29,7 @@ export default function CartStatus() {
           />
         </svg>
       </span>
-
       <span>Warenkorb</span>
-
       <span className="inline-flex items-center justify-center rounded-full bg-red-600 px-2 py-0.5 text-[11px] font-semibold text-white min-w-[1.75rem] text-center">
         {itemCount}
       </span>
