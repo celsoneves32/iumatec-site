@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import AddToCartButton from "@/components/AddToCartButton";
+import FavoriteButton from "@/components/FavoriteButton";
 
 type Product = {
   id: string;
@@ -25,7 +26,7 @@ const PRODUCTS: Product[] = [
     shortDescription:
       "Das iPhone 15 mit brillantem Super Retina XDR Display, A16 Bionic Chip und 48 MP Kamera.",
     highlights: [
-      "6.1\" Super Retina XDR Display",
+      '6.1" Super Retina XDR Display',
       "A16 Bionic Chip",
       "48 MP Hauptkamera",
       "5G Unterstützung",
@@ -57,7 +58,7 @@ const PRODUCTS: Product[] = [
     shortDescription:
       "Starkes Preis-Leistungs-Verhältnis mit grossem Speicher und langer Akkulaufzeit.",
     highlights: [
-      "6.55\" AMOLED Display",
+      '6.55" AMOLED Display',
       "256 GB interner Speicher",
       "Schnelles Laden",
       "Leichtes und schlankes Design",
@@ -72,7 +73,7 @@ const PRODUCTS: Product[] = [
     shortDescription:
       "Das Pro-Modell mit Titan-Gehäuse, ProMotion Display und professionellen Kamera-Features.",
     highlights: [
-      "6.1\" ProMotion Display (120 Hz)",
+      '6.1" ProMotion Display (120 Hz)',
       "Titan-Gehäuse",
       "Telekamera mit 3x optischem Zoom",
       "USB-C Anschluss",
@@ -142,6 +143,7 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
             </p>
           </div>
 
+          {/* 🔹 Caixa de preço + comprar + favoritos (atualizada) */}
           <div className="bg-white border border-neutral-200 rounded-2xl p-5">
             <div className="flex items-baseline justify-between gap-3 mb-2">
               <div className="text-2xl font-semibold text-neutral-900">
@@ -153,11 +155,21 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
               und Liechtenstein.
             </p>
 
-            <AddToCartButton
-              id={product.id}
-              title={product.title}
-              price={product.price}
-            />
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex-1">
+                <AddToCartButton
+                  id={product.id}
+                  title={product.title}
+                  price={product.price}
+                />
+              </div>
+              <FavoriteButton
+                id={product.id}
+                title={product.title}
+                price={product.price}
+                image={product.image}
+              />
+            </div>
 
             <p className="mt-3 text-[11px] text-neutral-500 leading-snug">
               Die tatsächlichen Lieferzeiten können je nach Verfügbarkeit und
