@@ -5,44 +5,54 @@ import Link from "next/link";
 import { useState } from "react";
 import CartStatus from "./CartStatus";
 import AccountButton from "@/components/AccountButton";
+import { MEGA_MENU } from "@/lib/categories";
 
 const topNav = [
   {
     label: "Computer & Gaming",
     href: "/kategorie/computer-gaming",
+    mega: true,
   },
   {
     label: "Telefonie, Tablet & Smartwatch",
     href: "/kategorie/telefonie-tablet-und-smartwatch",
+    mega: false,
   },
   {
     label: "TV & Audio",
     href: "/kategorie/tv-und-audio",
+    mega: false,
   },
   {
     label: "Haushalt & Küche",
     href: "/kategorie/haushalt-und-kueche",
+    mega: false,
   },
   {
     label: "Garten & Grill",
     href: "/kategorie/garten-und-grill",
+    mega: false,
   },
   {
     label: "Foto & Video",
     href: "/kategorie/foto-und-video",
+    mega: false,
   },
   {
     label: "Zubehör & Kabel",
     href: "/kategorie/zubehoer-und-kabel",
+    mega: false,
   },
   {
     label: "Aktionen",
     href: "/kategorie/aktionen",
+    mega: false,
   },
 ];
 
 export default function SiteHeader() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [megaOpen, setMegaOpen] = useState(false);
 
   return (
     <header className="border-b border-neutral-200 bg-white/90 backdrop-blur">
@@ -124,14 +134,15 @@ export default function SiteHeader() {
         </div>
       </div>
 
-      {/* Desktop category bar – estilo MediaMarkt básico */}
-      <div className="hidden lg:block border-t border-neutral-200 bg-neutral-50">
+      {/* Desktop category bar + mega-menu */}
+      <div className="hidden lg:block border-t border-neutral-200 bg-neutral-50 relative">
         <div className="max-w-7xl mx-auto px-4">
           <nav className="flex items-center gap-4 h-11 text-xs font-medium text-neutral-800 overflow-x-auto">
             {topNav.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
+                onMouseEnter={() => setMegaOpen(item.mega ? true : false)}
                 className="inline-flex items-center h-full border-b-2 border-transparent hover:border-red-600 hover:text-red-600 transition-colors whitespace-nowrap"
               >
                 {item.label}
@@ -139,6 +150,41 @@ export default function SiteHeader() {
             ))}
           </nav>
         </div>
+
+        {/* Mega-menu só para "Computer & Gaming" */}
+        {megaOpen && (
+          <div
+            className="absolute left-0 right-0 top-full bg-white border-t border-neutral-200 shadow-[0_12px_30px_rgba(15,23,42,0.12)]"
+            onMouseLeave={() => setMegaOpen(false)}
+          >
+            <div className="max-w-7xl mx-auto px-4 py-5 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 text-xs">
+              {MEGA_MENU.map((section) => (
+                <div key={section.handle}>
+                  <Link
+                    href={`/kategorie/${section.handle}`}
+                    className="font-semibold text-neutral-900 hover:text-red-600 mb-2 inline-block"
+                  >
+                    {section.title}
+                  </Link>
+                  {section.children.length > 0 && (
+                    <ul className="space-y-1">
+                      {section.children.map((child) => (
+                        <li key={child.handle}>
+                          <Link
+                            href={`/kategorie/${child.handle}`}
+                            className="text-neutral-600 hover:text-red-600"
+                          >
+                            {child.title}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Mobile menu com categorias */}
