@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 
 export default function CartPage() {
-  const { items } = useCart();
+  const { items, updateQuantity, removeItem, clearCart } = useCart();
 
   const total = items.reduce(
     (sum, item) => sum + item.price * item.quantity,
@@ -41,9 +41,18 @@ export default function CartPage() {
   return (
     <main className="min-h-[70vh] bg-neutral-50">
       <div className="max-w-5xl mx-auto px-4 py-10">
-        <h1 className="text-2xl font-semibold tracking-tight mb-2">
-          Warenkorb
-        </h1>
+        <div className="flex items-center justify-between mb-2">
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Warenkorb
+          </h1>
+          <button
+            type="button"
+            onClick={clearCart}
+            className="text-xs text-neutral-500 hover:text-neutral-800 underline underline-offset-2"
+          >
+            Warenkorb leeren
+          </button>
+        </div>
         <p className="text-sm text-neutral-600 mb-6">
           Überprüfe deine ausgewählten Artikel und gehe anschliessend zur
           Kasse, um deine Bestellung abzuschliessen.
@@ -66,9 +75,41 @@ export default function CartPage() {
                     <div className="text-sm font-medium text-neutral-900">
                       {item.title}
                     </div>
-                    <div className="mt-1 text-xs text-neutral-500">
-                      Menge: {item.quantity}
+                    <div className="mt-2 inline-flex items-center gap-2">
+                      <span className="text-xs text-neutral-500">
+                        Menge:
+                      </span>
+                      <div className="inline-flex items-center gap-1 border border-neutral-300 rounded-md px-1 py-0.5">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            updateQuantity(item.id, item.quantity - 1)
+                          }
+                          className="px-2 text-xs font-semibold text-neutral-700 hover:bg-neutral-100 rounded"
+                        >
+                          −
+                        </button>
+                        <span className="min-w-[2rem] text-center text-xs">
+                          {item.quantity}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            updateQuantity(item.id, item.quantity + 1)
+                          }
+                          className="px-2 text-xs font-semibold text-neutral-700 hover:bg-neutral-100 rounded"
+                        >
+                          +
+                        </button>
+                      </div>
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => removeItem(item.id)}
+                      className="mt-2 text-[11px] text-red-600 hover:text-red-700"
+                    >
+                      Entfernen
+                    </button>
                   </div>
 
                   <div className="text-right">
