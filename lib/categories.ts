@@ -12,6 +12,19 @@ export type MegaMenuSection = {
   children: CategoryItem[];
 };
 
+// Categorias de topo (menu principal)
+export const TOP_LEVEL_CATEGORIES: { title: string; handle: string }[] = [
+  { title: "Computer & Gaming", handle: "computer-gaming" },
+  { title: "Telefonie, Tablet & Smartwatch", handle: "telefonie-tablet-und-smartwatch" },
+  { title: "TV & Audio", handle: "tv-und-audio" },
+  { title: "Haushalt & Küche", handle: "haushalt-und-kueche" },
+  { title: "Garten & Grill", handle: "garten-und-grill" },
+  { title: "Foto & Video", handle: "foto-und-video" },
+  { title: "Zubehör & Kabel", handle: "zubehoer-und-kabel" },
+  { title: "Aktionen", handle: "aktionen" },
+];
+
+// Mega-menu APENAS para o bloco "Computer & Gaming"
 export const MEGA_MENU: MegaMenuSection[] = [
   // BLOCO: Computer & Gaming
   {
@@ -139,8 +152,9 @@ export const MEGA_MENU: MegaMenuSection[] = [
   },
 ];
 
-// ajuda para encontrar secção ou subcategoria pelo handle
+// encontra uma categoria (para página /kategorie/[handle])
 export function findCategoryByHandle(handle: string) {
+  // 1) procurar nas secções do mega-menu
   for (const section of MEGA_MENU) {
     if (section.handle === handle) {
       return { section, item: null as CategoryItem | null };
@@ -150,5 +164,15 @@ export function findCategoryByHandle(handle: string) {
       return { section, item: found };
     }
   }
+
+  // 2) se não encontrar, ver se é uma categoria de topo (TV & Audio, Haushalt, etc.)
+  const top = TOP_LEVEL_CATEGORIES.find((c) => c.handle === handle);
+  if (top) {
+    return {
+      section: { title: top.title, handle: top.handle, children: [] },
+      item: null as CategoryItem | null,
+    };
+  }
+
   return null;
 }
