@@ -4,59 +4,67 @@
 import {
   createContext,
   useContext,
-  useMemo,
+  useEffect,
   useState,
   ReactNode,
 } from "react";
 
-export type FavoriteItem = {
-  id: string;
-  title: string;
-  price?: number;
-  image?: string;
-};
-
 type FavoritesContextValue = {
-  favorites: FavoriteItem[];
+  ids: string[];                 // IDs / handles dos produtos favoritos
+  toggle: (id: string) => void;  // adiciona/remove favorito
   isFavorite: (id: string) => boolean;
-  toggleFavorite: (item: FavoriteItem) => void;
-  clearFavorites: () => void;
+  clear: () => void;
 };
 
 const FavoritesContext = createContext<FavoritesContextValue | undefined>(
   undefined
 );
 
+const STORAGE_KEY = "iumatec_favorites";
+
 export function FavoritesProvider({ children }: { children: ReactNode }) {
-  const [favorites, setFavorites] = useState<FavoriteItem[]>([]);
+  const [ids, setIds] = useState<string[]>([]);
 
-  function isFavorite(id: string) {
-    return favorites.some((f) => f.id === id);
-  }
-
-  function toggleFavorite(item: FavoriteItem) {
-    setFavorites((prev) => {
-      const exists = prev.some((f) => f.id === item.id);
-      if (exists) {
-        return prev.filter((f) => f.id !== item.id);
+  // Carregar do localStorage no cliente
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          setIds(parsed);
+        }
       }
-      return [...prev, item];
-    });
-  }
+    } catch {
+      // ignore
+    }
+  }, []);
 
-  function clearFavorites() {
-    setFavorites([]);
-  }
+  // Guardar no localStorage sempre que mudar
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
+    } catch {
+      // ignore
+    }
+  }, [ids]);
 
-  const value = useMemo(
-    () => ({
-      favorites,
-      isFavorite,
-      toggleFavorite,
-      clearFavorites,
-    }),
-    [favorites]
-  );
+  const toggle = (id: string) => {
+    setIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  const isFavorite = (id: string) => ids.includes(id);
+
+  const clear = () => setIds([]);
+
+  const value: FavoritesContextValue = {
+    ids,
+    toggle,
+    isFavorite,
+    clear,
+  };
 
   return (
     <FavoritesContext.Provider value={value}>
@@ -68,7 +76,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
 export function useFavorites() {
   const ctx = useContext(FavoritesContext);
   if (!ctx) {
-    throw new Error("useFavorites must be used within a FavoritesProvider");
+    throw new Error("useFavorites must be used within FavoritesProvider");
   }
   return ctx;
 }
