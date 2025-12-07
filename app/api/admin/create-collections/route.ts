@@ -407,7 +407,7 @@ async function createCollection(col: CollectionDef): Promise<string> {
 export async function GET(req: NextRequest) {
   try {
     const token = req.nextUrl.searchParams.get("token");
-    const expected = process.env.ADMIN_SETUP_TOKEN;
+  const expected = process.env.ADMIN_SETUP_TOKEN;
 
     if (!expected || token !== expected) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
