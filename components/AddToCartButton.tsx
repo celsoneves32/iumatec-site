@@ -1,8 +1,8 @@
+// components/AddToCartButton.tsx
 "use client";
 
 import { useState } from "react";
 import { useCart } from "@/context/CartContext";
-import MediaMarktButton from "@/components/MediaMarktButton";
 
 type AddToCartButtonProps = {
   id: string;
@@ -16,15 +16,15 @@ export default function AddToCartButton({
   price,
 }: AddToCartButtonProps) {
   const { addItem } = useCart();
-  const [adding, setAdding] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleClick = () => {
-    setAdding(true);
+    setLoading(true);
 
-    // Adiciona ao carrinho
+    // In den Warenkorb legen
     addItem({ id, title, price, quantity: 1 });
 
-    // Evento Google Analytics
+    // Optional: Google Analytics / gtag Event
     if (typeof window !== "undefined" && (window as any).gtag) {
       (window as any).gtag("event", "add_to_cart", {
         currency: "CHF",
@@ -40,20 +40,18 @@ export default function AddToCartButton({
       });
     }
 
-    // pequena animação
-    setTimeout(() => setAdding(false), 500);
+    // Kurz Loading anzeigen (nur optisch)
+    setTimeout(() => setLoading(false), 200);
   };
 
   return (
-    <MediaMarktButton
+    <button
       type="button"
       onClick={handleClick}
-      disabled={adding}
-      variant="primary"
-      size="md"
-      fullWidth
+      disabled={loading}
+      className="w-full rounded-md bg-red-600 px-4 py-3 text-sm font-semibold text-white shadow hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-70"
     >
-      {adding ? "Wird hinzugefügt..." : "In den Warenkorb"}
-    </MediaMarktButton>
+      {loading ? "Wird hinzugefügt…" : "In den Warenkorb"}
+    </button>
   );
 }
