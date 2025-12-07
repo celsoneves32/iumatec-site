@@ -1,167 +1,139 @@
+// components/CartPageClient.tsx
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
-import MediaMarktButton from "@/components/MediaMarktButton";
 
 export default function CartPageClient() {
-  const {
-    items,
-    totalItems,
-    totalPrice,
-    removeItem,
-    updateQuantity,
-    clearCart,
-  } = useCart();
+  const { items, totalItems, totalPrice, removeItem, updateQuantity } =
+    useCart();
 
-  const [loadingCheckout, setLoadingCheckout] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleCheckout = async () => {
-    try {
-      setLoadingCheckout(true);
-      setError(null);
-
-      const res = await fetch("/api/create-checkout-session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(
-          data.error || "Fehler beim Starten des Checkouts."
-        );
-      }
-
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url; // redireciona para Stripe
-      } else {
-        throw new Error("Keine Checkout-URL erhalten.");
-      }
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || "Unbekannter Fehler beim Checkout.");
-    } finally {
-      setLoadingCheckout(false);
-    }
-  };
-
-  if (items.length === 0) {
-    return (
-      <main className="max-w-5xl mx-auto px-4 py-10">
-        <h1 className="text-2xl font-semibold mb-4">Warenkorb</h1>
-        <p>Dein Warenkorb ist leer.</p>
-        <Link
-          href="/produkte"
-          className="mt-4 inline-block text-sm text-red-600 hover:underline"
-        >
-          Jetzt Produkte entdecken →
-        </Link>
-      </main>
-    );
-  }
+  const hasItems = items.length > 0;
 
   return (
-    <main className="max-w-5xl mx-auto px-4 py-10 space-y-6">
-      {/* Cabeçalho do carrinho */}
-      <div className="flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold">Warenkorb</h1>
-        <MediaMarktButton
-          type="button"
-          variant="secondary"
-          size="sm"
-          onClick={clearCart}
-        >
-          Warenkorb leeren
-        </MediaMarktButton>
-      </div>
+    <main className="max-w-7xl mx-auto px-4 py-8">
+      <header className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight mb-1">
+            Warenkorb
+          </h1>
+          <p className="text-sm text-neutral-600">
+            {hasItems
+              ? `Du hast ${totalItems} Artikel im Warenkorb.`
+              : "Dein Warenkorb ist noch leer."}
+          </p>
+        </div>
+        {hasItems && (
+          <Link
+            href="/produkte"
+            className="text-xs font-semibold text-red-600 hover:text-red-700"
+          >
+            Weiter einkaufen
+          </Link>
+        )}
+      </header>
 
-      {error && (
-        <div className="rounded-md bg-red-50 text-red-700 text-sm px-3 py-2">
-          {error}
+      {!hasItems ? (
+        <div className="border border-dashed border-neutral-300 rounded-2xl p-8 text-center text-sm text-neutral-600 bg-neutral-50">
+          In deinem Warenkorb befinden sich noch keine Produkte.
+          <br />
+          <span className="text-xs text-neutral-500">
+            Füge Produkte über die Produktseite hinzu.
+          </span>
+        </div>
+      ) : (
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr),minmax(0,1fr)] items-start">
+          {/* Lista de itens */}
+          <section className="space-y-3">
+            {items.map((item) => (
+              <div
+                key={item.id}
+                className="flex items-center gap-4 border border-neutral-200 rounded-2xl px-4 py-3 bg-white"
+              >
+                <div className="flex-1 min-w-0">
+                  <Link
+                    href={`/produkte/${item.id}`}
+                    className="text-sm font-medium text-neutral-900 hover:text-red-600 line-clamp-2"
+                  >
+                    {item.title}
+                  </Link>
+                  <div className="mt-1 text-xs text-neutral-500">
+                    Einzelpreis: {item.price.toFixed(2)} CHF
+                  </div>
+                  <div className="mt-1 text-xs text-neutral-500">
+                    Zwischensumme:{" "}
+                    <span className="font-semibold text-neutral-900">
+                      {(item.price * item.quantity).toFixed(2)} CHF
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col items-end gap-2">
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateQuantity(item.id, item.quantity - 1)
+                      }
+                      className="h-7 w-7 rounded-full border border-neutral-300 text-xs flex items-center justify-center hover:border-red-500 hover:text-red-600"
+                    >
+                      -
+                    </button>
+                    <span className="min-w-[2rem] text-center text-sm">
+                      {item.quantity}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateQuantity(item.id, item.quantity + 1)
+                      }
+                      className="h-7 w-7 rounded-full border border-neutral-300 text-xs flex items-center justify-center hover:border-red-500 hover:text-red-600"
+                    >
+                      +
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeItem(item.id)}
+                    className="text-[11px] text-neutral-500 hover:text-red-600"
+                  >
+                    Entfernen
+                  </button>
+                </div>
+              </div>
+            ))}
+          </section>
+
+          {/* Resumo / Totais */}
+          <aside className="bg-white border border-neutral-200 rounded-2xl p-5">
+            <h2 className="text-sm font-semibold text-neutral-900 mb-3">
+              Bestellübersicht
+            </h2>
+            <dl className="space-y-1 text-sm text-neutral-700">
+              <div className="flex justify-between">
+                <dt>Zwischensumme</dt>
+                <dd>{totalPrice.toFixed(2)} CHF</dd>
+              </div>
+              <div className="flex justify-between text-xs text-neutral-500">
+                <dt>inkl. MwSt.</dt>
+                <dd>bereits enthalten</dd>
+              </div>
+            </dl>
+
+            <button
+              type="button"
+              className="mt-4 w-full rounded-md bg-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-red-700"
+            >
+              Zur Kasse
+            </button>
+
+            <p className="mt-2 text-[11px] text-neutral-500 leading-snug">
+              Die endgültigen Versandkosten und Steuern werden im nächsten
+              Schritt berechnet.
+            </p>
+          </aside>
         </div>
       )}
-
-      {/* Lista de itens */}
-      <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
-        {items.map((item) => (
-          <li
-            key={item.id}
-            className="flex flex-wrap items-center justify-between gap-4 py-3"
-          >
-            <div>
-              <div className="font-medium">{item.title}</div>
-              <div className="text-sm text-neutral-500">
-                {item.quantity} × CHF {item.price.toFixed(2)}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-4">
-              {/* Controlo de quantidade */}
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() =>
-                    updateQuantity(item.id, Math.max(1, item.quantity - 1))
-                  }
-                  className="px-2 py-1 text-xs border rounded"
-                >
-                  -
-                </button>
-                <span className="text-sm">{item.quantity}</span>
-                <button
-                  onClick={() =>
-                    updateQuantity(item.id, item.quantity + 1)
-                  }
-                  className="px-2 py-1 text-xs border rounded"
-                >
-                  +
-                </button>
-              </div>
-
-              <span className="font-semibold min-w-[80px] text-right">
-                CHF {(item.price * item.quantity).toFixed(2)}
-              </span>
-
-              <MediaMarktButton
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => removeItem(item.id)}
-              >
-                Entfernen
-              </MediaMarktButton>
-            </div>
-          </li>
-        ))}
-      </ul>
-
-      {/* Totais + Checkout */}
-      <div className="flex flex-col gap-4 border-t pt-4 mt-4">
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-neutral-500">
-            {totalItems} Artikel gesamt
-          </span>
-          <span className="text-lg font-semibold">
-            Total: CHF {totalPrice.toFixed(2)}
-          </span>
-        </div>
-
-        <div className="flex justify-end">
-          <MediaMarktButton
-            type="button"
-            variant="primary"
-            size="md"
-            onClick={handleCheckout}
-            disabled={loadingCheckout}
-          >
-            {loadingCheckout ? "Weiterleitung..." : "Zur Kasse"}
-          </MediaMarktButton>
-        </div>
-      </div>
     </main>
   );
 }
