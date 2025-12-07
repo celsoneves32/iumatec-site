@@ -1,31 +1,97 @@
 // app/produkte/[id]/page.tsx
+import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import AddToCartButton from "@/components/AddToCartButton";
-import AddToFavoritesButton from "@/components/AddToFavoritesButton";
-import { getProductById, PRODUCTS } from "@/data/products";
 
-type PageProps = {
-  params: { id: string };
+type Product = {
+  id: string;
+  title: string;
+  price: number;
+  image: string;
+  badge?: "Bestseller" | "Aktion" | "Neu";
+  shortDescription: string;
+  highlights: string[];
 };
 
-export async function generateMetadata({ params }: PageProps) {
-  const product = getProductById(params.id);
+// 🔹 Mock-Produktdaten (depois podes trocar por Shopify/DB)
+const PRODUCTS: Product[] = [
+  {
+    id: "iphone-15-128",
+    title: "Apple iPhone 15 128GB",
+    price: 799,
+    image: "/products/iphone15.png",
+    badge: "Bestseller",
+    shortDescription:
+      "Das iPhone 15 mit brillantem Super Retina XDR Display, A16 Bionic Chip und 48 MP Kamera.",
+    highlights: [
+      "6.1\" Super Retina XDR Display",
+      "A16 Bionic Chip",
+      "48 MP Hauptkamera",
+      "5G Unterstützung",
+      "Dual-SIM (Nano-SIM + eSIM)",
+    ],
+  },
+  {
+    id: "s24-128",
+    title: "Samsung Galaxy S24 128GB",
+    price: 749,
+    image: "/products/galaxy-s24.png",
+    badge: "Neu",
+    shortDescription:
+      "Leistungsstarkes Android-Smartphone mit hellem AMOLED Display und vielseitiger Triple-Kamera.",
+    highlights: [
+      "Dynamic AMOLED 2X Display",
+      "Triple-Kamera mit Nachtmodus",
+      "Schneller Prozessor der neuesten Generation",
+      "5G Unterstützung",
+      "Schnellladen und Wireless Charging",
+    ],
+  },
+  {
+    id: "xiaomi-13-lite",
+    title: "Xiaomi 13 Lite 256GB",
+    price: 499,
+    image: "/products/xiaomi-13-lite.png",
+    badge: "Aktion",
+    shortDescription:
+      "Starkes Preis-Leistungs-Verhältnis mit grossem Speicher und langer Akkulaufzeit.",
+    highlights: [
+      "6.55\" AMOLED Display",
+      "256 GB interner Speicher",
+      "Schnelles Laden",
+      "Leichtes und schlankes Design",
+      "Dual-SIM",
+    ],
+  },
+  {
+    id: "iphone-15-pro-256",
+    title: "Apple iPhone 15 Pro 256GB",
+    price: 1199,
+    image: "/products/iphone15-pro.png",
+    shortDescription:
+      "Das Pro-Modell mit Titan-Gehäuse, ProMotion Display und professionellen Kamera-Features.",
+    highlights: [
+      "6.1\" ProMotion Display (120 Hz)",
+      "Titan-Gehäuse",
+      "Telekamera mit 3x optischem Zoom",
+      "USB-C Anschluss",
+      "Pro-Level Video-Features",
+    ],
+  },
+];
 
-  if (!product) {
-    return {
-      title: "Produkt nicht gefunden | IUMATEC",
-    };
-  }
-
-  return {
-    title: `${product.title} | IUMATEC Schweiz`,
-    description: product.description,
-  };
+function getProductById(id: string): Product | undefined {
+  return PRODUCTS.find((p) => p.id === id);
 }
 
-export default function ProductDetailPage({ params }: PageProps) {
+type ProductPageProps = {
+  params: {
+    id: string;
+  };
+};
+
+export default function ProductDetailPage({ params }: ProductPageProps) {
   const product = getProductById(params.id);
 
   if (!product) {
@@ -33,114 +99,87 @@ export default function ProductDetailPage({ params }: PageProps) {
   }
 
   return (
-    <main className="max-w-6xl mx-auto px-4 py-8">
-      <div className="mb-4 text-xs text-neutral-500">
-        <Link href="/produkte" className="hover:underline">
-          Produkte
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      {/* Breadcrumb */}
+      <nav className="mb-4 text-xs text-neutral-500">
+        <Link href="/" className="hover:text-red-600">
+          Startseite
         </Link>{" "}
-        / <span>{product!.title}</span>
-      </div>
+        <span className="mx-1">/</span>
+        <Link href="/kategorie/smartphones" className="hover:text-red-600">
+          Smartphones & Handys
+        </Link>{" "}
+        <span className="mx-1">/</span>
+        <span className="text-neutral-700">{product.title}</span>
+      </nav>
 
-      <div className="grid gap-8 lg:grid-cols-2">
-        {/* Imagem grande */}
-        <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden border border-neutral-200 bg-white">
-          <Image
-            src={product!.image}
-            alt={product!.title}
-            width={900}
-            height={600}
-            className="w-full h-full object-cover"
-          />
-          {product!.badge && (
-            <span className="absolute left-4 top-4 rounded-full bg-red-600 px-4 py-1.5 text-xs font-semibold text-white shadow">
-              {product!.badge}
-            </span>
-          )}
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1.2fr),minmax(0,1fr)]">
+        {/* Bild / Hero */}
+        <div className="bg-white border border-neutral-200 rounded-2xl p-6 flex flex-col items-center justify-center">
+          <div className="relative w-full max-w-md aspect-[4/5]">
+            <Image
+              src={product.image}
+              alt={product.title}
+              fill
+              className="object-contain p-4"
+            />
+            {product.badge && (
+              <span className="absolute left-4 top-4 rounded-full bg-red-600 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">
+                {product.badge}
+              </span>
+            )}
+          </div>
         </div>
 
-        {/* Infos */}
+        {/* Infos / Preis / Kaufen */}
         <div className="flex flex-col gap-4">
           <div>
-            <p className="text-[11px] uppercase tracking-wide text-neutral-500">
-              {product!.category}
-            </p>
-            <h1 className="mt-1 text-2xl font-semibold tracking-tight">
-              {product!.title}
+            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight mb-2">
+              {product.title}
             </h1>
-          </div>
-
-          <p className="text-sm text-neutral-700">
-            {product!.description}
-          </p>
-
-          <div className="flex items-center gap-4 mt-2">
-            <p className="text-2xl font-semibold text-neutral-900">
-              CHF {product!.price.toFixed(2)}
-            </p>
-            <p className="text-xs text-green-600 font-medium">
-              Sofort lieferbar
+            <p className="text-sm text-neutral-600 mb-3">
+              {product.shortDescription}
             </p>
           </div>
 
-          {/* Botões: Carrinho + Favoritos */}
-          <div className="mt-2 flex flex-col sm:flex-row gap-3 max-w-md">
-            <div className="flex-1">
-              <AddToCartButton
-                id={product!.id}
-                title={product!.title}
-                price={product!.price}
-              />
+          <div className="bg-white border border-neutral-200 rounded-2xl p-5">
+            <div className="flex items-baseline justify-between gap-3 mb-2">
+              <div className="text-2xl font-semibold text-neutral-900">
+                {product.price.toFixed(2)} CHF
+              </div>
             </div>
-            <AddToFavoritesButton productId={product!.id} />
+            <p className="text-xs text-neutral-500 mb-4">
+              inkl. MwSt., zzgl. Versand. Lieferung nur innerhalb der Schweiz
+              und Liechtenstein.
+            </p>
+
+            <AddToCartButton
+              id={product.id}
+              title={product.title}
+              price={product.price}
+            />
+
+            <p className="mt-3 text-[11px] text-neutral-500 leading-snug">
+              Die tatsächlichen Lieferzeiten können je nach Verfügbarkeit und
+              Region leicht variieren. Alle Angaben ohne Gewähr.
+            </p>
           </div>
 
-          <div className="mt-4 rounded-2xl border border-neutral-200 p-4 bg-neutral-50 text-xs text-neutral-600">
-            <p className="font-semibold mb-1">Lieferung & Abholung</p>
-            <ul className="list-disc list-inside space-y-1">
-              <li>Versand in der ganzen Schweiz</li>
-              <li>Lieferzeit in der Regel 1–3 Werktage</li>
-              <li>Rechnung per E-Mail</li>
+          <div className="bg-white border border-neutral-200 rounded-2xl p-5">
+            <h2 className="text-sm font-semibold text-neutral-800 mb-3">
+              Produkt-Highlights
+            </h2>
+            <ul className="space-y-1.5 text-xs text-neutral-700">
+              {product.highlights.map((h) => (
+                <li key={h} className="flex gap-2">
+                  <span className="mt-[3px] h-[5px] w-[5px] rounded-full bg-neutral-400" />
+                  <span>{h}</span>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
       </div>
-
-      {/* Mais produtos em baixo */}
-      <section className="mt-10 border-t border-neutral-200 pt-6">
-        <h2 className="text-sm font-semibold mb-4">
-          Weitere Produkte entdecken
-        </h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {PRODUCTS.filter((p) => p.id !== product!.id)
-            .slice(0, 4)
-            .map((p) => (
-              <Link
-                key={p.id}
-                href={`/produkte/${p.id}`}
-                className="group rounded-xl border border-neutral-200 bg-white p-3 flex flex-col gap-2 hover:shadow-sm transition-shadow"
-              >
-                <div className="relative w-full aspect-[4/3] overflow-hidden rounded-lg">
-                  <Image
-                    src={p.image}
-                    alt={p.title}
-                    width={400}
-                    height={300}
-                    className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform"
-                  />
-                </div>
-                <p className="text-[11px] uppercase tracking-wide text-neutral-500">
-                  {p.category}
-                </p>
-                <p className="text-xs font-semibold line-clamp-2 group-hover:text-red-600">
-                  {p.title}
-                </p>
-                <p className="text-sm font-semibold">
-                  CHF {p.price.toFixed(2)}
-                </p>
-              </Link>
-            ))}
-        </div>
-      </section>
-    </main>
+    </div>
   );
 }
