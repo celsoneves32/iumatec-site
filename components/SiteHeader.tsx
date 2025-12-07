@@ -14,27 +14,19 @@ type MainNavItem = {
 };
 
 const mainNav: MainNavItem[] = [
-  // Novo item principal com mega-menu
+  // Item principal com mega-menu
   {
     label: "Computer & Gaming",
     href: "/kategorie/computer-gaming",
     slug: "computer-gaming",
   },
   {
-    label: "Smartphones & Wearables",
+    label: "Telefonie, Tablet & Smartwatch",
     href: "/kategorie/telefonie-tablet-smartwatch",
   },
   {
     label: "TV & Audio",
     href: "/kategorie/tv-audio",
-  },
-  {
-    label: "Computer & Tablets",
-    href: "/kategorie/computer-tablets",
-  },
-  {
-    label: "Gaming & VR",
-    href: "/kategorie/gaming-vr",
   },
   {
     label: "Haushalt & Küche",
@@ -58,14 +50,89 @@ const mainNav: MainNavItem[] = [
   },
 ];
 
-// Subcategorias para o mega-menu de "Computer & Gaming"
-const computerGamingChildren = CATEGORIES.filter(
-  (cat) => cat.parentSlug === "computer-gaming"
-);
+// Definir os grupos/colunas do mega-menu de "Computer & Gaming"
+const computerMegaGroupsRaw = [
+  {
+    title: "Gaming",
+    slugs: [
+      "gaming",
+      "spielkonsolen",
+      "spielkonsolen-games",
+      "spielkonsolen-zubehoer",
+      "pc-games",
+      "vr-brillen",
+      "gamecards-prepaid-karten",
+      "spielsteuerungen",
+      "gaming-stuehle",
+    ],
+  },
+  {
+    title: "Notebooks",
+    slugs: [
+      "notebooks",
+      "notebook-akku",
+      "notebook-bildschirmfolie",
+      "notebook-dockingstation",
+      "notebook-netzteil",
+      "notebook-sicherheitsschloss",
+      "notebook-zubehoer",
+      "taschen-huellen-notebooks",
+    ],
+  },
+  {
+    title: "Drucker & Peripherie",
+    slugs: [
+      "drucker-scanner",
+      "3d-drucker",
+      "3d-druckmaterial",
+      "tintendrucker",
+      "laserdrucker",
+      "scanner",
+      "druckerpatronen-toner",
+      "tintenpatronen",
+      "toner-trommeln",
+      "peripherie",
+      "maeuse",
+      "tastaturen",
+      "webcams",
+      "pc-audio",
+      "grafiktablets",
+    ],
+  },
+  {
+    title: "Speicher, Komponenten & PCs",
+    slugs: [
+      "speicher-laufwerke",
+      "ssd",
+      "hdd-festplatten",
+      "usb-sticks",
+      "crypto-wallet",
+      "pc-komponenten",
+      "prozessoren",
+      "arbeitsspeicher",
+      "grafikkarten",
+      "gehaeuse",
+      "netzteile",
+      "pcs-monitore",
+      "tower-desktop-pcs",
+      "monitore",
+      "monitor-zubehoer",
+      "computer-kabel-adapter",
+    ],
+  },
+];
 
 export default function SiteHeader() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [computerMegaOpen, setComputerMegaOpen] = useState(false);
+
+  // Resolver os slugs em categorias reais (a partir de CATEGORIES)
+  const computerMegaGroups = computerMegaGroupsRaw.map((group) => ({
+    title: group.title,
+    items: group.slugs
+      .map((slug) => CATEGORIES.find((c) => c.slug === slug))
+      .filter((c): c is (typeof CATEGORIES)[number] => Boolean(c)),
+  }));
 
   return (
     <header className="border-b border-neutral-200 bg-white/90 backdrop-blur">
@@ -198,24 +265,26 @@ export default function SiteHeader() {
                     </Link>
 
                     {/* Mega-menu Desktop */}
-                    {computerMegaOpen && computerGamingChildren.length > 0 && (
-                      <div className="absolute left-0 top-full mt-px w-[720px] bg-white border border-neutral-200 rounded-b-2xl shadow-lg z-30">
-                        <div className="grid grid-cols-3 gap-4 p-4 text-xs">
-                          {computerGamingChildren.map((cat) => (
-                            <Link
-                              key={cat.slug}
-                              href={`/kategorie/${cat.slug}`}
-                              className="group rounded-md px-2 py-1 hover:bg-neutral-50"
-                            >
-                              <div className="font-medium text-neutral-800 group-hover:text-red-600">
-                                {cat.title}
+                    {computerMegaOpen && (
+                      <div className="absolute left-0 top-full mt-px w-[840px] bg-white border border-neutral-200 rounded-b-2xl shadow-lg z-30">
+                        <div className="grid grid-cols-4 gap-6 p-4 text-xs">
+                          {computerMegaGroups.map((group) => (
+                            <div key={group.title}>
+                              <div className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
+                                {group.title}
                               </div>
-                              {cat.description && (
-                                <div className="mt-0.5 text-[11px] text-neutral-500 line-clamp-2">
-                                  {cat.description}
-                                </div>
-                              )}
-                            </Link>
+                              <div className="space-y-1">
+                                {group.items.map((cat) => (
+                                  <Link
+                                    key={cat.slug}
+                                    href={`/kategorie/${cat.slug}`}
+                                    className="block rounded-md px-2 py-1 text-neutral-800 hover:bg-neutral-50 hover:text-red-600"
+                                  >
+                                    {cat.title}
+                                  </Link>
+                                ))}
+                              </div>
+                            </div>
                           ))}
                         </div>
                       </div>
@@ -247,7 +316,6 @@ export default function SiteHeader() {
               <span className="text-xs font-semibold text-neutral-500">
                 Konto & Warenkorb
               </span>
-              {/* mini Account link */}
               <Link
                 href="/login"
                 className="text-xs text-red-600 font-semibold"
