@@ -4,9 +4,7 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-// para onde queres receber
 const CONTACT_TO = process.env.CONTACT_TO_EMAIL || "support@iumatec.ch";
-// de quem aparece (tem de ser um domínio verificado na Resend)
 const CONTACT_FROM =
   process.env.CONTACT_FROM_EMAIL || "IUMATEC Kontakt <support@iumatec.ch>";
 
@@ -32,9 +30,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const subject = `Neue Kontaktanfrage von ${name}`;
-
-    const text = `
+    // -------- 1) E-Mail zu dir (Support) --------
+    const internalSubject = `Neue Kontaktanfrage von ${name}`;
+    const internalText = `
 Neue Kontaktanfrage über das Formular auf iumatec.ch
 
 Name: ${name}
@@ -44,21 +42,46 @@ Nachricht:
 ${message}
 `.trim();
 
-    const { error } = await resend.emails.send({
+    const { error: internalError } = await resend.emails.send({
       from: CONTACT_FROM,
       to: CONTACT_TO,
       replyTo: email,
-      subject,
-      text,
+      subject: internalSubject,
+      text: internalText,
     });
 
-    if (error) {
-      console.error("Fehler beim Senden mit Resend:", error);
+    if (internalError) {
+      console.error("Fehler beim Senden an Support:", internalError);
       return NextResponse.json(
         { ok: false, error: "Nachricht konnte nicht gesendet werden." },
         { status: 500 }
       );
     }
+
+    // -------- 2) Bestätigung an den Kunden --------
+    const customerSubject = "Vielen Dank für deine Anfrage bei IUMATEC";
+    const customerText = `
+Hallo ${name},
+
+vielen Dank für deine Nachricht an IUMATEC.
+
+Wir haben deine Anfrage erhalten und melden uns in der Regel innerhalb von 24 Stunden bei dir zurück.
+
+Deine Nachricht:
+----------------
+${message}
+----------------
+
+Freundliche Grüsse
+IUMATEC Schweiz
+`.trim();
+
+    await resend.emails.send({
+      from: CONTACT_FROM,
+      to: email,
+      subject: customerSubject,
+      text: customerText,
+    });
 
     return NextResponse.json({ ok: true });
   } catch (err) {
