@@ -1,53 +1,70 @@
 // app/api/register/route.ts
-import { supabase } from "@/lib/supabase";
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 import { hash } from "bcryptjs";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const { name, email, password } = await req.json();
+    const body = await req.json();
+    const name = (body.name ?? "").toString().trim();
+    const email = (body.email ?? "").toString().trim().toLowerCase();
+    const password = (body.password ?? "").toString();
 
     if (!email || !password) {
-      return Response.json(
-        { error: "E-Mail und Passwort sind erforderlich." },
+      return NextResponse.json(
+        { error: "Bitte gib E-Mail-Adresse und Passwort ein." },
         { status: 400 }
       );
     }
 
-    // Verificar se já existe utilizador com esse email
-    const { data: existing } = await supabase
-      .from("User")
-      .select("*")
-      .eq("email", email)
-      .maybeSingle();
-
-    if (existing) {
-      return Response.json(
-        { error: "Ein Konto mit dieser E-Mail existiert bereits." },
+    if (password.length < 6) {
+      return NextResponse.json(
+        { error: "Das Passwort muss mindestens 6 Zeichen lang sein." },
         { status: 400 }
       );
     }
 
-    const hashed = await hash(password, 10);
-
-    const { error } = await supabase.from("User").insert({
-      name,
-      email,
-      password: hashed,
+    // prüfen, ob E-Mail schon existiert
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
     });
 
-    if (error) {
-      console.error("Supabase insert error", error);
-      return Response.json(
-        { error: "Fehler beim Anlegen des Kontos." },
-        { status: 500 }
+    if (existingUser) {
+      return NextResponse.json(
+        { error: "EMAIL_EXISTS" }, // die RegisterPage zeigt dann einen schönen Text
+        { status: 400 }
       );
     }
 
-    return Response.json({ success: true });
-  } catch (err: any) {
-    console.error(err);
-    return Response.json(
-      { error: "Unerwarteter Fehler beim Registrieren." },
+    // Passwort hashen
+    const hashedPassword = await hash(password, 10);
+
+    // neuen User anlegen
+    const user = await prisma.user.create({
+      data: {
+        email,
+        name: name || null,
+        password: hashedPassword,
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        createdAt: true,
+      },
+    });
+
+    return NextResponse.json(
+      {
+        ok: true,
+        user,
+      },
+      { status: 201 }
+    );
+  } catch (err) {
+    console.error("REGISTER_ERROR", err);
+    return NextResponse.json(
+      { error: "Fehler beim Anlegen des Kontos." },
       { status: 500 }
     );
   }
