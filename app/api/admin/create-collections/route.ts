@@ -1,4 +1,7 @@
 // app/api/admin/create-collections/route.ts
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 import { NextRequest, NextResponse } from "next/server";
 
 type CollectionDef = {
@@ -407,7 +410,7 @@ async function createCollection(col: CollectionDef): Promise<string> {
 export async function GET(req: NextRequest) {
   try {
     const token = req.nextUrl.searchParams.get("token");
-  const expected = process.env.ADMIN_SETUP_TOKEN;
+    const expected = process.env.ADMIN_SETUP_TOKEN;
 
     if (!expected || token !== expected) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
