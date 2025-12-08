@@ -6,6 +6,7 @@ import { hash } from "bcryptjs";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+
     const name = (body.name ?? "").toString().trim();
     const email = (body.email ?? "").toString().trim().toLowerCase();
     const password = (body.password ?? "").toString();
@@ -24,14 +25,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // prüfen, ob E-Mail schon existiert
-    const existingUser = await prisma.user.findUnique({
+    // E-Mail schon vergeben?
+    // => findFirst funktioniert auch dann, wenn email nicht @unique ist
+    const existingUser = await prisma.user.findFirst({
       where: { email },
     });
 
     if (existingUser) {
       return NextResponse.json(
-        { error: "EMAIL_EXISTS" }, // die RegisterPage zeigt dann einen schönen Text
+        { error: "EMAIL_EXISTS" }, // deine RegisterPage kennt diese Meldung
         { status: 400 }
       );
     }
@@ -39,7 +41,7 @@ export async function POST(req: NextRequest) {
     // Passwort hashen
     const hashedPassword = await hash(password, 10);
 
-    // neuen User anlegen
+    // User anlegen
     const user = await prisma.user.create({
       data: {
         email,
@@ -50,7 +52,8 @@ export async function POST(req: NextRequest) {
         id: true,
         email: true,
         name: true,
-        createdAt: true,
+        // falls du kein createdAt Feld hast, APAGA ESTA LINHA
+        // createdAt: true,
       },
     });
 
@@ -61,10 +64,17 @@ export async function POST(req: NextRequest) {
       },
       { status: 201 }
     );
-  } catch (err) {
+  } catch (err: any) {
     console.error("REGISTER_ERROR", err);
+
+    // Versuch, eine etwas genauere Fehlermeldung zurückzugeben
+    const message =
+      typeof err?.message === "string"
+        ? err.message
+        : "Fehler beim Anlegen des Kontos.";
+
     return NextResponse.json(
-      { error: "Fehler beim Anlegen des Kontos." },
+      { error: message },
       { status: 500 }
     );
   }
