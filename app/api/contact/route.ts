@@ -11,9 +11,9 @@ const CONTACT_FROM =
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const name = (body.name || "").toString().trim();
-    const email = (body.email || "").toString().trim();
-    const message = (body.message || "").toString().trim();
+    const name = body.name?.trim();
+    const email = body.email?.trim();
+    const message = body.message?.trim();
 
     if (!name || !email || !message) {
       return NextResponse.json(
@@ -25,15 +25,17 @@ export async function POST(req: NextRequest) {
     if (!process.env.RESEND_API_KEY) {
       console.error("RESEND_API_KEY fehlt");
       return NextResponse.json(
-        { ok: false, error: "E-Mail Versand ist nicht konfiguriert." },
+        { ok: false, error: "E-Mail Versand nicht konfiguriert." },
         { status: 500 }
       );
     }
 
-    // -------- 1) E-Mail zu dir (Support) --------
+    // ------------------------------
+    // 1) E-MAIL AN SUPPORT (intern)
+    // ------------------------------
     const internalSubject = `Neue Kontaktanfrage von ${name}`;
     const internalText = `
-Neue Kontaktanfrage über das Formular auf iumatec.ch
+Neue Kontaktanfrage über das Kontaktformular:
 
 Name: ${name}
 E-Mail: ${email}
@@ -42,37 +44,39 @@ Nachricht:
 ${message}
 `.trim();
 
-    const { error: internalError } = await resend.emails.send({
+    const internalEmail = await resend.emails.send({
       from: CONTACT_FROM,
       to: CONTACT_TO,
-      replyTo: email,
+      reply_to: email,         // << CORRETO PARA RESEND
       subject: internalSubject,
       text: internalText,
     });
 
-    if (internalError) {
-      console.error("Fehler beim Senden an Support:", internalError);
+    if (internalEmail.error) {
+      console.error("Fehler beim Senden an Support:", internalEmail.error);
       return NextResponse.json(
         { ok: false, error: "Nachricht konnte nicht gesendet werden." },
         { status: 500 }
       );
     }
 
-    // -------- 2) Bestätigung an den Kunden --------
+    // ----------------------------------------
+    // 2) BESTÄTIGUNGSMELDUNG AN DEN KUNDEN
+    // ----------------------------------------
     const customerSubject = "Vielen Dank für deine Anfrage bei IUMATEC";
     const customerText = `
 Hallo ${name},
 
-vielen Dank für deine Nachricht an IUMATEC.
+vielen Dank für deine Nachricht an IUMATEC!
 
-Wir haben deine Anfrage erhalten und melden uns in der Regel innerhalb von 24 Stunden bei dir zurück.
+Wir haben deine Anfrage erhalten und melden uns in der Regel innerhalb von 24 Stunden.
 
 Deine Nachricht:
 ----------------
 ${message}
 ----------------
 
-Freundliche Grüsse
+Freundliche Grüsse  
 IUMATEC Schweiz
 `.trim();
 
