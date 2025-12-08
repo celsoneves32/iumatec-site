@@ -11,9 +11,10 @@ const CONTACT_FROM =
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const name = body.name?.trim();
-    const email = body.email?.trim();
-    const message = body.message?.trim();
+
+    const name = (body.name ?? "").toString().trim();
+    const email = (body.email ?? "").toString().trim();
+    const message = (body.message ?? "").toString().trim();
 
     if (!name || !email || !message) {
       return NextResponse.json(
@@ -30,12 +31,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ------------------------------
-    // 1) E-MAIL AN SUPPORT (intern)
-    // ------------------------------
+    // 1) E-Mail an Support (intern)
     const internalSubject = `Neue Kontaktanfrage von ${name}`;
     const internalText = `
-Neue Kontaktanfrage über das Kontaktformular:
+Neue Kontaktanfrage über das Kontaktformular auf iumatec.ch
 
 Name: ${name}
 E-Mail: ${email}
@@ -47,7 +46,7 @@ ${message}
     const internalEmail = await resend.emails.send({
       from: CONTACT_FROM,
       to: CONTACT_TO,
-      reply_to: email,         // << CORRETO PARA RESEND
+      reply_to: email, // <- CORRETO, snake_case
       subject: internalSubject,
       text: internalText,
     });
@@ -60,9 +59,7 @@ ${message}
       );
     }
 
-    // ----------------------------------------
-    // 2) BESTÄTIGUNGSMELDUNG AN DEN KUNDEN
-    // ----------------------------------------
+    // 2) Bestätigungsmail an den Kunden
     const customerSubject = "Vielen Dank für deine Anfrage bei IUMATEC";
     const customerText = `
 Hallo ${name},
@@ -76,7 +73,7 @@ Deine Nachricht:
 ${message}
 ----------------
 
-Freundliche Grüsse  
+Freundliche Grüsse
 IUMATEC Schweiz
 `.trim();
 
