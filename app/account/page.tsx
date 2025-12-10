@@ -1,95 +1,73 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { supabaseBrowser } from "@/lib/supabaseClient";
-
-type SupabaseUser = {
-  id: string;
-  email?: string;
-};
+import { useUser } from "@/hooks/useUser";
 
 export default function AccountPage() {
-  const [user, setUser] = useState<SupabaseUser | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, loading } = useUser();
   const router = useRouter();
 
   useEffect(() => {
-    async function loadUser() {
-      const { data } = await supabaseBrowser.auth.getUser();
-      setUser(data.user as SupabaseUser | null);
-      setLoading(false);
+    if (!loading && !user) {
+      router.push("/login?from=/account");
     }
-    loadUser();
-  }, []);
+  }, [loading, user, router]);
 
-  async function handleLogout() {
-    await supabaseBrowser.auth.signOut();
-    router.push("/");
-  }
-
-  if (loading) {
+  if (loading || !user) {
     return (
-      <main className="max-w-md mx-auto px-4 py-10">
-        <p className="text-sm text-neutral-600">Lade Konto...</p>
-      </main>
-    );
-  }
-
-  if (!user) {
-    return (
-      <main className="max-w-md mx-auto px-4 py-10 space-y-4">
-        <h1 className="text-2xl font-semibold">Mein Konto</h1>
-        <p className="text-sm text-neutral-600">
-          Sie sind nicht angemeldet. Bitte melden Sie sich an oder erstellen
-          Sie ein Konto.
-        </p>
-        <div className="flex gap-3">
-          <Link
-            href="/login?redirectTo=/account"
-            className="flex-1 text-center rounded-full bg-red-600 text-white text-sm font-semibold py-2.5 hover:bg-red-700"
-          >
-            Anmelden
-          </Link>
-          <Link
-            href="/register"
-            className="flex-1 text-center rounded-full border border-red-600 text-red-600 text-sm font-semibold py-2.5 hover:bg-red-50"
-          >
-            Registrieren
-          </Link>
-        </div>
+      <main className="max-w-3xl mx-auto px-4 py-10">
+        <p className="text-sm text-neutral-600">Konto wird geladen…</p>
       </main>
     );
   }
 
   return (
     <main className="max-w-3xl mx-auto px-4 py-10 space-y-6">
-      <header className="flex items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold">Mein Konto</h1>
-          <p className="text-sm text-neutral-600">
-            Angemeldet als <span className="font-medium">{user.email}</span>
-          </p>
-        </div>
-        <button
-          onClick={handleLogout}
-          className="rounded-full border border-neutral-300 px-3 py-1.5 text-xs font-medium hover:border-red-600 hover:text-red-600"
-        >
-          Abmelden
-        </button>
+      <header>
+        <h1 className="text-2xl font-semibold mb-1">Mein Konto</h1>
+        <p className="text-sm text-neutral-600">
+          Angemeldet als{" "}
+          <span className="font-medium">{user.email}</span>
+        </p>
       </header>
 
       <section className="grid gap-4 sm:grid-cols-2">
         <Link
           href="/account/orders"
-          className="rounded-2xl border border-neutral-200 bg-white p-4 text-sm hover:border-red-600 hover:shadow-sm"
+          className="rounded-2xl border border-neutral-200 bg-white p-4 hover:border-red-500 hover:shadow-sm transition"
         >
-          <h2 className="font-semibold mb-1">Meine Bestellungen</h2>
-          <p className="text-neutral-600">
-            Übersicht über alle Online-Bestellungen bei IUMATEC.
+          <h2 className="text-sm font-semibold mb-1">Bestellungen</h2>
+          <p className="text-xs text-neutral-600">
+            Übersicht deiner bisherigen Bestellungen.
           </p>
         </Link>
+
+        <Link
+          href="/favoriten"
+          className="rounded-2xl border border-neutral-200 bg-white p-4 hover:border-red-500 hover:shadow-sm transition"
+        >
+          <h2 className="text-sm font-semibold mb-1">Favoriten</h2>
+          <p className="text-xs text-neutral-600">
+            Produkte, die du dir gemerkt hast.
+          </p>
+        </Link>
+
+        <div className="rounded-2xl border border-neutral-200 bg-white p-4">
+          <h2 className="text-sm font-semibold mb-1">Kundendaten</h2>
+          <p className="text-xs text-neutral-600">
+            Dieser Bereich wird später für Adressen, Rechnungsdaten usw.
+            verwendet.
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-neutral-200 bg-white p-4">
+          <h2 className="text-sm font-semibold mb-1">Sicherheit</h2>
+          <p className="text-xs text-neutral-600">
+            Passwort-Änderung und Kontosicherheit werden hier noch ergänzt.
+          </p>
+        </div>
       </section>
     </main>
   );
