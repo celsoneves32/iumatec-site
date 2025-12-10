@@ -1,3 +1,4 @@
+// components/AccountButton.tsx
 "use client";
 
 import Link from "next/link";
@@ -7,8 +8,11 @@ import { useUser } from "@/hooks/useUser";
 export default function AccountButton() {
   const { user, loading } = useUser();
 
-  if (loading) return null;
+  if (loading) {
+    return null;
+  }
 
+  // Não autenticado → link para login
   if (!user) {
     return (
       <Link
@@ -20,6 +24,7 @@ export default function AccountButton() {
     );
   }
 
+  // Autenticado → mostra e-mail + botão logout
   const handleLogout = async () => {
     await supabase.auth.signOut();
     window.location.reload();
@@ -27,10 +32,13 @@ export default function AccountButton() {
 
   return (
     <div className="flex items-center gap-3">
-      <span className="text-sm">{user.email}</span>
+      <span className="text-xs md:text-sm text-neutral-800">
+        {user.email}
+      </span>
       <button
+        type="button"
         onClick={handleLogout}
-        className="text-sm text-red-600 hover:underline"
+        className="text-xs md:text-sm text-red-600 hover:underline"
       >
         Logout
       </button>
