@@ -1,3 +1,4 @@
+// hooks/useUser.ts
 "use client";
 
 import { useEffect, useState } from "react";
@@ -8,18 +9,18 @@ export function useUser() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Buscar sessão ativa
+    // 1) Buscar sessão inicial
     supabase.auth.getSession().then(({ data }) => {
       setUser(data.session?.user ?? null);
       setLoading(false);
     });
 
-    // Ouvir mudanças de sessão (login/logout)
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user ?? null);
-      }
-    );
+    // 2) Ouvir alterações (login / logout)
+    const {
+      data: authListener,
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
 
     return () => {
       authListener?.subscription.unsubscribe();
