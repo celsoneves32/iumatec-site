@@ -1,11 +1,13 @@
+// components/SessionProviderWrapper.tsx
 "use client";
 
-import { SessionProvider } from "next-auth/react";
+import type { ReactNode } from "react";
 
 export default function SessionProviderWrapper({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
-  return <SessionProvider>{children}</SessionProvider>;
+  // Já não usamos NextAuth; este wrapper só devolve os children
+  return <>{children}</>;
 }
