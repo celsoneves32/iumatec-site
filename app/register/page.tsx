@@ -1,3 +1,4 @@
+// app/register/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -39,9 +40,7 @@ export default function RegisterPage() {
         email,
         password,
         options: {
-          data: {
-            name,
-          },
+          data: { name },
           emailRedirectTo: `${window.location.origin}/login`,
         },
       });
@@ -49,8 +48,8 @@ export default function RegisterPage() {
       if (error) {
         setError(error.message);
       } else {
+        // Se já existia utilizador com este email, Supabase devolve identities vazias
         if (data.user?.identities && data.user.identities.length === 0) {
-          // bereits registriert
           setError("Für diese E-Mail existiert bereits ein Konto.");
         } else {
           setSuccess(
@@ -80,14 +79,16 @@ export default function RegisterPage() {
       )}
 
       {success && (
-        <div className="mb-4 rounded-md bg-green-50 border border-green-200 px-3 py-2 text-sm text-green-700">
+        <div className="mb-4 rounded-md bg-emerald-50 border border-emerald-200 px-3 py-2 text-sm text-emerald-800">
           {success}
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-1">Name (optional)</label>
+          <label className="block text-sm font-medium mb-1">
+            Name (optional)
+          </label>
           <input
             type="text"
             className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
@@ -98,14 +99,16 @@ export default function RegisterPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">E-Mail-Adresse</label>
+          <label className="block text-sm font-medium mb-1">
+            E-Mail-Adresse
+          </label>
           <input
             type="email"
             className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            placeholder="name@beispiel.ch"
+            placeholder="kunde@example.ch"
           />
         </div>
 
