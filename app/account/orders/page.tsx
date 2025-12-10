@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 
-
 type OrderRow = {
   id: string;
   stripe_session_id: string;
@@ -24,16 +23,19 @@ export default function MyOrdersPage() {
 
   useEffect(() => {
     async function load() {
-      const { data: userData } = await supabaseBrowser.auth.getUser();
+      // 👉 usar o cliente supabase (novo) para obter o utilizador atual
+      const { data: userData, error: userError } = await supabase.auth.getUser();
 
-      if (!userData.user) {
-        router.push("/login?redirectTo=/account/orders");
+      if (userError || !userData.user) {
+        // manter consistente com o login (que usa ?from=)
+        router.push("/login?from=/account/orders");
         return;
       }
 
       setUserEmail(userData.user.email ?? null);
 
-      const { data, error } = await supabaseBrowser
+      // 👉 buscar as encomendas da tabela "orders"
+      const { data, error } = await supabase
         .from("orders")
         .select("*")
         .order("created_at", { ascending: false });
@@ -82,9 +84,7 @@ export default function MyOrdersPage() {
       ) : (
         <div className="space-y-4">
           {orders.map((order) => {
-            const items: any[] = Array.isArray(order.items)
-              ? order.items
-              : [];
+            const items: any[] = Array.isArray(order.items) ? order.items : [];
 
             return (
               <div
