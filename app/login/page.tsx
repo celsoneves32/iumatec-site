@@ -1,4 +1,4 @@
-
+// app/login/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -30,8 +30,7 @@ export default function LoginPage() {
       if (error) {
         setError(error.message);
       } else {
-        // login ok → redirecciona para onde veio (ou homepage)
-        router.push(from);
+        router.push(from || "/");
         router.refresh();
       }
     } catch (err: any) {
@@ -57,14 +56,16 @@ export default function LoginPage() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-1">E-Mail-Adresse</label>
+          <label className="block text-sm font-medium mb-1">
+            E-Mail-Adresse
+          </label>
           <input
             type="email"
             className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            placeholder="name@beispiel.ch"
+            placeholder="kunde@example.ch"
           />
         </div>
 
