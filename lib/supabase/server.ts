@@ -19,7 +19,7 @@ export function createSupabaseServerClient() {
               cookieStore.set(name, value, options);
             });
           } catch {
-            // Em Server Components, às vezes set cookie pode falhar; não é crítico aqui
+            // pode falhar em alguns contextos; não é crítico aqui
           }
         },
       },
