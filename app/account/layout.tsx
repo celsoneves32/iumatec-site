@@ -1,19 +1,9 @@
-// app/account/layout.tsx
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
-import { getUserIdFromCookieHeader } from "@/lib/auth";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/authOptions";
 
-export default async function AccountLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const cookieHeader = (await headers()).get("cookie") || "";
-  const userId = await getUserIdFromCookieHeader(cookieHeader);
-
-  if (!userId) {
-    redirect("/login?next=/account");
-  }
-
+export default async function AccountLayout({ children }: { children: React.ReactNode }) {
+  const session = await getServerSession(authOptions);
+  if (!session) redirect("/login?from=/account");
   return <>{children}</>;
 }
