@@ -35,171 +35,169 @@ export async function POST(req: Request) {
     );
   }
 
-  if (event.type === "checkout.session.completed") {
-    const session = event.data.object as Stripe.Checkout.Session;
+  if (event.type !== "checkout.session.completed") {
+    return NextResponse.json({ received: true });
+  }
 
-    const userId =
-      (session.client_reference_id as string | null) ||
-      (session.metadata?.user_id as string | undefined) ||
-      null;
+  const session = event.data.object as Stripe.Checkout.Session;
 
-    // Não bloqueamos o webhook, mas sem userId não dá para associar à conta
-    if (!userId) {
-      return NextResponse.json({
-        received: true,
-        warning: "Missing userId (client_reference_id/metadata.user_id)",
-      });
-    }
+  const userId =
+    (session.client_reference_id as string | null) ||
+    (session.metadata?.user_id as string | undefined) ||
+    null;
 
-    // Buscar line items no Stripe
-    let lineItems: any[] = [];
-    try {
-      const itemsRes = await stripe.checkout.sessions.listLineItems(session.id, {
-        limit: 100,
-      });
+  if (!userId) {
+    return NextResponse.json({
+      received: true,
+      warning: "Missing userId (client_reference_id/metadata.user_id)",
+    });
+  }
 
-      lineItems = (itemsRes.data || []).map((li) => ({
-        description: li.description ?? null,
-        quantity: li.quantity ?? null,
-        amount_subtotal: li.amount_subtotal ?? null,
-        amount_total: li.amount_total ?? null,
-        currency: li.currency ?? null,
-        price: li.price
-          ? {
-              id: li.price.id,
-              unit_amount: li.price.unit_amount ?? null,
-              currency: li.price.currency ?? null,
-              product: li.price.product ?? null,
-            }
-          : null,
-      }));
-    } catch (e) {
-      console.error("Stripe listLineItems error:", e);
-      lineItems = [];
-    }
-
-    const supabaseAdmin = getSupabaseAdmin();
-
-    const shipping = session.shipping_details ?? null;
-    const amount_total = session.amount_total ?? null; // cents
-    const currency = session.currency ?? null;
-    const shipping_cost =
-      (session.total_details as any)?.amount_shipping ?? null; // cents
-
-    // 1) Grava/atualiza a order
-    const { error: upsertError } = await supabaseAdmin.from("orders").upsert(
-      {
-        user_id: userId,
-        stripe_session_id: session.id,
-        stripe_payment_intent_id:
-          typeof session.payment_intent === "string"
-            ? session.payment_intent
-            : null,
-
-        status: "paid",
-        payment_status: session.payment_status ?? null,
-        mode: session.mode ?? null,
-
-        currency,
-        amount_total,
-        shipping_cost,
-
-        customer_email:
-          session.customer_details?.email ?? session.customer_email ?? null,
-
-        shipping_name: shipping?.name ?? null,
-        shipping_address: shipping?.address ?? null,
-
-        line_items: lineItems,
-      },
-      { onConflict: "stripe_session_id" }
-    );
-
-    if (upsertError) {
-      console.error("Supabase order upsert error:", upsertError);
-      return NextResponse.json({ error: "DB error" }, { status: 500 });
-    }
-
-    // 2) Carrega a order para decidir se envia e-mail (evitar duplicados)
-    const { data: orderRow, error: fetchError } = await supabaseAdmin
-      .from("orders")
-      .select(
-        "id, customer_email, created_at, currency, amount_total, shipping_cost, line_items, email_sent_at"
-      )
-      .eq("stripe_session_id", session.id)
-      .maybeSingle();
-
-    if (fetchError) {
-      console.error("Supabase order fetch error:", fetchError);
-      // não falha o webhook por causa do e-mail
-      return NextResponse.json({ received: true, warning: "Order fetch error" });
-    }
-
-    const customerEmail = orderRow?.customer_email ?? null;
-
-    // Se não há email do cliente, não dá para enviar
-    if (!customerEmail) {
-      return NextResponse.json({
-        received: true,
-        warning: "Missing customer_email",
-      });
-    }
-
-    // Se já enviámos, não reenviamos
-    if (orderRow?.email_sent_at) {
-      return NextResponse.json({ received: true, email: "already_sent" });
-    }
-
-    // 3) Enviar e-mail via Resend
-    const siteUrl =
-      process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
-      "https://iumatec.ch";
-
-    const from =
-      process.env.RESEND_FROM || "IUMATEC <no-reply@iumatec.ch>";
-
-    const ordersUrl = `${siteUrl}/account/orders`;
-
-    const html = buildOrderConfirmationHtml({
-      brand: "IUMATEC",
-      siteUrl,
-      customerEmail,
-      createdAtISO: orderRow?.created_at ?? new Date().toISOString(),
-      currency: (orderRow?.currency ?? "chf") as string,
-      amountTotalCents:
-        typeof orderRow?.amount_total === "number" ? orderRow.amount_total : null,
-      shippingCents:
-        typeof orderRow?.shipping_cost === "number" ? orderRow.shipping_cost : null,
-      lineItems: Array.isArray(orderRow?.line_items) ? orderRow.line_items : [],
-      ordersUrl,
+  // Buscar line items no Stripe (para persistir e para e-mail)
+  let lineItems: any[] = [];
+  try {
+    const itemsRes = await stripe.checkout.sessions.listLineItems(session.id, {
+      limit: 100,
     });
 
-    try {
-      const subject = "IUMATEC – Bestellbestätigung";
+    lineItems = (itemsRes.data || []).map((li) => ({
+      description: li.description ?? null,
+      quantity: li.quantity ?? null,
+      amount_subtotal: li.amount_subtotal ?? null,
+      amount_total: li.amount_total ?? null,
+      currency: li.currency ?? null,
+      price: li.price
+        ? {
+            id: li.price.id,
+            unit_amount: li.price.unit_amount ?? null,
+            currency: li.price.currency ?? null,
+            product: li.price.product ?? null,
+          }
+        : null,
+    }));
+  } catch (e) {
+    console.error("Stripe listLineItems error:", e);
+    lineItems = [];
+  }
 
-      const res = await resend.emails.send({
-        from,
-        to: customerEmail,
-        subject,
-        html,
-      });
+  const supabaseAdmin = getSupabaseAdmin();
 
-      // 4) Marca como enviado (idempotência)
-      await supabaseAdmin
-        .from("orders")
-        .update({
-          email_sent_at: new Date().toISOString(),
-          resend_email_id: (res as any)?.data?.id ?? null,
-        })
-        .eq("id", orderRow.id);
-    } catch (e) {
-      console.error("Resend send error:", e);
-      // não falha o webhook por causa do e-mail
-      return NextResponse.json({
-        received: true,
-        warning: "Email send failed",
-      });
-    }
+  const shipping = session.shipping_details ?? null;
+  const amount_total = session.amount_total ?? null; // cents
+  const currency = session.currency ?? null;
+  const shipping_cost =
+    (session.total_details as any)?.amount_shipping ?? null; // cents
+
+  // 1) Upsert order
+  const { error: upsertError } = await supabaseAdmin.from("orders").upsert(
+    {
+      user_id: userId,
+      stripe_session_id: session.id,
+      stripe_payment_intent_id:
+        typeof session.payment_intent === "string"
+          ? session.payment_intent
+          : null,
+
+      status: "paid",
+      payment_status: session.payment_status ?? null,
+      mode: session.mode ?? null,
+
+      currency,
+      amount_total,
+      shipping_cost,
+
+      customer_email:
+        session.customer_details?.email ?? session.customer_email ?? null,
+
+      shipping_name: shipping?.name ?? null,
+      shipping_address: shipping?.address ?? null,
+
+      line_items: lineItems,
+    },
+    { onConflict: "stripe_session_id" }
+  );
+
+  if (upsertError) {
+    console.error("Supabase order upsert error:", upsertError);
+    return NextResponse.json({ error: "DB error" }, { status: 500 });
+  }
+
+  // 2) Fetch order to decide email idempotency (avoid duplicates)
+  const { data: orderRow, error: fetchError } = await supabaseAdmin
+    .from("orders")
+    .select(
+      "id, customer_email, created_at, currency, amount_total, shipping_cost, line_items, email_sent_at"
+    )
+    .eq("stripe_session_id", session.id)
+    .maybeSingle();
+
+  if (fetchError) {
+    console.error("Supabase order fetch error:", fetchError);
+    return NextResponse.json({ received: true, warning: "Order fetch error" });
+  }
+
+  const customerEmail = orderRow?.customer_email ?? null;
+  if (!customerEmail) {
+    return NextResponse.json({
+      received: true,
+      warning: "Missing customer_email",
+    });
+  }
+
+  if (orderRow?.email_sent_at) {
+    return NextResponse.json({ received: true, email: "already_sent" });
+  }
+
+  // 3) Send email via Resend
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://iumatec.ch";
+
+  const from = process.env.RESEND_FROM || "IUMATEC <no-reply@iumatec.ch>";
+
+  const ordersListUrl = `${siteUrl}/account/orders`;
+  const orderDetailUrl = `${siteUrl}/account/orders/${orderRow.id}`;
+
+  const html = buildOrderConfirmationHtml({
+    brand: "IUMATEC",
+    siteUrl,
+    customerEmail,
+    createdAtISO: orderRow?.created_at ?? new Date().toISOString(),
+    currency: (orderRow?.currency ?? "chf") as string,
+    amountTotalCents:
+      typeof orderRow?.amount_total === "number" ? orderRow.amount_total : null,
+    shippingCents:
+      typeof orderRow?.shipping_cost === "number"
+        ? orderRow.shipping_cost
+        : null,
+    lineItems: Array.isArray(orderRow?.line_items) ? orderRow.line_items : [],
+    orderDetailUrl,
+    ordersListUrl,
+  });
+
+  try {
+    const subject = "IUMATEC – Bestellbestätigung";
+
+    const res = await resend.emails.send({
+      from,
+      to: customerEmail,
+      subject,
+      html,
+    });
+
+    // 4) Mark as sent (idempotency)
+    await supabaseAdmin
+      .from("orders")
+      .update({
+        email_sent_at: new Date().toISOString(),
+        resend_email_id: (res as any)?.data?.id ?? null,
+      })
+      .eq("id", orderRow.id);
+  } catch (e) {
+    console.error("Resend send error:", e);
+    return NextResponse.json({
+      received: true,
+      warning: "Email send failed",
+    });
   }
 
   return NextResponse.json({ received: true });
