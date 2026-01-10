@@ -4,6 +4,11 @@
 import Link from "next/link";
 import type { OrderRow } from "./page";
 
+function formatCHF(value: number | null | undefined) {
+  if (typeof value !== "number" || Number.isNaN(value)) return "-";
+  return value.toFixed(2);
+}
+
 export default function OrdersClient({
   orders,
   userEmail,
@@ -34,23 +39,51 @@ export default function OrdersClient({
       ) : (
         <div className="space-y-4">
           {orders.map((order) => {
-            // compatibilidade: aceita items (antigo) ou line_items (novo)
-            const rawItems = order.items ?? order.line_items ?? [];
+            // compat: aceita items (antigo) ou line_items (novo)
+            const rawItems = (order as any).items ?? (order as any).line_items ?? [];
             const items: any[] = Array.isArray(rawItems) ? rawItems : [];
 
-            const total =
-              typeof order.total_amount === "number"
-                ? order.total_amount
+            const currency = (order.currency ?? "CHF").toUpperCase();
+
+            // Total compat:
+            // - legacy: total_amount (CHF)
+            // - novo Stripe: amount_total (cents)
+            const legacyTotal = (order as any).total_amount;
+            const stripeAmountTotal = (order as any).amount_total;
+
+            const totalCHF =
+              typeof legacyTotal === "number"
+                ? legacyTotal
+                : typeof stripeAmountTotal === "number"
+                ? stripeAmountTotal / 100
                 : null;
 
-            const currency = order.currency ?? "CHF";
+            const shippingCents =
+              typeof (order as any).shipping_cost === "number"
+                ? (order as any).shipping_cost
+                : null;
+
+            const shippingCHF =
+              typeof shippingCents === "number" ? shippingCents / 100 : null;
+
+            const status =
+              (order as any).status ||
+              (order as any).payment_status ||
+              null;
 
             const ref =
-              order.shopify_order_id
-                ? `Shopify: ${order.shopify_order_id}`
+              (order as any).shopify_order_id
+                ? `Shopify: ${(order as any).shopify_order_id}`
                 : order.stripe_session_id
                 ? `Session: ${order.stripe_session_id}`
                 : null;
+
+            const shippingLine =
+              shippingCHF === null
+                ? null
+                : shippingCHF === 0
+                ? "Gratis Versand"
+                : `Versand: ${currency} ${formatCHF(shippingCHF)}`;
 
             return (
               <div
@@ -58,13 +91,23 @@ export default function OrdersClient({
                 className="rounded-2xl border border-neutral-200 bg-white p-4 text-sm"
               >
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-200 pb-2 mb-2">
-                  <div>
+                  <div className="space-y-0.5">
                     <div className="font-semibold">
-                      {currency} {total !== null ? total.toFixed(2) : "-"}
+                      {currency} {formatCHF(totalCHF)}
                     </div>
+
                     <div className="text-xs text-neutral-500">
                       {new Date(order.created_at).toLocaleString("de-CH")}
+                      {status ? (
+                        <span className="ml-2 inline-flex items-center rounded-full border border-neutral-200 bg-neutral-50 px-2 py-0.5 text-[11px] text-neutral-700">
+                          {String(status)}
+                        </span>
+                      ) : null}
                     </div>
+
+                    {shippingLine ? (
+                      <div className="text-xs text-neutral-600">{shippingLine}</div>
+                    ) : null}
                   </div>
 
                   {ref && (
@@ -80,21 +123,32 @@ export default function OrdersClient({
                   </p>
                 ) : (
                   <ul className="space-y-1">
-                    {items.map((item, idx) => (
-                      <li key={idx}>
-                        <span className="font-medium">
-                          {item.title ?? item.name ?? "Artikel"}
-                        </span>
-                        {typeof item.quantity === "number" &&
-                          typeof item.price === "number" && (
+                    {items.map((item, idx) => {
+                      const title = item.title ?? item.name ?? "Artikel";
+                      const qty =
+                        typeof item.quantity === "number" ? item.quantity : null;
+
+                      // item.price pode estar:
+                      // - legacy: number (CHF)
+                      // - novo: nem sempre vem (se ainda não guardas line_items)
+                      const price =
+                        typeof item.price === "number" ? item.price : null;
+
+                      return (
+                        <li key={idx}>
+                          <span className="font-medium">{title}</span>
+                          {qty !== null && price !== null ? (
                             <span className="text-neutral-600">
-                              {` – ${item.quantity} × ${currency} ${item.price.toFixed(
-                                2
-                              )}`}
+                              {` – ${qty} × ${currency} ${formatCHF(price)}`}
                             </span>
-                          )}
-                      </li>
-                    ))}
+                          ) : qty !== null ? (
+                            <span className="text-neutral-600">
+                              {` – Menge: ${qty}`}
+                            </span>
+                          ) : null}
+                        </li>
+                      );
+                    })}
                   </ul>
                 )}
               </div>
