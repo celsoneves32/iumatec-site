@@ -21,7 +21,8 @@ export function buildOrderConfirmationHtml(input: {
   amountTotalCents: number | null;
   shippingCents: number | null;
   lineItems: LineItem[];
-  ordersUrl: string;
+  orderDetailUrl: string;
+  ordersListUrl: string;
 }) {
   const {
     brand,
@@ -32,10 +33,12 @@ export function buildOrderConfirmationHtml(input: {
     amountTotalCents,
     shippingCents,
     lineItems,
-    ordersUrl,
+    orderDetailUrl,
+    ordersListUrl,
   } = input;
 
   const dateStr = new Date(createdAtISO).toLocaleString("de-CH");
+
   const shippingLine =
     shippingCents === null
       ? ""
@@ -60,7 +63,9 @@ export function buildOrderConfirmationHtml(input: {
                 </td>
                 <td style="padding:10px;border-bottom:1px solid #eee;text-align:right;white-space:nowrap;">
                   <div>${unit !== null ? money(unit, currency) : "-"}</div>
-                  <div style="color:#666;font-size:12px;">Total: ${lineTotal !== null ? money(lineTotal, currency) : "-"}</div>
+                  <div style="color:#666;font-size:12px;">Total: ${
+                    lineTotal !== null ? money(lineTotal, currency) : "-"
+                  }</div>
                 </td>
               </tr>
             `;
@@ -74,12 +79,15 @@ export function buildOrderConfirmationHtml(input: {
         </tr>
       `;
 
-  const html = `
+  return `
   <div style="font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;max-width:680px;margin:0 auto;padding:24px;">
     <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
       <div style="font-size:18px;font-weight:800;">${escapeHtml(brand)}</div>
       <div style="font-size:12px;color:#666;">
-        <a href="${siteUrl}" style="color:#111;text-decoration:none;">${siteUrl.replace("https://", "")}</a>
+        <a href="${siteUrl}" style="color:#111;text-decoration:none;">${siteUrl.replace(
+          "https://",
+          ""
+        )}</a>
       </div>
     </div>
 
@@ -96,8 +104,16 @@ export function buildOrderConfirmationHtml(input: {
         <strong>Datum:</strong> ${escapeHtml(dateStr)}
       </div>
       <div style="font-size:13px;color:#444;">
-        <strong>Gesamt:</strong> ${amountTotalCents !== null ? money(amountTotalCents, currency) : "-"}
-        ${shippingLine ? `<span style="color:#666;margin-left:10px;">(${escapeHtml(shippingLine)})</span>` : ""}
+        <strong>Gesamt:</strong> ${
+          amountTotalCents !== null ? money(amountTotalCents, currency) : "-"
+        }
+        ${
+          shippingLine
+            ? `<span style="color:#666;margin-left:10px;">(${escapeHtml(
+                shippingLine
+              )})</span>`
+            : ""
+        }
       </div>
     </div>
 
@@ -113,23 +129,22 @@ export function buildOrderConfirmationHtml(input: {
       </tbody>
     </table>
 
-    <div style="margin-top:16px;">
-      <a href="${ordersUrl}" style="display:inline-block;background:#dc2626;color:white;padding:10px 14px;border-radius:10px;text-decoration:none;font-weight:700;font-size:13px;">
-        Meine Bestellungen ansehen
+    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+      <a href="${orderDetailUrl}" style="display:inline-block;background:#dc2626;color:white;padding:10px 14px;border-radius:10px;text-decoration:none;font-weight:700;font-size:13px;">
+        Bestellung ansehen
+      </a>
+      <a href="${ordersListUrl}" style="display:inline-block;background:#111;color:white;padding:10px 14px;border-radius:10px;text-decoration:none;font-weight:700;font-size:13px;">
+        Alle Bestellungen
       </a>
     </div>
 
     <div style="margin-top:18px;color:#777;font-size:12px;line-height:1.4;">
-      Wenn du Fragen hast, antworte auf diese E-Mail oder kontaktiere uns unter
-      <a href="mailto:kontakt@iumatec.ch" style="color:#111;">kontakt@iumatec.ch</a>.
+      Fragen? Schreib uns: <a href="mailto:kontakt@iumatec.ch" style="color:#111;">kontakt@iumatec.ch</a>
     </div>
   </div>
   `;
-
-  return html;
 }
 
-// simples escape para evitar problemas no HTML
 function escapeHtml(str: string) {
   return str
     .replaceAll("&", "&amp;")
