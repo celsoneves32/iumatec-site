@@ -21,9 +21,7 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials.password) {
-          throw new Error(
-            "Bitte gib deine E-Mail-Adresse und dein Passwort ein."
-          );
+          throw new Error("Bitte gib deine E-Mail-Adresse und dein Passwort ein.");
         }
 
         const user = await prisma.user.findUnique({
@@ -31,21 +29,17 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (!user) {
-          throw new Error(
-            "E-Mail-Adresse oder Passwort ist nicht korrekt."
-          );
+          throw new Error("E-Mail-Adresse oder Passwort ist nicht korrekt.");
         }
 
         const isValid = await compare(credentials.password, user.password);
 
         if (!isValid) {
-          throw new Error(
-            "E-Mail-Adresse oder Passwort ist nicht korrekt."
-          );
+          throw new Error("E-Mail-Adresse oder Passwort ist nicht korrekt.");
         }
 
         return {
-          id: user.id,
+          id: user.id, // IMPORTANT: isto tem de existir
           name: user.name ?? "",
           email: user.email,
         };
@@ -54,14 +48,19 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async jwt({ token, user }) {
+      // Ao fazer login, o "user" vem do authorize()
       if (user) {
+        token.id = (user as any).id; // IMPORTANT
         token.name = user.name;
         token.email = user.email;
       }
       return token;
     },
+
     async session({ session, token }) {
-      if (session.user && token) {
+      if (session.user) {
+        // IMPORTANT: expor o id no session.user
+        (session.user as any).id = (token as any).id ?? null;
         session.user.name = (token.name as string) ?? null;
         session.user.email = (token.email as string) ?? null;
       }
