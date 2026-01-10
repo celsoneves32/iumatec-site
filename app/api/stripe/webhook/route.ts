@@ -26,4 +26,99 @@ export async function POST(req: Request) {
       sig,
       process.env.STRIPE_WEBHOOK_SECRET!
     );
-  } catch (e
+  } catch (err: any) {
+    return NextResponse.json(
+      { error: `Webhook Error: ${err.message}` },
+      { status: 400 }
+    );
+  }
+
+  if (event.type === "checkout.session.completed") {
+    const session = event.data.object as Stripe.Checkout.Session;
+
+    const userId =
+      (session.client_reference_id as string | null) ||
+      (session.metadata?.user_id as string | undefined) ||
+      null;
+
+    if (!userId) {
+      return NextResponse.json({
+        received: true,
+        warning: "Missing userId (client_reference_id/metadata.user_id)",
+      });
+    }
+
+    // Buscar line items no Stripe (para gravar no DB)
+    let lineItems: any[] = [];
+    try {
+      const itemsRes = await stripe.checkout.sessions.listLineItems(session.id, {
+        limit: 100,
+      });
+
+      lineItems = (itemsRes.data || []).map((li) => ({
+        description: li.description ?? null,
+        quantity: li.quantity ?? null,
+        amount_subtotal: li.amount_subtotal ?? null, // cents
+        amount_total: li.amount_total ?? null,       // cents
+        currency: li.currency ?? null,
+        price: li.price
+          ? {
+              id: li.price.id,
+              unit_amount: li.price.unit_amount ?? null,
+              currency: li.price.currency ?? null,
+              product: li.price.product ?? null,
+            }
+          : null,
+      }));
+    } catch (e) {
+      console.error("Stripe listLineItems error:", e);
+      // Não abortamos a order por causa disto; apenas fica sem items
+      lineItems = [];
+    }
+
+    const supabaseAdmin = getSupabaseAdmin();
+
+    const shipping = session.shipping_details ?? null;
+
+    const amount_total = session.amount_total ?? null; // cents
+    const currency = session.currency ?? null;
+
+    const shipping_cost =
+      (session.total_details as any)?.amount_shipping ?? null; // cents
+
+    const { error } = await supabaseAdmin.from("orders").upsert(
+      {
+        user_id: userId,
+        stripe_session_id: session.id,
+        stripe_payment_intent_id:
+          typeof session.payment_intent === "string"
+            ? session.payment_intent
+            : null,
+
+        status: "paid",
+        payment_status: session.payment_status ?? null,
+        mode: session.mode ?? null,
+
+        currency,
+        amount_total,
+        shipping_cost,
+
+        customer_email:
+          session.customer_details?.email ?? session.customer_email ?? null,
+
+        shipping_name: shipping?.name ?? null,
+        shipping_address: shipping?.address ?? null,
+
+        line_items: lineItems,
+      },
+      { onConflict: "stripe_session_id" }
+    );
+
+    if (error) {
+      console.error("Supabase order upsert error:", error);
+      return NextResponse.json({ error: "DB error" }, { status: 500 });
+    }
+  }
+
+  return NextResponse.json({ received: true });
+}
