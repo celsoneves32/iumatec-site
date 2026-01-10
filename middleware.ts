@@ -5,7 +5,6 @@ import type { NextRequest } from "next/server";
 export function middleware(req: NextRequest) {
   const { pathname, search } = req.nextUrl;
 
-  // Proteger tudo o que começa com /account
   if (pathname.startsWith("/account")) {
     const token = req.cookies.get("iumatec_token")?.value;
 
