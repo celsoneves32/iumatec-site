@@ -1,3 +1,4 @@
+// app/api/checkout/route.ts
 import Stripe from "stripe";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
@@ -17,9 +18,8 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
 
-  // Precisa ter user logado
-  const userId = (session as any)?.user?.id as string | undefined;
-  const email = (session as any)?.user?.email as string | undefined;
+  const userId = (session?.user as any)?.id as string | undefined;
+  const email = session?.user?.email ?? undefined;
 
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -50,14 +50,11 @@ export async function POST(req: Request) {
     success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/account/orders?success=1`,
     cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/cart?canceled=1`,
 
-    // A ligação do user:
+    // LIGAR AO USER (isto é o essencial)
     client_reference_id: userId,
-    metadata: {
-      user_id: userId,
-      source: "iumatec-web",
-    },
+    metadata: { user_id: userId },
 
-    customer_email: email ?? undefined,
+    customer_email: email,
   });
 
   return NextResponse.json({ url: checkoutSession.url });
