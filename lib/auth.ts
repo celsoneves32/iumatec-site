@@ -1,30 +1,27 @@
 // lib/auth.ts
 import { jwtVerify } from "jose";
-import { getServerSession } from "next-auth";
-import type { NextAuthOptions } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
-/**
- * NextAuth session (server-side). Use isto em layouts/pages Server Components
- * para proteger rotas como /account e /account/orders.
- */
-export async function getSessionServer() {
-  return getServerSession(authOptions as NextAuthOptions);
-}
-
-/**
- * Compat: extrair userId do cookie custom "iumatec_token" (JWT assinado com NEXTAUTH_SECRET).
- * Útil para APIs que ainda não migraram para getServerSession().
- */
 const SECRET = new TextEncoder().encode(process.env.NEXTAUTH_SECRET || "changeme");
 
-export async function getUserIdFromRequest(req: Request): Promise<string | null> {
-  const cookieHeader = req.headers.get("cookie") || "";
+/**
+ * Extrai o token do cookie "iumatec_token".
+ */
+export function getTokenFromCookieHeader(cookieHeader: string): string | null {
   const match = cookieHeader.match(/(?:^|;\s*)iumatec_token=([^;]+)/);
   if (!match) return null;
 
   try {
-    const token = decodeURIComponent(match[1]);
+    return decodeURIComponent(match[1]);
+  } catch {
+    return match[1];
+  }
+}
+
+/**
+ * Valida o JWT e devolve o userId (ou null).
+ */
+export async function verifyIumatecToken(token: string): Promise<string | null> {
+  try {
     const { payload } = await jwtVerify(token, SECRET);
     return (payload as any).userId as string;
   } catch (e) {
@@ -34,19 +31,23 @@ export async function getUserIdFromRequest(req: Request): Promise<string | null>
 }
 
 /**
- * Helper: exige sessão NextAuth e devolve o user id (string) ou redireciona/lança erro
- * conforme o seu uso. (Não faz redirect aqui para não acoplar a next/navigation.)
+ * Helper principal para Request (Route Handlers / APIs):
+ * devolve o userId a partir do cookie "iumatec_token".
  */
-export async function getUserIdFromSession(): Promise<string | null> {
-  const session = await getSessionServer();
-  // Ajuste conforme o seu shape de session:
-  // - session.user.id (se você já injeta no callback)
-  // - ou session.user.email como fallback
-  const anySession = session as any;
+export async function getUserIdFromRequest(req: Request): Promise<string | null> {
+  const cookieHeader = req.headers.get("cookie") || "";
+  const token = getTokenFromCookieHeader(cookieHeader);
+  if (!token) return null;
 
-  return (
-    anySession?.user?.id ??
-    anySession?.userId ?? // se você tiver algo assim no callback
-    null
-  );
+  return verifyIumatecToken(token);
+}
+
+/**
+ * Variante para quando você já tem o cookieHeader (ex.: headers() em Server Component).
+ */
+export async function getUserIdFromCookieHeader(cookieHeader: string): Promise<string | null> {
+  const token = getTokenFromCookieHeader(cookieHeader);
+  if (!token) return null;
+
+  return verifyIumatecToken(token);
 }
