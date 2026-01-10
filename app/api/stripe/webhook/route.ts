@@ -136,7 +136,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ received: true, warning: "Order fetch error" });
   }
 
-  const customerEmail = orderRow?.customer_email ?? null;
+  // ✅ FIX TypeScript: orderRow pode ser null
+  if (!orderRow) {
+    return NextResponse.json({
+      received: true,
+      warning: "Order not found after upsert",
+    });
+  }
+
+  const customerEmail = orderRow.customer_email ?? null;
   if (!customerEmail) {
     return NextResponse.json({
       received: true,
@@ -144,7 +152,7 @@ export async function POST(req: Request) {
     });
   }
 
-  if (orderRow?.email_sent_at) {
+  if (orderRow.email_sent_at) {
     return NextResponse.json({ received: true, email: "already_sent" });
   }
 
@@ -161,15 +169,13 @@ export async function POST(req: Request) {
     brand: "IUMATEC",
     siteUrl,
     customerEmail,
-    createdAtISO: orderRow?.created_at ?? new Date().toISOString(),
-    currency: (orderRow?.currency ?? "chf") as string,
+    createdAtISO: orderRow.created_at ?? new Date().toISOString(),
+    currency: (orderRow.currency ?? "chf") as string,
     amountTotalCents:
-      typeof orderRow?.amount_total === "number" ? orderRow.amount_total : null,
+      typeof orderRow.amount_total === "number" ? orderRow.amount_total : null,
     shippingCents:
-      typeof orderRow?.shipping_cost === "number"
-        ? orderRow.shipping_cost
-        : null,
-    lineItems: Array.isArray(orderRow?.line_items) ? orderRow.line_items : [],
+      typeof orderRow.shipping_cost === "number" ? orderRow.shipping_cost : null,
+    lineItems: Array.isArray(orderRow.line_items) ? orderRow.line_items : [],
     orderDetailUrl,
     ordersListUrl,
   });
