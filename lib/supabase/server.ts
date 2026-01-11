@@ -2,6 +2,20 @@
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 
+type CookieToSet = {
+  name: string;
+  value: string;
+  options?: {
+    domain?: string;
+    path?: string;
+    expires?: Date;
+    httpOnly?: boolean;
+    maxAge?: number;
+    sameSite?: "lax" | "strict" | "none";
+    secure?: boolean;
+  };
+};
+
 export function createSupabaseServerClient() {
   const cookieStore = cookies();
 
@@ -13,10 +27,11 @@ export function createSupabaseServerClient() {
         getAll() {
           return cookieStore.getAll();
         },
-        setAll(cookiesToSet) {
+        setAll(cookiesToSet: CookieToSet[]) {
           try {
             cookiesToSet.forEach(({ name, value, options }) => {
-              cookieStore.set(name, value, options);
+              // next/headers cookies().set aceita options compatíveis
+              cookieStore.set(name, value, options as any);
             });
           } catch {
             // pode falhar em alguns contextos; não é crítico aqui
