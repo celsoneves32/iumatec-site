@@ -6,14 +6,8 @@ import { compare } from "bcryptjs";
 
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
-
-  session: {
-    strategy: "jwt",
-  },
-
-  pages: {
-    signIn: "/login",
-  },
+  session: { strategy: "jwt" },
+  pages: { signIn: "/login" },
 
   providers: [
     CredentialsProvider({
@@ -22,30 +16,25 @@ export const authOptions: NextAuthOptions = {
         email: { label: "E-Mail-Adresse", type: "email" },
         password: { label: "Passwort", type: "password" },
       },
-
       async authorize(credentials) {
-        const email = credentials?.email?.toString().trim().toLowerCase();
-        const password = credentials?.password?.toString();
-
-        if (!email || !password) {
+        if (!credentials?.email || !credentials.password) {
           throw new Error("Bitte gib deine E-Mail-Adresse und dein Passwort ein.");
         }
 
         const user = await prisma.user.findUnique({
-          where: { email },
+          where: { email: credentials.email },
         });
 
         if (!user) {
           throw new Error("E-Mail-Adresse oder Passwort ist nicht korrekt.");
         }
 
-        const isValid = await compare(password, user.password);
-
+        const isValid = await compare(credentials.password, user.password);
         if (!isValid) {
           throw new Error("E-Mail-Adresse oder Passwort ist nicht korrekt.");
         }
 
-        // IMPORTANTE: devolver "id" para entrar no JWT
+        // IMPORTANTE: devolver o id
         return {
           id: user.id,
           name: user.name ?? "",
@@ -57,19 +46,19 @@ export const authOptions: NextAuthOptions = {
 
   callbacks: {
     async jwt({ token, user }) {
-      // no login o "user" existe; guardar o id
+      // quando faz login, o "user" existe
       if (user) {
         token.id = (user as any).id;
-        token.name = (user as any).name ?? token.name;
-        token.email = (user as any).email ?? token.email;
+        token.name = user.name;
+        token.email = user.email;
       }
       return token;
     },
 
     async session({ session, token }) {
+      // colocar o id dentro da session.user
       if (session.user) {
-        // anexar o id ao session.user para o server usar
-        (session.user as any).id = (token as any).id ?? null;
+        (session.user as any).id = token.id as string | undefined;
         session.user.name = (token.name as string) ?? null;
         session.user.email = (token.email as string) ?? null;
       }
