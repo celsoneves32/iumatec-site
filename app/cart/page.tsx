@@ -3,14 +3,12 @@
 
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
+import CheckoutButton from "@/components/CheckoutButton";
 
 export default function CartPage() {
   const { items, updateQuantity, removeItem, clearCart } = useCart();
 
-  const total = items.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
+  const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   // Warenkorb leer
   if (items.length === 0) {
@@ -18,9 +16,7 @@ export default function CartPage() {
       <main className="min-h-[70vh] bg-neutral-50">
         <div className="max-w-3xl mx-auto px-4 py-10">
           <div className="bg-white border border-neutral-200 rounded-2xl p-8 text-center">
-            <h1 className="text-2xl font-semibold mb-2">
-              Dein Warenkorb ist leer
-            </h1>
+            <h1 className="text-2xl font-semibold mb-2">Dein Warenkorb ist leer</h1>
             <p className="text-sm text-neutral-600 mb-6">
               Füge Produkte zu deinem Warenkorb hinzu, um mit der Bestellung
               fortzufahren.
@@ -42,9 +38,7 @@ export default function CartPage() {
     <main className="min-h-[70vh] bg-neutral-50">
       <div className="max-w-5xl mx-auto px-4 py-10">
         <div className="flex items-center justify-between mb-2">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Warenkorb
-          </h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Warenkorb</h1>
           <button
             type="button"
             onClick={clearCart}
@@ -53,9 +47,10 @@ export default function CartPage() {
             Warenkorb leeren
           </button>
         </div>
+
         <p className="text-sm text-neutral-600 mb-6">
-          Überprüfe deine ausgewählten Artikel und gehe anschliessend zur
-          Kasse, um deine Bestellung abzuschliessen.
+          Überprüfe deine ausgewählten Artikel und gehe anschliessend zur Kasse,
+          um deine Bestellung abzuschliessen.
         </p>
 
         <div className="grid gap-6 md:grid-cols-[2fr,1fr]">
@@ -75,34 +70,33 @@ export default function CartPage() {
                     <div className="text-sm font-medium text-neutral-900">
                       {item.title}
                     </div>
+
                     <div className="mt-2 inline-flex items-center gap-2">
-                      <span className="text-xs text-neutral-500">
-                        Menge:
-                      </span>
+                      <span className="text-xs text-neutral-500">Menge:</span>
+
                       <div className="inline-flex items-center gap-1 border border-neutral-300 rounded-md px-1 py-0.5">
                         <button
                           type="button"
-                          onClick={() =>
-                            updateQuantity(item.id, item.quantity - 1)
-                          }
+                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
                           className="px-2 text-xs font-semibold text-neutral-700 hover:bg-neutral-100 rounded"
                         >
                           −
                         </button>
+
                         <span className="min-w-[2rem] text-center text-xs">
                           {item.quantity}
                         </span>
+
                         <button
                           type="button"
-                          onClick={() =>
-                            updateQuantity(item.id, item.quantity + 1)
-                          }
+                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
                           className="px-2 text-xs font-semibold text-neutral-700 hover:bg-neutral-100 rounded"
                         >
                           +
                         </button>
                       </div>
                     </div>
+
                     <button
                       type="button"
                       onClick={() => removeItem(item.id)}
@@ -135,17 +129,14 @@ export default function CartPage() {
               <span>Zwischensumme</span>
               <span>{total.toFixed(2)} CHF</span>
             </div>
+
             <div className="flex justify-between text-xs text-neutral-500 mb-4">
               <span>inkl. MwSt.</span>
               <span>Versand wird im nächsten Schritt berechnet</span>
             </div>
 
-            <Link
-              href="/checkout"
-              className="inline-flex w-full items-center justify-center rounded-md bg-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-red-700"
-            >
-              Zur Kasse
-            </Link>
+            {/* AQUI: checkout direto via Stripe */}
+            <CheckoutButton items={items} />
 
             <Link
               href="/produkte"
@@ -155,8 +146,8 @@ export default function CartPage() {
             </Link>
 
             <p className="mt-3 text-[11px] leading-snug text-neutral-500">
-              Im nächsten Schritt kannst du deine Liefer- und Zahlungsdaten
-              eingeben und die Bestellung endgültig bestätigen.
+              Im nächsten Schritt kannst du deine Liefer- und Zahlungsdaten eingeben
+              und die Bestellung endgültig bestätigen.
             </p>
           </div>
         </div>
