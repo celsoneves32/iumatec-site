@@ -5,9 +5,9 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 
 type CheckoutItem = {
-  id: string;       // pode ser Shopify GID (real) OU um id temporário
-  title: string;    // usado no modo temporário
-  price: number;    // usado no modo temporário (CHF)
+  id: string;
+  title: string;
+  price: number;
   quantity: number;
 };
 
@@ -30,45 +30,50 @@ export default function CheckoutButton({ items }: CheckoutButtonProps) {
     try {
       setLoading(true);
 
-      // 1) Pega access_token do Supabase (login atual)
-      const { data, error: sessErr } = await supabase.auth.getSession();
-      const accessToken = data?.session?.access_token ?? null;
+      // ✅ Pega access_token do Supabase (no browser)
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
 
-      if (sessErr || !accessToken) {
-        setError("Bitte melde dich erneut an (Session fehlt).");
+      if (sessionError || !session?.access_token) {
+        setError("Bitte melde dich erneut an (Session ungültig).");
         return;
       }
 
-      // 2) Chama API com Bearer
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${session.access_token}`, // ✅ aqui
         },
         body: JSON.stringify({ items }),
       });
 
-      const dataJson = await res.json().catch(() => ({}));
+      const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
         setError(
-          typeof dataJson?.error === "string"
-            ? dataJson.error
+          typeof data?.error === "string"
+            ? data.error
             : "Die Zahlung konnte nicht gestartet werden. Bitte versuch es später noch einmal."
         );
         return;
       }
 
-      if (!dataJson?.url) {
-        setError("Unerwarteter Fehler: Keine Weiterleitungs-URL erhalten.");
+      if (!data?.url) {
+        setError(
+          "Unerwarteter Fehler: Keine Weiterleitungs-URL erhalten. Bitte versuch es später noch einmal."
+        );
         return;
       }
 
-      window.location.href = dataJson.url;
+      window.location.href = data.url;
     } catch (err) {
       console.error(err);
-      setError("Unerwarteter Fehler beim Start der Zahlung.");
+      setError(
+        "Unerwarteter Fehler beim Start der Zahlung. Bitte versuch es später noch einmal."
+      );
     } finally {
       setLoading(false);
     }
