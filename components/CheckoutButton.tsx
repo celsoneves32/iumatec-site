@@ -5,9 +5,9 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 
 type CheckoutItem = {
-  id: string;
-  title: string;
-  price: number;
+  id: string;       // pode ser Shopify GID (real) OU um id temporário
+  title: string;    // usado no modo temporário
+  price: number;    // usado no modo temporário (CHF)
   quantity: number;
 };
 
@@ -30,35 +30,26 @@ export default function CheckoutButton({ items }: CheckoutButtonProps) {
     try {
       setLoading(true);
 
-      // 1) get access token (Supabase session in localStorage)
-      const { data, error: sessionErr } = await supabase.auth.getSession();
+      // 1) Pega access_token do Supabase (login atual)
+      const { data, error: sessErr } = await supabase.auth.getSession();
+      const accessToken = data?.session?.access_token ?? null;
 
-      if (sessionErr) {
-        console.error("Supabase getSession error:", sessionErr);
-        setError("Sitzung konnte nicht geladen werden. Bitte neu einloggen.");
+      if (sessErr || !accessToken) {
+        setError("Bitte melde dich erneut an (Session fehlt).");
         return;
       }
 
-      const accessToken = data.session?.access_token;
-      if (!accessToken) {
-        setError("Du bist nicht eingeloggt. Bitte melde dich an und versuche es erneut.");
-        return;
-      }
-
-      // 2) call API with Bearer
+      // 2) Chama API com Bearer
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({
-          // server só precisa de id + quantity
-          items: items.map((it) => ({ id: it.id, quantity: it.quantity })),
-        }),
+        body: JSON.stringify({ items }),
       });
 
-      const dataJson = await res.json().catch(() => null);
+      const dataJson = await res.json().catch(() => ({}));
 
       if (!res.ok) {
         setError(
@@ -70,16 +61,14 @@ export default function CheckoutButton({ items }: CheckoutButtonProps) {
       }
 
       if (!dataJson?.url) {
-        setError(
-          "Unerwarteter Fehler: Keine Weiterleitungs-URL erhalten. Bitte versuch es später noch einmal."
-        );
+        setError("Unerwarteter Fehler: Keine Weiterleitungs-URL erhalten.");
         return;
       }
 
       window.location.href = dataJson.url;
     } catch (err) {
       console.error(err);
-      setError("Unerwarteter Fehler beim Start der Zahlung. Bitte versuch es später noch einmal.");
+      setError("Unerwarteter Fehler beim Start der Zahlung.");
     } finally {
       setLoading(false);
     }
