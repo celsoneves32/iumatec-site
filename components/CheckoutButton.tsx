@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
 
 type CheckoutItem = {
   id: string;
@@ -29,32 +30,51 @@ export default function CheckoutButton({ items }: CheckoutButtonProps) {
     try {
       setLoading(true);
 
+      // 1) Pegar sessão do Supabase no browser (localStorage)
+      const { data, error: sessionErr } = await supabase.auth.getSession();
+      if (sessionErr) {
+        console.error(sessionErr);
+        setError("Sitzung konnte nicht geladen werden. Bitte neu einloggen.");
+        return;
+      }
+
+      const accessToken = data.session?.access_token;
+      if (!accessToken) {
+        setError("Du bist nicht eingeloggt. Bitte melde dich an und versuche es erneut.");
+        return;
+      }
+
+      // 2) Chamar API com Bearer token
       const res = await fetch("/api/checkout", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          items: items.map((it) => ({ id: it.id, quantity: it.quantity })),
+        }),
       });
 
-      const data = await res.json();
+      const dataJson = await res.json().catch(() => null);
 
       if (!res.ok) {
         setError(
-          typeof data?.error === "string"
-            ? data.error
+          typeof dataJson?.error === "string"
+            ? dataJson.error
             : "Die Zahlung konnte nicht gestartet werden. Bitte versuch es später noch einmal."
         );
         return;
       }
 
-      if (!data?.url) {
+      if (!dataJson?.url) {
         setError(
           "Unerwarteter Fehler: Keine Weiterleitungs-URL erhalten. Bitte versuch es später noch einmal."
         );
         return;
       }
 
-      // Weiterleitung zu Stripe Checkout
-      window.location.href = data.url;
+      window.location.href = dataJson.url;
     } catch (err) {
       console.error(err);
       setError(
