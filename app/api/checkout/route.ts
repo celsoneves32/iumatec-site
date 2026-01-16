@@ -1,12 +1,11 @@
 // app/api/checkout/route.ts
 import Stripe from "stripe";
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/authOptions";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getCheckoutItemsByIds } from "@/lib/shopify";
 
 type CheckoutItemInput = {
-  id: string; // Shopify GID (Variant ou Product, conforme o teu getCheckoutItemsByIds)
+  id: string; // Shopify GID (ProductVariant ou Product)
   quantity: number;
   title?: string;
   price?: number;
@@ -20,21 +19,19 @@ const FREE_SHIPPING_THRESHOLD_CHF = 50; // grátis >= 50
 const STANDARD_SHIPPING_CHF = 9.9;
 
 export async function POST(req: Request) {
-  // 1) Session (server-side)
-  const session = await getServerSession(authOptions);
+  // ✅ Auth pelo Supabase (mesmo login do site)
+  const supabase = createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  const userId = (session?.user as any)?.id as string | undefined;
-  const email = session?.user?.email ?? undefined;
+  const userId = user?.id ?? null;
+  const email = user?.email ?? undefined;
 
   if (!userId) {
-    // Dica de debug (não expõe secrets): ajuda a ver se a session está a vir nula
-    return NextResponse.json(
-      { error: "Unauthorized", hasSession: !!session },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // 2) Body
   const body = await req.json().catch(() => null);
   const items: CheckoutItemInput[] = body?.items;
 
@@ -42,7 +39,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Cart empty" }, { status: 400 });
   }
 
-  // 3) Sanitize
+  // Sanitize quantity e ids
   const sanitized = items
     .map((it) => ({
       id: String(it.id || "").trim(),
@@ -54,10 +51,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid cart items" }, { status: 400 });
   }
 
-  // 4) Prices/titles server-side via Shopify
+  // Buscar preços/títulos no Shopify (server-side)
   const ids = sanitized.map((it) => it.id);
   const shopifyMap = await getCheckoutItemsByIds(ids);
 
+  // Montar line_items Stripe com preço validado
   let subtotalCHF = 0;
 
   const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] =
@@ -122,11 +120,9 @@ export async function POST(req: Request) {
           },
         ];
 
-  // 5) Create Stripe checkout
   try {
     const siteUrl =
-      (process.env.NEXT_PUBLIC_SITE_URL || "").replace(/\/$/, "") ||
-      "https://iumatec.ch";
+      process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://iumatec.ch";
 
     const checkoutSession = await stripe.checkout.sessions.create({
       mode: "payment",
