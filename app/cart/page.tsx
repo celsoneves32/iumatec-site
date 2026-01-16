@@ -10,6 +10,14 @@ export default function CartPage() {
 
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
+  // ✅ Garantir formato que o CheckoutButton espera
+  const checkoutItems = items.map((i) => ({
+    id: String(i.id),
+    title: String(i.title),
+    price: Number(i.price),
+    quantity: Number(i.quantity),
+  }));
+
   // Warenkorb leer
   if (items.length === 0) {
     return (
@@ -18,8 +26,7 @@ export default function CartPage() {
           <div className="bg-white border border-neutral-200 rounded-2xl p-8 text-center">
             <h1 className="text-2xl font-semibold mb-2">Dein Warenkorb ist leer</h1>
             <p className="text-sm text-neutral-600 mb-6">
-              Füge Produkte zu deinem Warenkorb hinzu, um mit der Bestellung
-              fortzufahren.
+              Füge Produkte zu deinem Warenkorb hinzu, um mit der Bestellung fortzufahren.
             </p>
             <Link
               href="/produkte"
@@ -49,16 +56,14 @@ export default function CartPage() {
         </div>
 
         <p className="text-sm text-neutral-600 mb-6">
-          Überprüfe deine ausgewählten Artikel und gehe anschliessend zur Kasse,
-          um deine Bestellung abzuschliessen.
+          Überprüfe deine ausgewählten Artikel und gehe anschliessend zur Kasse, um deine
+          Bestellung abzuschliessen.
         </p>
 
         <div className="grid gap-6 md:grid-cols-[2fr,1fr]">
           {/* Artikel-Liste */}
           <div className="bg-white border border-neutral-200 rounded-2xl p-6">
-            <h2 className="text-sm font-semibold text-neutral-800 mb-4">
-              Deine Artikel
-            </h2>
+            <h2 className="text-sm font-semibold text-neutral-800 mb-4">Deine Artikel</h2>
 
             <div className="space-y-4">
               {items.map((item) => (
@@ -67,9 +72,7 @@ export default function CartPage() {
                   className="flex items-start justify-between gap-4 border-b last:border-b-0 border-neutral-100 pb-4 last:pb-0"
                 >
                   <div className="flex-1">
-                    <div className="text-sm font-medium text-neutral-900">
-                      {item.title}
-                    </div>
+                    <div className="text-sm font-medium text-neutral-900">{item.title}</div>
 
                     <div className="mt-2 inline-flex items-center gap-2">
                       <span className="text-xs text-neutral-500">Menge:</span>
@@ -83,9 +86,7 @@ export default function CartPage() {
                           −
                         </button>
 
-                        <span className="min-w-[2rem] text-center text-xs">
-                          {item.quantity}
-                        </span>
+                        <span className="min-w-[2rem] text-center text-xs">{item.quantity}</span>
 
                         <button
                           type="button"
@@ -121,9 +122,7 @@ export default function CartPage() {
 
           {/* Zusammenfassung & Kasse */}
           <div className="bg-white border border-neutral-200 rounded-2xl p-6">
-            <h2 className="text-sm font-semibold text-neutral-800 mb-4">
-              Zusammenfassung
-            </h2>
+            <h2 className="text-sm font-semibold text-neutral-800 mb-4">Zusammenfassung</h2>
 
             <div className="flex justify-between text-sm mb-2">
               <span>Zwischensumme</span>
@@ -135,8 +134,8 @@ export default function CartPage() {
               <span>Versand wird im nächsten Schritt berechnet</span>
             </div>
 
-            {/* AQUI: checkout direto via Stripe */}
-            <CheckoutButton items={items} />
+            {/* ✅ Checkout direto via Stripe */}
+            <CheckoutButton items={checkoutItems} />
 
             <Link
               href="/produkte"
@@ -146,8 +145,8 @@ export default function CartPage() {
             </Link>
 
             <p className="mt-3 text-[11px] leading-snug text-neutral-500">
-              Im nächsten Schritt kannst du deine Liefer- und Zahlungsdaten eingeben
-              und die Bestellung endgültig bestätigen.
+              Im nächsten Schritt kannst du deine Liefer- und Zahlungsdaten eingeben und
+              die Bestellung endgültig bestätigen.
             </p>
           </div>
         </div>
