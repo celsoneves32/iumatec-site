@@ -30,10 +30,11 @@ export default function CheckoutButton({ items }: CheckoutButtonProps) {
     try {
       setLoading(true);
 
-      // 1) Pegar sessão do Supabase no browser (localStorage)
+      // 1) get access token (Supabase session in localStorage)
       const { data, error: sessionErr } = await supabase.auth.getSession();
+
       if (sessionErr) {
-        console.error(sessionErr);
+        console.error("Supabase getSession error:", sessionErr);
         setError("Sitzung konnte nicht geladen werden. Bitte neu einloggen.");
         return;
       }
@@ -44,7 +45,7 @@ export default function CheckoutButton({ items }: CheckoutButtonProps) {
         return;
       }
 
-      // 2) Chamar API com Bearer token
+      // 2) call API with Bearer
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: {
@@ -52,6 +53,7 @@ export default function CheckoutButton({ items }: CheckoutButtonProps) {
           Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
+          // server só precisa de id + quantity
           items: items.map((it) => ({ id: it.id, quantity: it.quantity })),
         }),
       });
@@ -77,9 +79,7 @@ export default function CheckoutButton({ items }: CheckoutButtonProps) {
       window.location.href = dataJson.url;
     } catch (err) {
       console.error(err);
-      setError(
-        "Unerwarteter Fehler beim Start der Zahlung. Bitte versuch es später noch einmal."
-      );
+      setError("Unerwarteter Fehler beim Start der Zahlung. Bitte versuch es später noch einmal.");
     } finally {
       setLoading(false);
     }
