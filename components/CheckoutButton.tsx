@@ -30,22 +30,30 @@ export default function CheckoutButton({ items }: CheckoutButtonProps) {
     try {
       setLoading(true);
 
-      // ✅ Pega access_token do Supabase (no browser)
-      const {
-        data: { session },
-        error: sessionError,
-      } = await supabase.auth.getSession();
+      // 1) Buscar sessão do Supabase no browser
+      const { data: sessionData, error: sessionError } =
+        await supabase.auth.getSession();
 
-      if (sessionError || !session?.access_token) {
-        setError("Bitte melde dich erneut an (Session ungültig).");
+      if (sessionError) {
+        console.error("Supabase getSession error:", sessionError);
+      }
+
+      const accessToken = sessionData?.session?.access_token;
+
+      if (!accessToken) {
+        // Não estás autenticado (ou sessão não foi persistida)
+        setError("Bitte melde dich an, um zur Kasse zu gehen.");
+        // opcional: redirecionar
+        window.location.href = `/login?from=/cart`;
         return;
       }
 
+      // 2) Chamar API com Bearer token
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${session.access_token}`, // ✅ aqui
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({ items }),
       });
