@@ -2,11 +2,10 @@
 import Stripe from "stripe";
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getCheckoutItemsByIds } from "@/lib/shopify";
 
 type CheckoutItemInput = {
-  id: string;
+  id: string; // Shopify GID (Variant ou Product)
   quantity: number;
   title?: string;
   price?: number;
@@ -21,46 +20,27 @@ const STANDARD_SHIPPING_CHF = 9.9;
 
 export async function POST(req: Request) {
   try {
-    // -------------------------------------------------------
-    // 1) AUTH (Modo A: Bearer token) + (Modo B: Cookies fallback)
-    // -------------------------------------------------------
-    let userId: string | null = null;
-    let email: string | undefined = undefined;
-
+    // 1) AUTH via Bearer token (Supabase session)
     const authHeader = req.headers.get("authorization") || "";
-    const bearer = authHeader.startsWith("Bearer ")
+    const token = authHeader.startsWith("Bearer ")
       ? authHeader.slice("Bearer ".length).trim()
       : "";
 
-    if (bearer) {
-      const supabaseAdmin = getSupabaseAdmin();
-      const { data, error } = await supabaseAdmin.auth.getUser(bearer);
-
-      if (error || !data?.user) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-      }
-
-      userId = data.user.id;
-      email = data.user.email ?? undefined;
-    } else {
-      // Fallback por cookies (SSR)
-      const supabase = createSupabaseServerClient();
-      const {
-        data: { user },
-        error,
-      } = await supabase.auth.getUser();
-
-      if (error || !user) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-      }
-
-      userId = user.id;
-      email = user.email ?? undefined;
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // -------------------------------------------------------
+    const supabaseAdmin = getSupabaseAdmin();
+    const { data, error } = await supabaseAdmin.auth.getUser(token);
+
+    if (error || !data?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const userId = data.user.id;
+    const email = data.user.email ?? undefined;
+
     // 2) BODY + SANITIZE
-    // -------------------------------------------------------
     const body = await req.json().catch(() => null);
     const items: CheckoutItemInput[] = body?.items;
 
@@ -79,9 +59,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid cart items" }, { status: 400 });
     }
 
-    // -------------------------------------------------------
     // 3) VALIDAR preços no Shopify (server-side)
-    // -------------------------------------------------------
     const ids = sanitized.map((it) => it.id);
     const shopifyMap = await getCheckoutItemsByIds(ids);
 
@@ -113,9 +91,7 @@ export async function POST(req: Request) {
         };
       });
 
-    // -------------------------------------------------------
-    // 4) SHIPPING (Types OK)
-    // -------------------------------------------------------
+    // 4) SHIPPING (corrigido para Types do Stripe)
     const isFreeShipping = subtotalCHF >= FREE_SHIPPING_THRESHOLD_CHF;
 
     const shipping_options: Stripe.Checkout.SessionCreateParams.ShippingOption[] =
@@ -124,13 +100,13 @@ export async function POST(req: Request) {
             {
               shipping_rate_data: {
                 type: "fixed_amount" as const,
-                fixed_amount: { amount: 0, currency: "chf" },
+                fixed_amount: { amount: 0, currency: "chf" as const },
                 display_name: `Gratis Versand (ab CHF ${FREE_SHIPPING_THRESHOLD_CHF.toFixed(
                   0
                 )})`,
                 delivery_estimate: {
-                  minimum: { unit: "business_day", value: 1 },
-                  maximum: { unit: "business_day", value: 3 },
+                  minimum: { unit: "business_day" as const, value: 1 },
+                  maximum: { unit: "business_day" as const, value: 3 },
                 },
               },
             },
@@ -141,20 +117,18 @@ export async function POST(req: Request) {
                 type: "fixed_amount" as const,
                 fixed_amount: {
                   amount: Math.round(STANDARD_SHIPPING_CHF * 100),
-                  currency: "chf",
+                  currency: "chf" as const,
                 },
                 display_name: "Standardversand (CH)",
                 delivery_estimate: {
-                  minimum: { unit: "business_day", value: 1 },
-                  maximum: { unit: "business_day", value: 3 },
+                  minimum: { unit: "business_day" as const, value: 1 },
+                  maximum: { unit: "business_day" as const, value: 3 },
                 },
               },
             },
           ];
 
-    // -------------------------------------------------------
     // 5) CREATE STRIPE CHECKOUT SESSION
-    // -------------------------------------------------------
     const siteUrl =
       (process.env.NEXT_PUBLIC_SITE_URL || "https://iumatec.ch").replace(
         /\/$/,
@@ -171,9 +145,9 @@ export async function POST(req: Request) {
       success_url: `${siteUrl}/account/orders?success=1`,
       cancel_url: `${siteUrl}/cart?canceled=1`,
 
-      client_reference_id: userId!,
+      client_reference_id: userId,
       metadata: {
-        user_id: userId!,
+        user_id: userId,
         shipping_rule: isFreeShipping ? "free_over_50" : "standard",
         subtotal_chf: subtotalCHF.toFixed(2),
       },
