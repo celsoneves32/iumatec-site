@@ -74,6 +74,7 @@ export async function POST(req: Request) {
     const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] =
       sanitized.map((it) => {
         const fromShopify = shopifyMap.get(it.id);
+
         if (!fromShopify) {
           throw new Error(`Product not found in Shopify for id: ${it.id}`);
         }
@@ -108,13 +109,13 @@ export async function POST(req: Request) {
             {
               shipping_rate_data: {
                 type: "fixed_amount" as const,
-                fixed_amount: { amount: 0, currency: "chf" as const },
+                fixed_amount: { amount: 0, currency: "chf" },
                 display_name: `Gratis Versand (ab CHF ${FREE_SHIPPING_THRESHOLD_CHF.toFixed(
                   0
                 )})`,
                 delivery_estimate: {
-                  minimum: { unit: "business_day" as const, value: 1 },
-                  maximum: { unit: "business_day" as const, value: 3 },
+                  minimum: { unit: "business_day", value: 1 },
+                  maximum: { unit: "business_day", value: 3 },
                 },
               },
             },
@@ -125,12 +126,12 @@ export async function POST(req: Request) {
                 type: "fixed_amount" as const,
                 fixed_amount: {
                   amount: Math.round(STANDARD_SHIPPING_CHF * 100),
-                  currency: "chf" as const,
+                  currency: "chf",
                 },
                 display_name: "Standardversand (CH)",
                 delivery_estimate: {
-                  minimum: { unit: "business_day" as const, value: 1 },
-                  maximum: { unit: "business_day" as const, value: 3 },
+                  minimum: { unit: "business_day", value: 1 },
+                  maximum: { unit: "business_day", value: 3 },
                 },
               },
             },
@@ -149,6 +150,7 @@ export async function POST(req: Request) {
       mode: "payment",
       line_items,
 
+      // CH-only
       shipping_address_collection: { allowed_countries: ["CH"] },
       shipping_options,
 
