@@ -1,58 +1,101 @@
-// app/account/orders/page.tsx
+import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/authOptions";
-import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
-import OrdersClient from "./OrdersClient";
+import { createSupabaseServerClient } from "@/lib/supabaseServer";
 
-export type OrderRow = {
+type OrderRow = {
   id: string;
-
-  user_id: string;
-
-  stripe_session_id?: string | null;
-  stripe_payment_intent_id?: string | null;
-
-  status?: string | null;
-  payment_status?: string | null;
-  mode?: string | null;
-
-  customer_email?: string | null;
-
-  amount_total?: number | null; // cents
-  currency?: string | null;     // "chf"
-
-  shipping_cost?: number | null;       // cents
-  shipping_name?: string | null;
-  shipping_address?: any;              // json
-
+  stripe_session_id: string;
+  customer_email: string | null;
+  total_amount: number | null;
+  currency: string | null;
+  items: any;
   created_at: string;
 };
 
-export default async function OrdersPage() {
-  const session = await getServerSession(authOptions);
+export default async function MyOrdersPage() {
+  const supabase = createSupabaseServerClient();
 
-  const userId = (session?.user as any)?.id as string | undefined;
-  if (!userId) {
+  const { data: authData, error: authError } = await supabase.auth.getUser();
+  const user = authData?.user;
+
+  if (authError || !user) {
     redirect("/login?from=/account/orders");
   }
 
-  // Busca orders com Service Role (server-side), filtrando por user_id.
-  // Isto funciona mesmo que RLS ainda não esteja perfeito.
-  const supabaseAdmin = getSupabaseAdmin();
-
-  const { data: orders, error } = await supabaseAdmin
+  const { data: orders, error } = await supabase
     .from("orders")
-    .select(
-      "id,user_id,stripe_session_id,stripe_payment_intent_id,status,payment_status,mode,customer_email,amount_total,currency,shipping_cost,shipping_name,shipping_address,created_at"
-    )
-    .eq("user_id", userId)
+    .select("*")
+    .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
-  const safeOrders = (!error && orders ? (orders as OrderRow[]) : []) ?? [];
+  if (error) {
+    // opcional: podes logar/mostrar mensagem amigável
+  }
 
-  // Email vindo do NextAuth
-  const userEmail = session?.user?.email ?? null;
+  const list = (orders ?? []) as OrderRow[];
 
-  return <OrdersClient orders={safeOrders} userEmail={userEmail} />;
+  return (
+    <main className="max-w-4xl mx-auto px-4 py-10 space-y-6">
+      <header className="flex items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold">Meine Bestellungen</h1>
+          <p className="text-sm text-neutral-600">
+            Für Konto: <span className="font-medium">{user.email}</span>
+          </p>
+        </div>
+        <Link href="/account" className="text-xs text-red-600 hover:underline">
+          ← Zurück zum Konto
+        </Link>
+      </header>
+
+      {list.length === 0 ? (
+        <p className="text-sm text-neutral-600">
+          Sie haben noch keine Bestellungen.
+        </p>
+      ) : (
+        <div className="space-y-4">
+          {list.map((order) => {
+            const items: any[] = Array.isArray(order.items) ? order.items : [];
+
+            return (
+              <div
+                key={order.id}
+                className="rounded-2xl border border-neutral-200 bg-white p-4 text-sm"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-200 pb-2 mb-2">
+                  <div>
+                    <div className="font-semibold">
+                      CHF {order.total_amount?.toFixed(2) ?? "-"}
+                    </div>
+                    <div className="text-xs text-neutral-500">
+                      {new Date(order.created_at).toLocaleString("de-CH")}
+                    </div>
+                  </div>
+                  <div className="text-xs text-neutral-500 break-all">
+                    Session: {order.stripe_session_id}
+                  </div>
+                </div>
+
+                <ul className="space-y-1">
+                  {items.map((item, idx) => (
+                    <li key={idx}>
+                      <span className="font-medium">
+                        {item.title ?? "Artikel"}
+                      </span>
+                      {typeof item.quantity === "number" &&
+                        typeof item.price === "number" && (
+                          <span className="text-neutral-600">
+                            {` – ${item.quantity} × CHF ${item.price.toFixed(2)}`}
+                          </span>
+                        )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </main>
+  );
 }
