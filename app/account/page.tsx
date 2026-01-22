@@ -1,35 +1,32 @@
-"use client";
-
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useUser } from "@/hooks/useUser";
+import { redirect } from "next/navigation";
+import { createSupabaseServerClient } from "@/lib/supabaseServer";
 
-export default function AccountPage() {
-  const { user, loading } = useUser();
-  const router = useRouter();
+export default async function AccountPage() {
+  const supabase = createSupabaseServerClient();
 
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push("/login?from=/account");
-    }
-  }, [loading, user, router]);
+  const { data, error } = await supabase.auth.getUser();
+  const user = data?.user;
 
-  if (loading || !user) {
-    return (
-      <main className="max-w-3xl mx-auto px-4 py-10">
-        <p className="text-sm text-neutral-600">Konto wird geladen…</p>
-      </main>
-    );
+  if (error || !user) {
+    redirect("/login?from=/account");
   }
+
+  // Opcional: puxar o profile para mostrar full_name
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("full_name")
+    .eq("id", user.id)
+    .single();
+
+  const displayName = profile?.full_name?.trim() || user.email;
 
   return (
     <main className="max-w-3xl mx-auto px-4 py-10 space-y-6">
       <header>
         <h1 className="text-2xl font-semibold mb-1">Mein Konto</h1>
         <p className="text-sm text-neutral-600">
-          Angemeldet als{" "}
-          <span className="font-medium">{user.email}</span>
+          Angemeldet als <span className="font-medium">{displayName}</span>
         </p>
       </header>
 
