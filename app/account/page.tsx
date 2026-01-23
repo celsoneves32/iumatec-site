@@ -1,3 +1,4 @@
+// app/account/page.tsx
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabaseServer";
@@ -12,7 +13,6 @@ export default async function AccountPage() {
     redirect("/login?from=/account");
   }
 
-  // Opcional: puxar o profile para mostrar full_name
   const { data: profile } = await supabase
     .from("profiles")
     .select("full_name")
