@@ -1,16 +1,15 @@
 // app/checkout/page.tsx
 import { redirect } from "next/navigation";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient } from "@/lib/supabaseServer";
 import CheckoutClient from "./CheckoutClient";
 
 export default async function CheckoutPage() {
   const supabase = createSupabaseServerClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data, error } = await supabase.auth.getUser();
+  const user = data?.user;
 
-  if (!user) {
+  if (error || !user) {
     redirect("/login?from=/checkout");
   }
 
