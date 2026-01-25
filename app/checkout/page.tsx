@@ -6,8 +6,10 @@ import CheckoutClient from "./CheckoutClient";
 export default async function CheckoutPage() {
   const supabase = createSupabaseServerClient();
 
-  const { data, error } = await supabase.auth.getUser();
-  const user = data?.user;
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
 
   if (error || !user) {
     redirect("/login?from=/checkout");
