@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import type { OrderRow } from "./page";
+import type { OrderRow } from "./types";
 
 function formatMoney(value: number | null | undefined) {
   if (typeof value !== "number" || Number.isNaN(value)) return "-";
@@ -50,9 +50,7 @@ export default function OrdersClient({
             // - legacy: total_amount (CHF)
             // - novo Stripe: amount_total (cents)
             const legacyTotal = (order as any).total_amount as number | undefined;
-            const stripeAmountTotal = (order as any).amount_total as
-              | number
-              | undefined;
+            const stripeAmountTotal = (order as any).amount_total as number | undefined;
 
             const totalCHF =
               typeof legacyTotal === "number"
@@ -84,8 +82,10 @@ export default function OrdersClient({
             const stripeLineItems = (order as any).line_items;
             const legacyItems = (order as any).items;
 
-            const hasStripeLineItems = Array.isArray(stripeLineItems) && stripeLineItems.length > 0;
-            const hasLegacyItems = Array.isArray(legacyItems) && legacyItems.length > 0;
+            const hasStripeLineItems =
+              Array.isArray(stripeLineItems) && stripeLineItems.length > 0;
+            const hasLegacyItems =
+              Array.isArray(legacyItems) && legacyItems.length > 0;
 
             return (
               <div
@@ -108,28 +108,21 @@ export default function OrdersClient({
                     </div>
 
                     {shippingLine ? (
-                      <div className="text-xs text-neutral-600">
-                        {shippingLine}
-                      </div>
+                      <div className="text-xs text-neutral-600">{shippingLine}</div>
                     ) : null}
                   </div>
 
                   {ref && (
-                    <div className="text-xs text-neutral-500 break-all">
-                      {ref}
-                    </div>
+                    <div className="text-xs text-neutral-500 break-all">{ref}</div>
                   )}
                 </div>
 
-                {/* Render itens */}
                 {hasStripeLineItems ? (
                   <ul className="space-y-1">
                     {(stripeLineItems as any[]).map((li, idx) => {
                       const title = li?.description ?? "Artikel";
-                      const qty =
-                        typeof li?.quantity === "number" ? li.quantity : null;
+                      const qty = typeof li?.quantity === "number" ? li.quantity : null;
 
-                      // Stripe line item totals em cents
                       const lineTotalCHF = toCHFfromCents(li?.amount_total);
                       const unitAmountCents = li?.price?.unit_amount;
                       const unitCHF = toCHFfromCents(
@@ -145,9 +138,7 @@ export default function OrdersClient({
                               {` – ${qty} × ${currency} ${formatMoney(unitCHF)}`}
                             </span>
                           ) : qty !== null ? (
-                            <span className="text-neutral-600">
-                              {` – Menge: ${qty}`}
-                            </span>
+                            <span className="text-neutral-600">{` – Menge: ${qty}`}</span>
                           ) : null}
 
                           {lineTotalCHF !== null ? (
@@ -163,10 +154,8 @@ export default function OrdersClient({
                   <ul className="space-y-1">
                     {(legacyItems as any[]).map((item, idx) => {
                       const title = item.title ?? item.name ?? "Artikel";
-                      const qty =
-                        typeof item.quantity === "number" ? item.quantity : null;
-                      const price =
-                        typeof item.price === "number" ? item.price : null;
+                      const qty = typeof item.quantity === "number" ? item.quantity : null;
+                      const price = typeof item.price === "number" ? item.price : null;
 
                       return (
                         <li key={idx}>
@@ -176,9 +165,7 @@ export default function OrdersClient({
                               {` – ${qty} × ${currency} ${formatMoney(price)}`}
                             </span>
                           ) : qty !== null ? (
-                            <span className="text-neutral-600">
-                              {` – Menge: ${qty}`}
-                            </span>
+                            <span className="text-neutral-600">{` – Menge: ${qty}`}</span>
                           ) : null}
                         </li>
                       );
