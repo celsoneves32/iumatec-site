@@ -1,210 +1,64 @@
-// app/api/stripe/webhook/route.ts
-import Stripe from "stripe";
-import { headers } from "next/headers";
 import { NextResponse } from "next/server";
-import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
-import { resend } from "@/lib/resend";
-import { buildOrderConfirmationHtml } from "@/lib/emails/orderConfirmation";
+import Stripe from "stripe";
+import { createClient } from "@supabase/supabase-js";
+
+export const runtime = "nodejs";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-06-20",
 });
 
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY! // tens de pôr na Vercel
+);
+
 export async function POST(req: Request) {
-  const sig = (await headers()).get("stripe-signature");
-  if (!sig) {
-    return NextResponse.json(
-      { error: "Missing stripe-signature" },
-      { status: 400 }
-    );
-  }
-
-  const body = await req.text();
-
-  let event: Stripe.Event;
   try {
-    event = stripe.webhooks.constructEvent(
-      body,
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET!
-    );
-  } catch (err: any) {
-    return NextResponse.json(
-      { error: `Webhook Error: ${err.message}` },
-      { status: 400 }
-    );
-  }
+    const sig = req.headers.get("stripe-signature");
+    const whsec = process.env.STRIPE_WEBHOOK_SECRET!;
+    const rawBody = await req.text();
 
-  if (event.type !== "checkout.session.completed") {
+    if (!sig) return NextResponse.json({ error: "No signature" }, { status: 400 });
+
+    const event = stripe.webhooks.constructEvent(rawBody, sig, whsec);
+
+    if (event.type === "checkout.session.completed") {
+      const session = event.data.object as Stripe.Checkout.Session;
+
+      // Buscar line items
+      const lineItems = await stripe.checkout.sessions.listLineItems(session.id, {
+        expand: ["data.price.product"],
+      });
+
+      const email = session.customer_details?.email ?? session.customer_email ?? null;
+
+      // user_id: se quiseres ligar ao user, mete metadata no checkout session depois.
+      // Por agora, ligamos por email e depois fazemos update.
+      const payload = {
+        stripe_session_id: session.id,
+        customer_email: email,
+        currency: (session.currency ?? "chf").toUpperCase(),
+        amount_total: session.amount_total ?? null,
+        shipping_cost: session.shipping_cost?.amount_total ?? null,
+        status: session.payment_status ?? "paid",
+        line_items: lineItems.data.map((li) => ({
+          description: li.description,
+          quantity: li.quantity,
+          amount_total: li.amount_total,
+          price: li.price
+            ? { unit_amount: li.price.unit_amount, currency: li.price.currency }
+            : null,
+        })),
+      };
+
+      await supabaseAdmin
+        .from("orders")
+        .upsert(payload, { onConflict: "stripe_session_id" });
+    }
+
     return NextResponse.json({ received: true });
+  } catch (e: any) {
+    return NextResponse.json({ error: e?.message || "Webhook error" }, { status: 400 });
   }
-
-  const session = event.data.object as Stripe.Checkout.Session;
-
-  const userId =
-    (session.client_reference_id as string | null) ||
-    (session.metadata?.user_id as string | undefined) ||
-    null;
-
-  if (!userId) {
-    return NextResponse.json({
-      received: true,
-      warning: "Missing userId (client_reference_id/metadata.user_id)",
-    });
-  }
-
-  // Buscar line items no Stripe (para persistir e para e-mail)
-  let lineItems: any[] = [];
-  try {
-    const itemsRes = await stripe.checkout.sessions.listLineItems(session.id, {
-      limit: 100,
-    });
-
-    lineItems = (itemsRes.data || []).map((li) => ({
-      description: li.description ?? null,
-      quantity: li.quantity ?? null,
-      amount_subtotal: li.amount_subtotal ?? null,
-      amount_total: li.amount_total ?? null,
-      currency: li.currency ?? null,
-      price: li.price
-        ? {
-            id: li.price.id,
-            unit_amount: li.price.unit_amount ?? null,
-            currency: li.price.currency ?? null,
-            product: li.price.product ?? null,
-          }
-        : null,
-    }));
-  } catch (e) {
-    console.error("Stripe listLineItems error:", e);
-    lineItems = [];
-  }
-
-  const supabaseAdmin = getSupabaseAdmin();
-
-  const shipping = session.shipping_details ?? null;
-  const amount_total = session.amount_total ?? null; // cents
-  const currency = session.currency ?? null;
-  const shipping_cost =
-    (session.total_details as any)?.amount_shipping ?? null; // cents
-
-  // 1) Upsert order
-  const { error: upsertError } = await supabaseAdmin.from("orders").upsert(
-    {
-      user_id: userId,
-      stripe_session_id: session.id,
-      stripe_payment_intent_id:
-        typeof session.payment_intent === "string"
-          ? session.payment_intent
-          : null,
-
-      status: "paid",
-      payment_status: session.payment_status ?? null,
-      mode: session.mode ?? null,
-
-      currency,
-      amount_total,
-      shipping_cost,
-
-      customer_email:
-        session.customer_details?.email ?? session.customer_email ?? null,
-
-      shipping_name: shipping?.name ?? null,
-      shipping_address: shipping?.address ?? null,
-
-      line_items: lineItems,
-    },
-    { onConflict: "stripe_session_id" }
-  );
-
-  if (upsertError) {
-    console.error("Supabase order upsert error:", upsertError);
-    return NextResponse.json({ error: "DB error" }, { status: 500 });
-  }
-
-  // 2) Fetch order to decide email idempotency (avoid duplicates)
-  const { data: orderRow, error: fetchError } = await supabaseAdmin
-    .from("orders")
-    .select(
-      "id, customer_email, created_at, currency, amount_total, shipping_cost, line_items, email_sent_at"
-    )
-    .eq("stripe_session_id", session.id)
-    .maybeSingle();
-
-  if (fetchError) {
-    console.error("Supabase order fetch error:", fetchError);
-    return NextResponse.json({ received: true, warning: "Order fetch error" });
-  }
-
-  // ✅ FIX TypeScript: orderRow pode ser null
-  if (!orderRow) {
-    return NextResponse.json({
-      received: true,
-      warning: "Order not found after upsert",
-    });
-  }
-
-  const customerEmail = orderRow.customer_email ?? null;
-  if (!customerEmail) {
-    return NextResponse.json({
-      received: true,
-      warning: "Missing customer_email",
-    });
-  }
-
-  if (orderRow.email_sent_at) {
-    return NextResponse.json({ received: true, email: "already_sent" });
-  }
-
-  // 3) Send email via Resend
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://iumatec.ch";
-
-  const from = process.env.RESEND_FROM || "IUMATEC <no-reply@iumatec.ch>";
-
-  const ordersListUrl = `${siteUrl}/account/orders`;
-  const orderDetailUrl = `${siteUrl}/account/orders/${orderRow.id}`;
-
-  const html = buildOrderConfirmationHtml({
-    brand: "IUMATEC",
-    siteUrl,
-    customerEmail,
-    createdAtISO: orderRow.created_at ?? new Date().toISOString(),
-    currency: (orderRow.currency ?? "chf") as string,
-    amountTotalCents:
-      typeof orderRow.amount_total === "number" ? orderRow.amount_total : null,
-    shippingCents:
-      typeof orderRow.shipping_cost === "number" ? orderRow.shipping_cost : null,
-    lineItems: Array.isArray(orderRow.line_items) ? orderRow.line_items : [],
-    orderDetailUrl,
-    ordersListUrl,
-  });
-
-  try {
-    const subject = "IUMATEC – Bestellbestätigung";
-
-    const res = await resend.emails.send({
-      from,
-      to: customerEmail,
-      subject,
-      html,
-    });
-
-    // 4) Mark as sent (idempotency)
-    await supabaseAdmin
-      .from("orders")
-      .update({
-        email_sent_at: new Date().toISOString(),
-        resend_email_id: (res as any)?.data?.id ?? null,
-      })
-      .eq("id", orderRow.id);
-  } catch (e) {
-    console.error("Resend send error:", e);
-    return NextResponse.json({
-      received: true,
-      warning: "Email send failed",
-    });
-  }
-
-  return NextResponse.json({ received: true });
 }
