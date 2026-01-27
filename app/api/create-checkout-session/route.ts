@@ -1,60 +1,55 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
-export async function POST(req: NextRequest) {
+export const runtime = "nodejs";
+
+type CartItem = {
+  id: string;
+  title: string;
+  price: number; // CHF (ex: 49.9)
+  quantity: number;
+};
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: "2024-06-20",
+});
+
+export async function POST(req: Request) {
   try {
-    const { items } = await req.json();
+    const body = await req.json();
+    const items: CartItem[] = Array.isArray(body?.items) ? body.items : [];
 
-    if (!items || !Array.isArray(items) || items.length === 0) {
-      return NextResponse.json(
-        { error: "Keine Artikel im Warenkorb." },
-        { status: 400 }
-      );
+    if (!items.length) {
+      return NextResponse.json({ error: "Cart empty" }, { status: 400 });
     }
 
-    const rawKey = process.env.STRIPE_SECRET_KEY;
-    const stripeSecretKey = rawKey?.trim();
-
-    if (!stripeSecretKey) {
-      console.error("⚠ STRIPE_SECRET_KEY fehlt oder ist leer.");
-      return NextResponse.json(
-        { error: "ENV_STRIPE_SECRET_KEY_FEHLT" },
-        { status: 500 }
-      );
-    }
-
-    const stripe = new Stripe(stripeSecretKey, {
-      apiVersion: "2024-06-20",
-    });
-
-    const line_items = items.map((item: any) => ({
-      quantity: item.quantity,
-      price_data: {
-        currency: "chf",
-        unit_amount: Math.round(item.price * 100),
-        product_data: {
-          name: item.title,
-        },
-      },
-    }));
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      line_items,
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/checkout/success`,
-      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/cart`,
-      metadata: {
-        items: JSON.stringify(items),
-      },
+      currency: "chf",
+      line_items: items.map((i) => ({
+        quantity: i.quantity,
+        price_data: {
+          currency: "chf",
+          unit_amount: Math.round(i.price * 100), // CHF -> cents
+          product_data: {
+            name: i.title,
+            metadata: { product_id: i.id },
+          },
+        },
+      })),
+      success_url: `${siteUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${siteUrl}/checkout/cancel`,
+      allow_promotion_codes: true,
+      automatic_tax: { enabled: false },
     });
 
     return NextResponse.json({ url: session.url });
-  } catch (err: any) {
-    console.error("Stripe Checkout Error:", err);
+  } catch (e: any) {
     return NextResponse.json(
-      { error: err?.message || "Fehler beim Erstellen der Checkout-Session." },
+      { error: e?.message || "Stripe error" },
       { status: 500 }
     );
   }
 }
-
