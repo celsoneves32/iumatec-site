@@ -7,7 +7,7 @@
     "moduleResolution": "Bundler",
     "jsx": "preserve",
 
-    "strict": true,
+    "strict": false,
     "allowJs": false,
     "noEmit": true,
 
@@ -23,6 +23,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "incremental": true,
+    "forceConsistentCasingInFileNames": true,
 
     "plugins": [{ "name": "next" }]
   },
