@@ -14,7 +14,6 @@ type HomeProduct = {
   imageAlt: string | null;
 };
 
-// ⚠️ Mantive a tua ideia de "latest products". Se já tens a tua função, substitui pela tua.
 async function getLatestProducts(limit = 8): Promise<HomeProduct[]> {
   const domain = process.env.SHOPIFY_STORE_DOMAIN;
   const token = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
@@ -25,10 +24,10 @@ async function getLatestProducts(limit = 8): Promise<HomeProduct[]> {
     return [];
   }
 
-  // ✅ Se estiveres a usar Admin API, a tua query deve estar correta para o teu setup.
-  // Eu deixo aqui um placeholder genérico – usa a tua query final.
   const url = `https://${domain}/admin/api/${apiVersion}/graphql.json`;
 
+  // ⚠️ Mantém a tua query se já tinhas uma melhor.
+  // Aqui vai uma versão que tenta obter featuredImage e preço do 1º variant.
   const query = `
     query Products($first: Int!) {
       products(first: $first, sortKey: CREATED_AT, reverse: true) {
@@ -37,19 +36,25 @@ async function getLatestProducts(limit = 8): Promise<HomeProduct[]> {
             id
             handle
             title
-            variants(first: 1) {
-              edges {
-                node {
-                  price
-                  priceCurrency: presentmentPrices(first: 1) {
-                    edges { node { price { amount currencyCode } } }
-                  }
-                }
-              }
-            }
             featuredImage {
               url
               altText
+            }
+            variants(first: 1) {
+              edges {
+                node {
+                  presentmentPrices(first: 1) {
+                    edges {
+                      node {
+                        price {
+                          amount
+                          currencyCode
+                        }
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
         }
@@ -65,7 +70,6 @@ async function getLatestProducts(limit = 8): Promise<HomeProduct[]> {
         "X-Shopify-Access-Token": token,
       },
       body: JSON.stringify({ query, variables: { first: limit } }),
-      // ✅ para homepage, normalmente queres cache (ajusta ao teu caso)
       next: { revalidate: 60 },
     });
 
@@ -75,12 +79,13 @@ async function getLatestProducts(limit = 8): Promise<HomeProduct[]> {
     return edges.map((e: any) => {
       const node = e.node;
       const featured = node.featuredImage;
-      // ⚠️ Ajusta conforme a tua estrutura real de preço
-      const variant = node.variants?.edges?.[0]?.node;
-      const presentment = variant?.priceCurrency?.edges?.[0]?.node?.price;
 
-      const amount = presentment?.amount ? Number(presentment.amount) : 0;
-      const currencyCode = presentment?.currencyCode ?? "CHF";
+      const priceNode =
+        node.variants?.edges?.[0]?.node?.presentmentPrices?.edges?.[0]?.node
+          ?.price;
+
+      const amount = priceNode?.amount ? Number(priceNode.amount) : 0;
+      const currencyCode = priceNode?.currencyCode ?? "CHF";
 
       return {
         id: node.id,
@@ -223,8 +228,8 @@ export default async function HomePage() {
                     <Price value={p.price} currency={p.currencyCode} />
                   </div>
 
-                  {/* ⚠️ Ajusta AddToCartButton props conforme o teu componente */}
-                  <AddToCartButton productHandle={p.handle} />
+                  {/* ✅ CORRIGIDO: props reais do AddToCartButton */}
+                  <AddToCartButton id={p.id} title={p.title} price={p.price} />
                 </div>
               </div>
             ))}
