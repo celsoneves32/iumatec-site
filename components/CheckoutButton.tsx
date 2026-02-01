@@ -1,6 +1,8 @@
+// components/CheckoutButton.tsx
 "use client";
 
 import { useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
 
 type CheckoutItem = {
   id: string;
@@ -24,10 +26,26 @@ export default function CheckoutButton({ items }: { items: CheckoutItem[] }) {
     try {
       setLoading(true);
 
-      const res = await fetch("/api/create-checkout-session", {
+      // ✅ pegar sessão do Supabase no browser
+      const { data, error: sessionErr } = await supabase.auth.getSession();
+      const accessToken = data.session?.access_token;
+
+      if (sessionErr || !accessToken) {
+        setError("Bitte zuerst einloggen, um zur Kasse zu gehen.");
+        return;
+      }
+
+      // ✅ chamar a tua route REAL: /api/checkout
+      const res = await fetch("/api/checkout", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        // ⚠️ no server tu ignoras title/price (bom) e só usas id+quantity
+        body: JSON.stringify({
+          items: items.map((i) => ({ id: i.id, quantity: i.quantity })),
+        }),
       });
 
       const json = await res.json();
