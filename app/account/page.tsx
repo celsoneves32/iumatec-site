@@ -1,70 +1,27 @@
-import Link from "next/link";
+// app/account/page.tsx
 import { redirect } from "next/navigation";
-import { createSupabaseServerClient } from "@/lib/supabaseServer";
+import { cookies } from "next/headers";
+import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 
 export default async function AccountPage() {
-  const supabase = createSupabaseServerClient();
+  const supabase = createServerComponentClient({ cookies });
 
-  const { data, error } = await supabase.auth.getUser();
-  const user = data?.user;
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
-  if (error || !user) {
-    redirect("/login?from=/account");
+  if (!session) {
+    redirect("/login?next=/account");
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("full_name")
-    .eq("id", user.id)
-    .single();
-
-  const displayName = profile?.full_name?.trim() || user.email;
-
   return (
-    <main className="max-w-3xl mx-auto px-4 py-10 space-y-6">
-      <header>
-        <h1 className="text-2xl font-semibold mb-1">Mein Konto</h1>
-        <p className="text-sm text-neutral-600">
-          Angemeldet als <span className="font-medium">{displayName}</span>
-        </p>
-      </header>
+    <main className="mx-auto max-w-4xl px-4 py-8 space-y-4">
+      <h1 className="text-2xl font-semibold">Mein Konto</h1>
+      <p className="text-neutral-600">
+        Eingeloggt als: <span className="font-medium">{session.user.email}</span>
+      </p>
 
-      <section className="grid gap-4 sm:grid-cols-2">
-        <Link
-          href="/account/orders"
-          className="rounded-2xl border border-neutral-200 bg-white p-4 hover:border-red-500 hover:shadow-sm transition"
-        >
-          <h2 className="text-sm font-semibold mb-1">Bestellungen</h2>
-          <p className="text-xs text-neutral-600">
-            Übersicht deiner bisherigen Bestellungen.
-          </p>
-        </Link>
-
-        <Link
-          href="/favoriten"
-          className="rounded-2xl border border-neutral-200 bg-white p-4 hover:border-red-500 hover:shadow-sm transition"
-        >
-          <h2 className="text-sm font-semibold mb-1">Favoriten</h2>
-          <p className="text-xs text-neutral-600">
-            Produkte, die du dir gemerkt hast.
-          </p>
-        </Link>
-
-        <div className="rounded-2xl border border-neutral-200 bg-white p-4">
-          <h2 className="text-sm font-semibold mb-1">Kundendaten</h2>
-          <p className="text-xs text-neutral-600">
-            Dieser Bereich wird später für Adressen, Rechnungsdaten usw.
-            verwendet.
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-neutral-200 bg-white p-4">
-          <h2 className="text-sm font-semibold mb-1">Sicherheit</h2>
-          <p className="text-xs text-neutral-600">
-            Passwort-Änderung und Kontosicherheit werden hier noch ergänzt.
-          </p>
-        </div>
-      </section>
+      {/* TODO: perfil + orders */}
     </main>
   );
 }
