@@ -4,11 +4,11 @@ import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { getCheckoutItemsByIds } from "@/lib/shopify";
 
+export const runtime = "nodejs";
+
 type CheckoutItemInput = {
-  id: string; // Shopify GID (Variant ou Product)
+  id: string; // Product GID ou Variant GID
   quantity: number;
-  title?: string;
-  price?: number;
 };
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -85,13 +85,20 @@ export async function POST(req: Request) {
           quantity: it.quantity,
           price_data: {
             currency: "chf",
-            product_data: { name: fromShopify.title },
+            product_data: {
+              name: fromShopify.title,
+              metadata: {
+                // ✅ guarda sempre a variant real (mesmo quando input era Product GID)
+                variant_id: fromShopify.variantId,
+                requested_id: it.id,
+              },
+            },
             unit_amount: unitAmountCents,
           },
         };
       });
 
-    // 4) SHIPPING (corrigido para Types do Stripe)
+    // 4) SHIPPING
     const isFreeShipping = subtotalCHF >= FREE_SHIPPING_THRESHOLD_CHF;
 
     const shipping_options: Stripe.Checkout.SessionCreateParams.ShippingOption[] =
@@ -99,14 +106,14 @@ export async function POST(req: Request) {
         ? [
             {
               shipping_rate_data: {
-                type: "fixed_amount" as const,
-                fixed_amount: { amount: 0, currency: "chf" as const },
+                type: "fixed_amount",
+                fixed_amount: { amount: 0, currency: "chf" },
                 display_name: `Gratis Versand (ab CHF ${FREE_SHIPPING_THRESHOLD_CHF.toFixed(
                   0
                 )})`,
                 delivery_estimate: {
-                  minimum: { unit: "business_day" as const, value: 1 },
-                  maximum: { unit: "business_day" as const, value: 3 },
+                  minimum: { unit: "business_day", value: 1 },
+                  maximum: { unit: "business_day", value: 3 },
                 },
               },
             },
@@ -114,26 +121,23 @@ export async function POST(req: Request) {
         : [
             {
               shipping_rate_data: {
-                type: "fixed_amount" as const,
+                type: "fixed_amount",
                 fixed_amount: {
                   amount: Math.round(STANDARD_SHIPPING_CHF * 100),
-                  currency: "chf" as const,
+                  currency: "chf",
                 },
                 display_name: "Standardversand (CH)",
                 delivery_estimate: {
-                  minimum: { unit: "business_day" as const, value: 1 },
-                  maximum: { unit: "business_day" as const, value: 3 },
+                  minimum: { unit: "business_day", value: 1 },
+                  maximum: { unit: "business_day", value: 3 },
                 },
               },
             },
           ];
 
     // 5) CREATE STRIPE CHECKOUT SESSION
-    const siteUrl =
-      (process.env.NEXT_PUBLIC_SITE_URL || "https://iumatec.ch").replace(
-        /\/$/,
-        ""
-      );
+    const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://iumatec.ch")
+      .replace(/\/$/, "");
 
     const checkoutSession = await stripe.checkout.sessions.create({
       mode: "payment",
