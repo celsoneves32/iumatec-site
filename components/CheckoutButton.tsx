@@ -26,7 +26,7 @@ export default function CheckoutButton({ items }: { items: CheckoutItem[] }) {
     try {
       setLoading(true);
 
-      // ✅ pegar sessão do Supabase no browser
+      // ✅ Supabase session (browser)
       const { data, error: sessionErr } = await supabase.auth.getSession();
       const accessToken = data.session?.access_token;
 
@@ -35,16 +35,19 @@ export default function CheckoutButton({ items }: { items: CheckoutItem[] }) {
         return;
       }
 
-      // ✅ chamar a tua route REAL: /api/checkout
+      // ✅ call the real route: /api/checkout
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
         },
-        // ⚠️ no server tu ignoras title/price (bom) e só usas id+quantity
+        // server valida preços via Shopify, então manda só id + quantity
         body: JSON.stringify({
-          items: items.map((i) => ({ id: i.id, quantity: i.quantity })),
+          items: items.map((i) => ({
+            id: i.id,
+            quantity: i.quantity,
+          })),
         }),
       });
 
