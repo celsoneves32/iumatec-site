@@ -1,19 +1,31 @@
-// prisma/schema.prisma
-
-generator client {
-  provider = "prisma-client-js"
-}
-
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
 model User {
-  id        String   @id @default(cuid())
+  id        String   @id // <-- vai ser o user.id do Supabase
   email     String   @unique
-  password  String
   name      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  orders    Order[]
+}
+
+model Order {
+  id        String   @id @default(cuid())
+  userId    String
+  status    String   @default("pending")
+  total     Int      @default(0)
+  currency  String   @default("CHF")
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+  items     OrderItem[]
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  title     String
+  price     Int
+  quantity  Int
+
+  order     Order   @relation(fields: [orderId], references: [id])
 }
