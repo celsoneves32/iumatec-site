@@ -1,57 +1,46 @@
-// components/AddToCartButton.tsx
 "use client";
 
 import { useState } from "react";
-import { useCart } from "@/context/CartContext";
-
-type AddToCartButtonProps = {
-  id: string;
-  title: string;
-  price: number;
-};
 
 export default function AddToCartButton({
-  id,
-  title,
-  price,
-}: AddToCartButtonProps) {
-  const { addItem } = useCart();
+  variantId,
+  quantity = 1,
+}: {
+  variantId: string;
+  quantity?: number;
+}) {
   const [loading, setLoading] = useState(false);
 
-  const handleClick = () => {
-    setLoading(true);
-
-    // In den Warenkorb legen
-    addItem({ id, title, price, quantity: 1 });
-
-    // Optional: Google Analytics / gtag Event
-    if (typeof window !== "undefined" && (window as any).gtag) {
-      (window as any).gtag("event", "add_to_cart", {
-        currency: "CHF",
-        value: price,
-        items: [
-          {
-            item_id: id,
-            item_name: title,
-            price,
-            quantity: 1,
-          },
-        ],
+  async function buyNow() {
+    try {
+      setLoading(true);
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ variantId, quantity }),
       });
-    }
 
-    // Kurz Loading anzeigen (nur optisch)
-    setTimeout(() => setLoading(false), 200);
-  };
+      // O route devolve redirect 303; fetch não muda a página sozinho.
+      // Então pegamos a URL final do response:
+      if (res.redirected) {
+        window.location.href = res.url;
+        return;
+      }
+
+      const data = await res.json().catch(() => null);
+      alert(data?.error || "Checkout failed");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <button
-      type="button"
-      onClick={handleClick}
+      onClick={buyNow}
       disabled={loading}
-      className="w-full rounded-md bg-red-600 px-4 py-3 text-sm font-semibold text-white shadow hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-70"
+      className="rounded-lg bg-black px-4 py-2 text-white disabled:opacity-50"
     >
-      {loading ? "Wird hinzugefügt…" : "In den Warenkorb"}
+      {loading ? "…" : "Kaufen"}
     </button>
   );
 }
