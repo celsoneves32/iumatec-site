@@ -14,21 +14,23 @@ export default function AddToCartButton({
   async function buyNow() {
     try {
       setLoading(true);
+
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ variantId, quantity }),
       });
 
-      // O route devolve redirect 303; fetch não muda a página sozinho.
-      // Então pegamos a URL final do response:
-      if (res.redirected) {
-        window.location.href = res.url;
-        return;
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data?.error || "Checkout failed");
       }
 
-      const data = await res.json().catch(() => null);
-      alert(data?.error || "Checkout failed");
+      // ✅ redirect correto para Shopify Checkout
+      window.location.href = data.url;
+    } catch (err: any) {
+      alert(err.message || "Erro ao abrir checkout");
     } finally {
       setLoading(false);
     }
@@ -40,7 +42,7 @@ export default function AddToCartButton({
       disabled={loading}
       className="rounded-lg bg-black px-4 py-2 text-white disabled:opacity-50"
     >
-      {loading ? "…" : "Kaufen"}
+      {loading ? "A abrir checkout…" : "Kaufen"}
     </button>
   );
 }
