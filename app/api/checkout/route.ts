@@ -2,47 +2,67 @@
 import { NextResponse } from "next/server";
 import { shopifyFetch } from "@/lib/shopify";
 
-type Body = { variantId: string; quantity?: number };
+type CartCreateResponse = {
+  cartCreate: {
+    cart: { id: string; checkoutUrl: string } | null;
+    userErrors: { field?: string[]; message: string }[];
+  };
+};
 
 export async function POST(req: Request) {
-  const body = (await req.json().catch(() => null)) as Body | null;
+  try {
+    const body = await req.json().catch(() => null);
+    const variantId = body?.variantId as string | undefined;
+    const quantity = Number(body?.quantity ?? 1);
 
-  const variantId = body?.variantId;
-  const quantity = Math.max(1, Math.min(99, Number(body?.quantity ?? 1)));
-
-  if (!variantId) {
-    return NextResponse.json({ error: "Missing variantId" }, { status: 400 });
-  }
-
-  const mutation = `
-    mutation CheckoutCreate($input: CheckoutCreateInput!) {
-      checkoutCreate(input: $input) {
-        checkout { webUrl }
-        userErrors { message }
-      }
+    if (!variantId) {
+      return NextResponse.json({ error: "Missing variantId" }, { status: 400 });
     }
-  `;
 
-  const data = await shopifyFetch<{
-    checkoutCreate: {
-      checkout: { webUrl: string } | null;
-      userErrors: { message: string }[];
-    };
-  }>({
-    query: mutation,
-    variables: {
-      input: {
-        lineItems: [{ variantId, quantity }],
+    const q = `
+      mutation CartCreate($input: CartInput!) {
+        cartCreate(input: $input) {
+          cart {
+            id
+            checkoutUrl
+          }
+          userErrors {
+            field
+            message
+          }
+        }
+      }
+    `;
+
+    const data = await shopifyFetch<CartCreateResponse>({
+      query: q,
+      variables: {
+        input: {
+          lines: [
+            {
+              merchandiseId: variantId,
+              quantity: Number.isFinite(quantity) && quantity > 0 ? quantity : 1,
+            },
+          ],
+        },
       },
-    },
-    cache: "no-store",
-  });
+      cache: "no-store",
+    });
 
-  const err = data.checkoutCreate.userErrors?.[0]?.message;
-  if (err) return NextResponse.json({ error: err }, { status: 400 });
+    const errors = data.cartCreate.userErrors;
+    if (errors?.length) {
+      return NextResponse.json({ error: errors[0].message }, { status: 400 });
+    }
 
-  const url = data.checkoutCreate.checkout?.webUrl;
-  if (!url) return NextResponse.json({ error: "No checkout URL" }, { status: 500 });
+    const checkoutUrl = data.cartCreate.cart?.checkoutUrl;
+    if (!checkoutUrl) {
+      return NextResponse.json({ error: "No checkoutUrl returned" }, { status: 500 });
+    }
 
-  return NextResponse.json({ url });
+    // fetch() no browser vai seguir o redirect; res.redirected = true e res.url = checkoutUrl
+    return NextResponse.redirect(checkoutUrl, { status: 303 });
+  } catch (e) {
+    console.error("checkout route error:", e);
+    return NextResponse.json({ error: "Checkout failed" }, { status: 500 });
+  }
 }
