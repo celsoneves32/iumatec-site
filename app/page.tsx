@@ -71,7 +71,6 @@ async function getLatestProducts(limit = 8): Promise<HomeProduct[]> {
     const data = await shopifyFetch<ProductsQuery>({
       query,
       variables: { first: limit },
-      // home pode ser cacheado + revalidado
       cache: "force-cache",
     });
 
@@ -149,7 +148,13 @@ export default async function HomePage() {
         </div>
 
         <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl bg-neutral-100">
-          <Image src="/hero.jpg" alt="IUMATEC" fill className="object-cover" priority />
+          <Image
+            src="/hero.jpg"
+            alt="IUMATEC"
+            fill
+            className="object-cover"
+            priority
+          />
         </div>
       </section>
 
@@ -199,7 +204,12 @@ export default async function HomePage() {
                 <Link href={`/products/${p.handle}`} className="block">
                   <div className="relative aspect-square bg-neutral-100">
                     {p.imageUrl ? (
-                      <Image src={p.imageUrl} alt={p.imageAlt ?? p.title} fill className="object-cover" />
+                      <Image
+                        src={p.imageUrl}
+                        alt={p.imageAlt ?? p.title}
+                        fill
+                        className="object-cover"
+                      />
                     ) : (
                       <div className="h-full w-full flex items-center justify-center text-sm text-neutral-500">
                         Sem imagem
@@ -217,7 +227,7 @@ export default async function HomePage() {
                     <Price value={p.price} currency={p.currencyCode} />
                   </div>
 
-                  {/* ✅ agora passa o variantId correto */}
+                  {/* ✅ variantId correto para Shopify Cart/Checkout */}
                   <AddToCartButton variantId={p.variantId} quantity={1} />
                 </div>
               </div>
