@@ -1,31 +1,54 @@
-model User {
-  id        String   @id // <-- vai ser o user.id do Supabase
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+// prisma/schema.prisma
 
-  orders    Order[]
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  FULFILLED
+  CANCELED
+  REFUNDED
 }
 
 model Order {
-  id        String   @id @default(cuid())
-  userId    String
-  status    String   @default("pending")
-  total     Int      @default(0)
-  currency  String   @default("CHF")
-  createdAt DateTime @default(now())
+  id             String      @id @default(cuid())
+  userId         String      // Supabase auth user id (uuid como string)
+  status         OrderStatus @default(PENDING)
 
-  user      User     @relation(fields: [userId], references: [id])
-  items     OrderItem[]
+  currency       String      @default("CHF")
+  subtotal       Int         @default(0) // em centimos
+  shipping       Int         @default(0)
+  tax            Int         @default(0)
+  total          Int         @default(0)
+
+  // opcional: referência a checkout/order do Shopify
+  shopifyCheckoutId String?
+  shopifyOrderId    String?
+
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  items          OrderItem[]
+  @@index([userId, createdAt])
 }
 
 model OrderItem {
-  id        String  @id @default(cuid())
+  id        String   @id @default(cuid())
   orderId   String
-  title     String
-  price     Int
-  quantity  Int
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
-  order     Order   @relation(fields: [orderId], references: [id])
+  title     String
+  quantity  Int
+  unitPrice Int      // em centimos
+  sku       String?
+  imageUrl  String?
+
+  createdAt DateTime @default(now())
 }
