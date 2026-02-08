@@ -1,111 +1,75 @@
-import Link from "next/link";
+// app/account/orders/page.tsx
 import { redirect } from "next/navigation";
+import Link from "next/link";
+import { prisma } from "@/lib/prisma";
 import { createSupabaseServerClient } from "@/lib/supabaseServer";
 
-type OrderRow = {
-  id: string;
-  stripe_session_id: string;
-  customer_email: string | null;
-  total_amount: number | null;
-  currency: string | null;
-  items: any;
-  created_at: string;
-};
+export const dynamic = "force-dynamic";
 
-export default async function MyOrdersPage() {
+function centsToCHF(cents: number) {
+  const value = (cents / 100).toFixed(2);
+  return new Intl.NumberFormat("de-CH", { style: "currency", currency: "CHF" }).format(
+    Number(value)
+  );
+}
+
+export default async function OrdersPage() {
   const supabase = createSupabaseServerClient();
-
-  const { data, error } = await supabase.auth.getUser();
+  const { data } = await supabase.auth.getUser();
   const user = data?.user;
 
-  if (error || !user) {
-    redirect("/login?from=/account/orders");
-  }
+  if (!user) redirect("/login");
 
-  // Com RLS + policy (auth.uid() = user_id), isto já devolve só do user
-  const { data: orders, error: ordersError } = await supabase
-    .from("orders")
-    .select("*")
-    .order("created_at", { ascending: false });
-
-  if (ordersError) {
-    // mantém simples: mostra erro genérico
-    return (
-      <main className="max-w-3xl mx-auto px-4 py-10">
-        <p className="text-sm text-red-600">
-          Fehler beim Laden der Bestellungen.
-        </p>
-        <Link href="/account" className="text-xs text-red-600 hover:underline">
-          ← Zurück zum Konto
-        </Link>
-      </main>
-    );
-  }
-
-  const list = (orders ?? []) as OrderRow[];
+  const orders = await prisma.order.findMany({
+    where: { userId: user.id },
+    orderBy: { createdAt: "desc" },
+    include: { items: true },
+  });
 
   return (
-    <main className="max-w-4xl mx-auto px-4 py-10 space-y-6">
-      <header className="flex items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold">Meine Bestellungen</h1>
-          <p className="text-sm text-neutral-600">
-            Für Konto: <span className="font-medium">{user.email}</span>
-          </p>
-        </div>
-        <Link href="/account" className="text-xs text-red-600 hover:underline">
-          ← Zurück zum Konto
+    <main className="mx-auto max-w-4xl p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">Meine Bestellungen</h1>
+        <Link className="text-sm underline" href="/account">
+          Zurück
         </Link>
-      </header>
+      </div>
 
-      {list.length === 0 ? (
-        <p className="text-sm text-neutral-600">
-          Sie haben noch keine Bestellungen.
-        </p>
+      {orders.length === 0 ? (
+        <div className="rounded-lg border p-4 text-sm text-neutral-700">
+          Noch keine Bestellungen.
+        </div>
       ) : (
         <div className="space-y-4">
-          {list.map((order) => {
-            const items: any[] = Array.isArray(order.items) ? order.items : [];
-
-            return (
-              <div
-                key={order.id}
-                className="rounded-2xl border border-neutral-200 bg-white p-4 text-sm"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-200 pb-2 mb-2">
-                  <div>
-                    <div className="font-semibold">
-                      CHF {order.total_amount?.toFixed(2) ?? "-"}
-                    </div>
-                    <div className="text-xs text-neutral-500">
-                      {new Date(order.created_at).toLocaleString("de-CH")}
-                    </div>
-                  </div>
-                  <div className="text-xs text-neutral-500 break-all">
-                    Session: {order.stripe_session_id}
-                  </div>
+          {orders.map((o) => (
+            <div key={o.id} className="rounded-xl border p-4 space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="text-sm text-neutral-600">
+                  {new Date(o.createdAt).toLocaleString("de-CH")}
                 </div>
-
-                <ul className="space-y-1">
-                  {items.map((item, idx) => (
-                    <li key={idx}>
-                      <span className="font-medium">
-                        {item.title ?? "Artikel"}
-                      </span>
-                      {typeof item.quantity === "number" &&
-                        typeof item.price === "number" && (
-                          <span className="text-neutral-600">
-                            {` – ${item.quantity} × CHF ${item.price.toFixed(
-                              2
-                            )}`}
-                          </span>
-                        )}
-                    </li>
-                  ))}
-                </ul>
+                <div className="text-sm font-medium">{o.status}</div>
               </div>
-            );
-          })}
+
+              <div className="text-lg font-semibold">{centsToCHF(o.total)}</div>
+
+              <div className="text-sm text-neutral-700">
+                {o.items.map((it) => (
+                  <div key={it.id} className="flex justify-between">
+                    <span>
+                      {it.quantity}× {it.title}
+                    </span>
+                    <span>{centsToCHF(it.unitPrice * it.quantity)}</span>
+                  </div>
+                ))}
+              </div>
+
+              {(o.shopifyOrderId || o.shopifyCheckoutId) && (
+                <div className="text-xs text-neutral-500">
+                  Shopify: {o.shopifyOrderId ?? o.shopifyCheckoutId}
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       )}
     </main>
