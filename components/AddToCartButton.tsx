@@ -4,36 +4,43 @@ import { useState } from "react";
 
 export default function AddToCartButton({
   variantId,
+  quantity = 1,
 }: {
   variantId: string;
+  quantity?: number;
 }) {
   const [loading, setLoading] = useState(false);
 
   async function buyNow() {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const res = await fetch("/api/checkout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ variantId, quantity: 1 }),
-    });
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ variantId, quantity }),
+      });
 
-    if (res.redirected) {
-      window.location.href = res.url;
-      return;
+      // Route devolve redirect 303; fetch não muda a página sozinho.
+      if (res.redirected) {
+        window.location.href = res.url;
+        return;
+      }
+
+      const data = await res.json().catch(() => null);
+      alert(data?.error || "Checkout failed");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
-    alert("Erro no checkout");
   }
 
   return (
     <button
       onClick={buyNow}
       disabled={loading}
-      className="rounded-lg bg-black px-4 py-2 text-white"
+      className="rounded-lg bg-black px-4 py-2 text-white disabled:opacity-50"
     >
-      {loading ? "…" : "Comprar"}
+      {loading ? "…" : "Kaufen"}
     </button>
   );
 }
