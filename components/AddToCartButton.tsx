@@ -4,45 +4,36 @@ import { useState } from "react";
 
 export default function AddToCartButton({
   variantId,
-  quantity = 1,
 }: {
   variantId: string;
-  quantity?: number;
 }) {
   const [loading, setLoading] = useState(false);
 
   async function buyNow() {
-    try {
-      setLoading(true);
+    setLoading(true);
 
-      const res = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ variantId, quantity }),
-      });
+    const res = await fetch("/api/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ variantId, quantity: 1 }),
+    });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data?.error || "Checkout failed");
-      }
-
-      // ✅ redirect correto para Shopify Checkout
-      window.location.href = data.url;
-    } catch (err: any) {
-      alert(err.message || "Erro ao abrir checkout");
-    } finally {
-      setLoading(false);
+    if (res.redirected) {
+      window.location.href = res.url;
+      return;
     }
+
+    setLoading(false);
+    alert("Erro no checkout");
   }
 
   return (
     <button
       onClick={buyNow}
       disabled={loading}
-      className="rounded-lg bg-black px-4 py-2 text-white disabled:opacity-50"
+      className="rounded-lg bg-black px-4 py-2 text-white"
     >
-      {loading ? "A abrir checkout…" : "Kaufen"}
+      {loading ? "…" : "Comprar"}
     </button>
   );
 }
