@@ -1,99 +1,118 @@
 // app/cart/page.tsx
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 
-function Price({ value, currency }: { value: number; currency: string }) {
-  return (
-    <span>
-      {new Intl.NumberFormat("de-CH", {
-        style: "currency",
-        currency,
-      }).format(value)}
-    </span>
-  );
+function money(amount: string, currency: string) {
+  const n = Number(amount || "0");
+  return new Intl.NumberFormat("de-CH", { style: "currency", currency }).format(n);
 }
 
 export default function CartPage() {
-  const cart = useCart();
+  const { cart, loading, error, updateLine, removeLine, goToCheckout } = useCart();
+
+  const lines = cart?.lines?.edges?.map((e) => e.node) ?? [];
+  const currency = cart?.cost?.totalAmount?.currencyCode ?? "CHF";
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-8 space-y-6">
-      <div className="flex items-end justify-between">
-        <h1 className="text-2xl font-semibold">Warenkorb</h1>
-        <Link href="/products" className="text-sm underline">
-          Weiter einkaufen
-        </Link>
-      </div>
+      <h1 className="text-2xl font-semibold">Warenkorb</h1>
 
-      {!cart.ready ? (
-        <div className="rounded-xl border p-6">Lade…</div>
-      ) : cart.lines.length === 0 ? (
-        <div className="rounded-xl border p-6">
+      {error && <div className="rounded-lg border p-3 text-sm">{error}</div>}
+
+      {!cart || lines.length === 0 ? (
+        <div className="rounded-2xl border p-6">
           <div className="font-medium">Dein Warenkorb ist leer.</div>
-          <div className="text-sm text-neutral-600">
-            Füge Produkte hinzu und gehe dann zur Kasse.
-          </div>
+          <Link href="/products" className="inline-block mt-3 underline text-sm">
+            Produkte ansehen
+          </Link>
         </div>
       ) : (
-        <>
-          <div className="rounded-2xl border overflow-hidden">
-            <div className="divide-y">
-              {cart.lines.map((l) => (
-                <div key={l.id} className="p-4 flex items-center gap-4">
+        <div className="grid gap-6 md:grid-cols-[1fr_320px]">
+          <div className="space-y-3">
+            {lines.map((line) => {
+              const img = line.merchandise.image?.url;
+              const title = line.merchandise.product.title;
+              const handle = line.merchandise.product.handle;
+
+              return (
+                <div key={line.id} className="rounded-2xl border p-4 flex gap-4">
+                  <div className="relative h-20 w-20 overflow-hidden rounded-lg bg-neutral-100">
+                    {img ? (
+                      <Image src={img} alt={title} fill className="object-cover" />
+                    ) : null}
+                  </div>
+
                   <div className="flex-1">
-                    <div className="font-medium">{l.productTitle}</div>
-                    <div className="text-sm text-neutral-600">{l.title}</div>
-                  </div>
+                    <Link href={`/products/${handle}`} className="font-medium hover:underline">
+                      {title}
+                    </Link>
 
-                  <div className="flex items-center gap-2">
-                    <button
-                      className="rounded border px-2 py-1"
-                      onClick={() => cart.update(l.id, Math.max(1, l.quantity - 1))}
-                    >
-                      −
-                    </button>
-                    <div className="w-10 text-center">{l.quantity}</div>
-                    <button
-                      className="rounded border px-2 py-1"
-                      onClick={() => cart.update(l.id, l.quantity + 1)}
-                    >
-                      +
-                    </button>
-                  </div>
+                    <div className="text-sm text-neutral-600">
+                      {money(line.merchandise.price.amount, line.merchandise.price.currencyCode)}
+                    </div>
 
-                  <div className="w-28 text-right">
-                    <Price value={l.amount} currency={l.currency} />
-                  </div>
+                    <div className="mt-2 flex items-center gap-2">
+                      <button
+                        className="rounded-md border px-2 py-1"
+                        onClick={() => updateLine(line.id, Math.max(1, line.quantity - 1))}
+                        disabled={loading}
+                      >
+                        -
+                      </button>
+                      <div className="min-w-8 text-center">{line.quantity}</div>
+                      <button
+                        className="rounded-md border px-2 py-1"
+                        onClick={() => updateLine(line.id, line.quantity + 1)}
+                        disabled={loading}
+                      >
+                        +
+                      </button>
 
-                  <button
-                    className="text-sm underline"
-                    onClick={() => cart.remove(l.id)}
-                  >
-                    Entfernen
-                  </button>
+                      <button
+                        className="ml-auto text-sm underline"
+                        onClick={() => removeLine(line.id)}
+                        disabled={loading}
+                      >
+                        Entfernen
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              ))}
-            </div>
+              );
+            })}
           </div>
 
-          <div className="rounded-2xl border p-4 flex items-center justify-between">
-            <div className="text-sm text-neutral-600">
-              Subtotal:{" "}
-              <span className="font-medium text-black">
-                <Price value={cart.subtotal} currency={cart.currency} />
+          <aside className="rounded-2xl border p-4 h-fit space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-neutral-600">Zwischensumme</span>
+              <span className="font-medium">
+                {money(cart.cost.subtotalAmount.amount, currency)}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-neutral-600">Total</span>
+              <span className="font-semibold">
+                {money(cart.cost.totalAmount.amount, currency)}
               </span>
             </div>
 
             <button
-              onClick={cart.checkout}
-              className="rounded-lg bg-black px-4 py-2 text-white"
+              onClick={goToCheckout}
+              disabled={loading}
+              className="w-full rounded-lg bg-black px-4 py-2 text-white disabled:opacity-50"
             >
               Zur Kasse
             </button>
-          </div>
-        </>
+
+            <div className="text-xs text-neutral-500">
+              Checkout abre no Shopify (NEW).
+            </div>
+          </aside>
+        </div>
       )}
     </main>
   );
