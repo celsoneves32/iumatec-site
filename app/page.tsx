@@ -71,7 +71,8 @@ async function getLatestProducts(limit = 8): Promise<HomeProduct[]> {
     const data = await shopifyFetch<ProductsQuery>({
       query,
       variables: { first: limit },
-      cache: "force-cache",
+      // ✅ evita cache “preso” no deploy
+      cache: "no-store",
     });
 
     const edges = data?.products?.edges ?? [];
@@ -148,13 +149,7 @@ export default async function HomePage() {
         </div>
 
         <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl bg-neutral-100">
-          <Image
-            src="/hero.jpg"
-            alt="IUMATEC"
-            fill
-            className="object-cover"
-            priority
-          />
+          <Image src="/hero.jpg" alt="IUMATEC" fill className="object-cover" priority />
         </div>
       </section>
 
@@ -200,16 +195,11 @@ export default async function HomePage() {
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {products.map((p) => (
-              <div key={p.id} className="rounded-2xl border overflow-hidden">
+              <div key={p.variantId} className="rounded-2xl border overflow-hidden">
                 <Link href={`/products/${p.handle}`} className="block">
                   <div className="relative aspect-square bg-neutral-100">
                     {p.imageUrl ? (
-                      <Image
-                        src={p.imageUrl}
-                        alt={p.imageAlt ?? p.title}
-                        fill
-                        className="object-cover"
-                      />
+                      <Image src={p.imageUrl} alt={p.imageAlt ?? p.title} fill className="object-cover" />
                     ) : (
                       <div className="h-full w-full flex items-center justify-center text-sm text-neutral-500">
                         Sem imagem
@@ -227,7 +217,7 @@ export default async function HomePage() {
                     <Price value={p.price} currency={p.currencyCode} />
                   </div>
 
-                  {/* ✅ variantId correto para Shopify Cart/Checkout */}
+                  {/* ✅ passa o variantId correto */}
                   <AddToCartButton variantId={p.variantId} quantity={1} />
                 </div>
               </div>
