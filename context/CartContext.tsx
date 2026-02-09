@@ -2,204 +2,141 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import type { Cart } from "@/lib/cart";
+import { cartCreate, cartGet, cartLinesAdd, cartLinesRemove, cartLinesUpdate } from "@/lib/cart";
 
-type CartLineUI = {
-  id: string; // lineId
-  quantity: number;
-  variantId: string;
-  title: string;
-  productTitle: string;
-  amount: number;
-  currency: string;
-};
-
-type CartUI = {
-  cartId: string | null;
-  checkoutUrl: string | null;
+type CartState = {
+  cart: Cart | null;
+  loading: boolean;
+  error: string | null;
   totalQuantity: number;
-  currency: string;
-  subtotal: number;
-  total: number;
-  lines: CartLineUI[];
+  ensureCart: () => Promise<Cart>;
+  addItem: (variantId: string, quantity?: number) => Promise<void>;
+  updateLine: (lineId: string, quantity: number) => Promise<void>;
+  removeLine: (lineId: string) => Promise<void>;
+  goToCheckout: () => void;
 };
 
-type CartCtx = CartUI & {
-  ready: boolean;
-  add: (variantId: string, quantity?: number) => Promise<void>;
-  update: (lineId: string, quantity: number) => Promise<void>;
-  remove: (lineId: string) => Promise<void>;
-  checkout: () => void;
-};
+const CartContext = createContext<CartState | null>(null);
 
-const Ctx = createContext<CartCtx | null>(null);
-
-function moneyToNumber(v?: string) {
-  const n = Number(v || 0);
-  return Number.isFinite(n) ? n : 0;
-}
-
-function mapCart(apiCart: any, cartId: string | null): CartUI {
-  const edges = apiCart?.lines?.edges || [];
-  const lines: CartLineUI[] = edges.map((e: any) => {
-    const n = e.node;
-    const amt = moneyToNumber(n?.cost?.totalAmount?.amount);
-    const cur = n?.cost?.totalAmount?.currencyCode || "CHF";
-    return {
-      id: n.id,
-      quantity: n.quantity,
-      variantId: n?.merchandise?.id,
-      title: n?.merchandise?.title || "",
-      productTitle: n?.merchandise?.product?.title || "",
-      amount: amt,
-      currency: cur,
-    };
-  });
-
-  const currency =
-    apiCart?.cost?.totalAmount?.currencyCode ||
-    apiCart?.cost?.subtotalAmount?.currencyCode ||
-    lines?.[0]?.currency ||
-    "CHF";
-
-  return {
-    cartId,
-    checkoutUrl: apiCart?.checkoutUrl || null,
-    totalQuantity: apiCart?.totalQuantity || 0,
-    currency,
-    subtotal: moneyToNumber(apiCart?.cost?.subtotalAmount?.amount),
-    total: moneyToNumber(apiCart?.cost?.totalAmount?.amount),
-    lines,
-  };
-}
+const CART_ID_KEY = "iumatec_cart_id";
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const [ready, setReady] = useState(false);
-  const [cartId, setCartId] = useState<string | null>(null);
-  const [cart, setCart] = useState<CartUI>({
-    cartId: null,
-    checkoutUrl: null,
-    totalQuantity: 0,
-    currency: "CHF",
-    subtotal: 0,
-    total: 0,
-    lines: [],
-  });
+  const [cart, setCart] = useState<Cart | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // carrega cartId do localStorage
-  useEffect(() => {
-    const existing = window.localStorage.getItem("iumatec_cart_id");
-    if (existing) setCartId(existing);
-    setReady(true);
-  }, []);
+  async function ensureCart(): Promise<Cart> {
+    setError(null);
+    setLoading(true);
 
-  // se tiver cartId, tenta buscar o carrinho
+    try {
+      const saved = typeof window !== "undefined" ? localStorage.getItem(CART_ID_KEY) : null;
+
+      if (saved) {
+        const existing = await cartGet(saved);
+        if (existing) {
+          setCart(existing);
+          return existing;
+        }
+        localStorage.removeItem(CART_ID_KEY);
+      }
+
+      const created = await cartCreate();
+      localStorage.setItem(CART_ID_KEY, created.id);
+      setCart(created);
+      return created;
+    } catch (e: any) {
+      setError(e?.message || "Cart error");
+      throw e;
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function addItem(variantId: string, quantity = 1) {
+    setError(null);
+    setLoading(true);
+    try {
+      const c = cart ?? (await ensureCart());
+      const updated = await cartLinesAdd(c.id, variantId, quantity);
+      setCart(updated);
+    } catch (e: any) {
+      setError(e?.message || "Add to cart failed");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function updateLine(lineId: string, quantity: number) {
+    if (!cart) return;
+    setError(null);
+    setLoading(true);
+    try {
+      const updated = await cartLinesUpdate(cart.id, lineId, quantity);
+      setCart(updated);
+    } catch (e: any) {
+      setError(e?.message || "Update cart failed");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function removeLine(lineId: string) {
+    if (!cart) return;
+    setError(null);
+    setLoading(true);
+    try {
+      const updated = await cartLinesRemove(cart.id, lineId);
+      setCart(updated);
+    } catch (e: any) {
+      setError(e?.message || "Remove item failed");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function goToCheckout() {
+    if (!cart?.checkoutUrl) return;
+    window.location.href = cart.checkoutUrl;
+  }
+
+  // load cart once (best-effort)
   useEffect(() => {
     (async () => {
-      if (!ready) return;
-      if (!cartId) return;
-
+      const saved = localStorage.getItem(CART_ID_KEY);
+      if (!saved) return;
       try {
-        const res = await fetch("/api/cart", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "get", cartId }),
-        });
-
-        if (!res.ok) throw new Error("Failed to load cart");
-        const apiCart = await res.json();
-        setCart(mapCart(apiCart, cartId));
+        const existing = await cartGet(saved);
+        if (existing) setCart(existing);
       } catch {
-        // se falhar, limpa e recomeça
-        window.localStorage.removeItem("iumatec_cart_id");
-        setCartId(null);
-        setCart({
-          cartId: null,
-          checkoutUrl: null,
-          totalQuantity: 0,
-          currency: "CHF",
-          subtotal: 0,
-          total: 0,
-          lines: [],
-        });
+        localStorage.removeItem(CART_ID_KEY);
       }
     })();
-  }, [ready, cartId]);
+  }, []);
 
-  async function ensureCartId(): Promise<string> {
-    if (cartId) return cartId;
+  const totalQuantity = cart?.totalQuantity ?? 0;
 
-    const res = await fetch("/api/cart", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "create" }),
-    });
-    if (!res.ok) throw new Error("Failed to create cart");
-    const apiCart = await res.json();
-
-    const newId = apiCart.id as string;
-    window.localStorage.setItem("iumatec_cart_id", newId);
-    setCartId(newId);
-    setCart(mapCart(apiCart, newId));
-    return newId;
-  }
-
-  async function add(variantId: string, quantity = 1) {
-    const id = await ensureCartId();
-    const res = await fetch("/api/cart", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "add", cartId: id, variantId, quantity }),
-    });
-    if (!res.ok) throw new Error("Failed to add to cart");
-    const apiCart = await res.json();
-    setCart(mapCart(apiCart, id));
-  }
-
-  async function update(lineId: string, quantity: number) {
-    if (!cartId) return;
-    const res = await fetch("/api/cart", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "update", cartId, lineId, quantity }),
-    });
-    if (!res.ok) throw new Error("Failed to update cart");
-    const apiCart = await res.json();
-    setCart(mapCart(apiCart, cartId));
-  }
-
-  async function remove(lineId: string) {
-    if (!cartId) return;
-    const res = await fetch("/api/cart", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "remove", cartId, lineId }),
-    });
-    if (!res.ok) throw new Error("Failed to remove from cart");
-    const apiCart = await res.json();
-    setCart(mapCart(apiCart, cartId));
-  }
-
-  function checkout() {
-    if (cart.checkoutUrl) window.location.href = cart.checkoutUrl;
-  }
-
-  const value: CartCtx = useMemo(
+  const value = useMemo<CartState>(
     () => ({
-      ready,
-      ...cart,
-      add,
-      update,
-      remove,
-      checkout,
+      cart,
+      loading,
+      error,
+      totalQuantity,
+      ensureCart,
+      addItem,
+      updateLine,
+      removeLine,
+      goToCheckout,
     }),
-    [ready, cart]
+    [cart, loading, error, totalQuantity]
   );
 
-  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
 
 export function useCart() {
-  const ctx = useContext(Ctx);
-  if (!ctx) throw new Error("useCart must be used inside CartProvider");
+  const ctx = useContext(CartContext);
+  if (!ctx) throw new Error("useCart must be used inside <CartProvider>");
   return ctx;
 }
