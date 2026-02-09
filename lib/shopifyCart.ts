@@ -1,16 +1,20 @@
-// lib/shopifyCart.ts
+// lib/cart.ts
 import { shopifyFetch } from "@/lib/shopify";
+
+export type Money = { amount: string; currencyCode: string };
 
 export type CartLine = {
   id: string;
   quantity: number;
   merchandise: {
-    id: string; // variantId
+    id: string;
     title: string;
     product: { title: string; handle: string };
+    image?: { url: string; altText?: string | null } | null;
+    price: Money;
   };
   cost: {
-    totalAmount: { amount: string; currencyCode: string };
+    totalAmount: Money;
   };
 };
 
@@ -18,160 +22,162 @@ export type Cart = {
   id: string;
   checkoutUrl: string;
   totalQuantity: number;
-  lines: { edges: { node: CartLine }[] };
+  lines: { edges: Array<{ node: CartLine }> };
   cost: {
-    subtotalAmount: { amount: string; currencyCode: string };
-    totalAmount: { amount: string; currencyCode: string };
+    subtotalAmount: Money;
+    totalAmount: Money;
   };
 };
 
 const CART_FRAGMENT = `
-  fragment CartFields on Cart {
-    id
-    checkoutUrl
-    totalQuantity
-    cost {
-      subtotalAmount { amount currencyCode }
-      totalAmount { amount currencyCode }
-    }
-    lines(first: 50) {
-      edges {
-        node {
+fragment CartFragment on Cart {
+  id
+  checkoutUrl
+  totalQuantity
+  lines(first: 50) {
+    edges {
+      node {
+        id
+        quantity
+        cost {
+          totalAmount { amount currencyCode }
+        }
+        merchandise ... on ProductVariant {
           id
-          quantity
-          merchandise {
-            ... on ProductVariant {
-              id
-              title
-              product { title handle }
-            }
-          }
-          cost { totalAmount { amount currencyCode } }
+          title
+          price { amount currencyCode }
+          image { url altText }
+          product { title handle }
         }
       }
     }
   }
+  cost {
+    subtotalAmount { amount currencyCode }
+    totalAmount { amount currencyCode }
+  }
+}
 `;
 
-export async function cartCreate(): Promise<Cart> {
+export async function cartCreate() {
   const query = `
     ${CART_FRAGMENT}
     mutation CartCreate {
       cartCreate {
-        cart { ...CartFields }
+        cart { ...CartFragment }
         userErrors { field message }
       }
     }
   `;
 
   const data = await shopifyFetch<{
-    cartCreate: { cart: Cart; userErrors: { message: string }[] };
-  }>({ query });
+    cartCreate: { cart: Cart | null; userErrors: Array<{ message: string }> };
+  }>({ query, cache: "no-store" });
 
-  const errs = data.cartCreate.userErrors;
-  if (errs?.length) throw new Error(errs.map((e) => e.message).join(", "));
+  const errors = data.cartCreate.userErrors;
+  if (errors?.length) throw new Error(errors[0].message);
+
+  if (!data.cartCreate.cart) throw new Error("cartCreate: no cart returned");
   return data.cartCreate.cart;
 }
 
-export async function cartGet(cartId: string): Promise<Cart> {
+export async function cartGet(cartId: string) {
   const query = `
     ${CART_FRAGMENT}
-    query CartGet($id: ID!) {
-      cart(id: $id) { ...CartFields }
+    query Cart($id: ID!) {
+      cart(id: $id) { ...CartFragment }
     }
   `;
 
-  const data = await shopifyFetch<{ cart: Cart }>({
+  const data = await shopifyFetch<{ cart: Cart | null }>({
     query,
     variables: { id: cartId },
+    cache: "no-store",
   });
 
-  if (!data.cart) throw new Error("Cart not found");
   return data.cart;
 }
 
-export async function cartLinesAdd(params: {
-  cartId: string;
-  variantId: string;
-  quantity: number;
-}): Promise<Cart> {
+export async function cartLinesAdd(cartId: string, variantId: string, quantity = 1) {
   const query = `
     ${CART_FRAGMENT}
     mutation CartLinesAdd($cartId: ID!, $lines: [CartLineInput!]!) {
       cartLinesAdd(cartId: $cartId, lines: $lines) {
-        cart { ...CartFields }
+        cart { ...CartFragment }
         userErrors { field message }
       }
     }
   `;
 
   const data = await shopifyFetch<{
-    cartLinesAdd: { cart: Cart; userErrors: { message: string }[] };
+    cartLinesAdd: { cart: Cart | null; userErrors: Array<{ message: string }> };
   }>({
     query,
     variables: {
-      cartId: params.cartId,
-      lines: [{ merchandiseId: params.variantId, quantity: params.quantity }],
+      cartId,
+      lines: [{ merchandiseId: variantId, quantity }],
     },
+    cache: "no-store",
   });
 
-  const errs = data.cartLinesAdd.userErrors;
-  if (errs?.length) throw new Error(errs.map((e) => e.message).join(", "));
+  const errors = data.cartLinesAdd.userErrors;
+  if (errors?.length) throw new Error(errors[0].message);
+
+  if (!data.cartLinesAdd.cart) throw new Error("cartLinesAdd: no cart returned");
   return data.cartLinesAdd.cart;
 }
 
-export async function cartLinesUpdate(params: {
-  cartId: string;
-  lineId: string;
-  quantity: number;
-}): Promise<Cart> {
+export async function cartLinesUpdate(cartId: string, lineId: string, quantity: number) {
   const query = `
     ${CART_FRAGMENT}
     mutation CartLinesUpdate($cartId: ID!, $lines: [CartLineUpdateInput!]!) {
       cartLinesUpdate(cartId: $cartId, lines: $lines) {
-        cart { ...CartFields }
+        cart { ...CartFragment }
         userErrors { field message }
       }
     }
   `;
 
   const data = await shopifyFetch<{
-    cartLinesUpdate: { cart: Cart; userErrors: { message: string }[] };
+    cartLinesUpdate: { cart: Cart | null; userErrors: Array<{ message: string }> };
   }>({
     query,
     variables: {
-      cartId: params.cartId,
-      lines: [{ id: params.lineId, quantity: params.quantity }],
+      cartId,
+      lines: [{ id: lineId, quantity }],
     },
+    cache: "no-store",
   });
 
-  const errs = data.cartLinesUpdate.userErrors;
-  if (errs?.length) throw new Error(errs.map((e) => e.message).join(", "));
+  const errors = data.cartLinesUpdate.userErrors;
+  if (errors?.length) throw new Error(errors[0].message);
+
+  if (!data.cartLinesUpdate.cart) throw new Error("cartLinesUpdate: no cart returned");
   return data.cartLinesUpdate.cart;
 }
 
-export async function cartLinesRemove(params: {
-  cartId: string;
-  lineId: string;
-}): Promise<Cart> {
+export async function cartLinesRemove(cartId: string, lineId: string) {
   const query = `
     ${CART_FRAGMENT}
     mutation CartLinesRemove($cartId: ID!, $lineIds: [ID!]!) {
       cartLinesRemove(cartId: $cartId, lineIds: $lineIds) {
-        cart { ...CartFields }
+        cart { ...CartFragment }
         userErrors { field message }
       }
     }
   `;
 
   const data = await shopifyFetch<{
-    cartLinesRemove: { cart: Cart; userErrors: { message: string }[] };
+    cartLinesRemove: { cart: Cart | null; userErrors: Array<{ message: string }> };
   }>({
     query,
-    variables: { cartId: params.cartId, lineIds: [params.lineId] },
+    variables: { cartId, lineIds: [lineId] },
+    cache: "no-store",
   });
 
-  const errs = data.cartLinesRemove.userErrors;
-  if (errs?.length) throw new Error(errs.map((e) => e.message).join(", "));
+  const errors = data.cartLinesRemove.userErrors;
+  if (errors?.length) throw new Error(errors[0].message);
+
+  if (!data.cartLinesRemove.cart) throw new Error("cartLinesRemove: no cart returned");
   return data.cartLinesRemove.cart;
 }
