@@ -1,12 +1,20 @@
 // app/layout.tsx
 import "./globals.css";
 import { CartProvider } from "@/context/CartContext";
+import SiteHeader from "@/components/SiteHeader";
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html lang="de">
+    <html lang="de-CH">
       <body>
-        <CartProvider>{children}</CartProvider>
+        <CartProvider>
+          <SiteHeader />
+          {children}
+        </CartProvider>
       </body>
     </html>
   );
