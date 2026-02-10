@@ -1,35 +1,26 @@
-// components/SiteHeader.tsx
+"use client";
+
 import Link from "next/link";
-import HeaderCartButton from "@/components/HeaderCartButton";
+import { useCart } from "@/context/CartContext";
 
-const ACCOUNT_URL = process.env.NEXT_PUBLIC_SHOPIFY_CUSTOMER_ACCOUNTS_URL;
+export default function HeaderCartButton() {
+  const { totalQuantity } = useCart();
 
-export default function SiteHeader() {
   return (
-    <header className="border-b bg-white">
-      <div className="mx-auto max-w-6xl px-4 py-4 flex items-center justify-between">
-        <Link href="/" className="font-semibold tracking-tight">
-          IUMATEC
-        </Link>
+    <Link
+      href="/cart"
+      className="relative flex items-center justify-center"
+      aria-label="Warenkorb"
+    >
+      {/* Ícone do carrinho */}
+      <span className="text-xl">🛒</span>
 
-        <nav className="flex items-center gap-4 text-sm">
-          <Link href="/products" className="hover:underline">
-            Alle Produkte
-          </Link>
-          <Link href="/collections" className="hover:underline">
-            Kategorien
-          </Link>
-
-          {ACCOUNT_URL && (
-            <a href={ACCOUNT_URL} className="hover:underline" target="_self">
-              Mein Konto
-            </a>
-          )}
-
-          {/* 🛒 Cart icon + badge */}
-          <HeaderCartButton />
-        </nav>
-      </div>
-    </header>
+      {/* Badge */}
+      {totalQuantity > 0 && (
+        <span className="absolute -top-2 -right-2 min-w-[18px] h-[18px] rounded-full bg-black text-white text-[11px] flex items-center justify-center px-1">
+          {totalQuantity}
+        </span>
+      )}
+    </Link>
   );
 }
