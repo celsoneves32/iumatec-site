@@ -1,4 +1,3 @@
-// components/AddToCartButton.tsx
 "use client";
 
 import { useCart } from "@/context/CartContext";
@@ -16,9 +15,9 @@ export default function AddToCartButton({
     <button
       onClick={() => addItem(variantId, quantity)}
       disabled={loading}
-      className="rounded-lg bg-black px-4 py-2 text-white disabled:opacity-50"
+      className="w-full rounded-lg bg-black px-4 py-2 text-white text-sm hover:bg-neutral-800 disabled:opacity-50"
     >
-      {loading ? "…" : "In den Warenkorb"}
+      {loading ? "A adicionar..." : "Adicionar ao carrinho"}
     </button>
   );
 }
