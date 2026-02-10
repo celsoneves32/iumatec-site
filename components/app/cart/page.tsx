@@ -1,248 +1,148 @@
-// app/page.tsx
+// app/cart/page.tsx
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
-import AddToCartButton from "@/components/AddToCartButton";
-import NewsletterSignup from "@/components/NewsletterSignup";
-import { shopifyFetch } from "@/lib/shopify";
+import { useCart } from "@/context/CartContext";
 
-export const revalidate = 60;
-
-type HomeProduct = {
-  id: string;
-  handle: string;
-  title: string;
-  price: number;
-  currencyCode: string;
-  imageUrl: string | null;
-  imageAlt: string | null;
-  variantId: string;
-};
-
-type ProductsQuery = {
-  products: {
-    edges: Array<{
-      node: {
-        id: string;
-        handle: string;
-        title: string;
-        featuredImage: { url: string; altText: string | null } | null;
-        variants: {
-          edges: Array<{
-            node: {
-              id: string;
-              price: { amount: string; currencyCode: string };
-            };
-          }>;
-        };
-      };
-    }>;
-  };
-};
-
-async function getLatestProducts(limit = 8): Promise<HomeProduct[]> {
-  const query = `
-    query Products($first: Int!) {
-      products(first: $first, sortKey: CREATED_AT, reverse: true) {
-        edges {
-          node {
-            id
-            handle
-            title
-            featuredImage {
-              url
-              altText
-            }
-            variants(first: 1) {
-              edges {
-                node {
-                  id
-                  price {
-                    amount
-                    currencyCode
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  `;
-
-  try {
-    const data = await shopifyFetch<ProductsQuery>({
-      query,
-      variables: { first: limit },
-      // com "revalidate" acima, isto fica OK cacheado
-      cache: "force-cache",
-    });
-
-    const edges = data?.products?.edges ?? [];
-
-    return edges
-      .map((e) => {
-        const node = e.node;
-        const featured = node.featuredImage;
-
-        const variant = node.variants?.edges?.[0]?.node;
-        if (!variant?.id) return null;
-
-        return {
-          id: node.id,
-          handle: node.handle,
-          title: node.title,
-          variantId: variant.id,
-          price: variant.price?.amount ? Number(variant.price.amount) : 0,
-          currencyCode: variant.price?.currencyCode ?? "CHF",
-          imageUrl: featured?.url ?? null,
-          imageAlt: featured?.altText ?? node.title ?? null,
-        } satisfies HomeProduct;
-      })
-      .filter(Boolean) as HomeProduct[];
-  } catch (err) {
-    console.error("getLatestProducts error:", err);
-    return [];
-  }
+function money(amount: string, currency: string) {
+  const n = Number(amount || "0");
+  return new Intl.NumberFormat("de-CH", { style: "currency", currency }).format(n);
 }
 
-const categories = [
-  { title: "Smartphones", href: "/collections/smartphones" },
-  { title: "Laptops", href: "/collections/laptops" },
-  { title: "Acessórios", href: "/collections/accessories" },
-  { title: "Gaming", href: "/collections/gaming" },
-];
+export default function CartPage() {
+  const { cart, loading, error, updateLine, removeLine, goToCheckout } = useCart();
 
-function Price({ value, currency }: { value: number; currency: string }) {
-  const formatted = new Intl.NumberFormat("de-CH", {
-    style: "currency",
-    currency,
-  }).format(value);
-  return <span>{formatted}</span>;
-}
+  const lines = cart?.lines?.edges?.map((e) => e.node) ?? [];
+  const currency = cart?.cost?.totalAmount?.currencyCode ?? "CHF";
 
-export default async function HomePage() {
-  const products = await getLatestProducts(8);
+  const subtotal = cart?.cost?.subtotalAmount?.amount ?? "0";
+  const total = cart?.cost?.totalAmount?.amount ?? "0";
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8 space-y-12">
-      {/* HERO */}
-      <section className="grid gap-6 md:grid-cols-2 items-center">
-        <div className="space-y-4">
-          <h1 className="text-3xl md:text-4xl font-semibold">
-            IUMATEC Schweiz — Tech, schnell & sicher.
-          </h1>
-          <p className="text-neutral-600">
-            Neuheiten, Bestseller und Zubehör — direkt bereit für deinen Warenkorb.
-          </p>
-          <div className="flex gap-3">
-            <Link
-              href="/products"
-              className="inline-flex items-center justify-center rounded-lg bg-black px-4 py-2 text-white"
-            >
-              Produkte ansehen
-            </Link>
-            <Link
-              href="/collections"
-              className="inline-flex items-center justify-center rounded-lg border px-4 py-2"
-            >
-              Kategorien
-            </Link>
-          </div>
+    <main className="mx-auto max-w-4xl px-4 py-8 space-y-6">
+      <div className="flex items-end justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold">Warenkorb</h1>
+          <p className="text-sm text-neutral-600">Deine Auswahl für den Checkout.</p>
         </div>
 
-        <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl bg-neutral-100">
-          <Image
-            src="/hero.jpg"
-            alt="IUMATEC"
-            fill
-            className="object-cover"
-            priority
-          />
-        </div>
-      </section>
+        <Link href="/products" className="text-sm underline">
+          Weiter einkaufen
+        </Link>
+      </div>
 
-      {/* CATEGORIAS */}
-      <section className="space-y-4">
-        <div className="flex items-end justify-between">
-          <h2 className="text-xl font-semibold">Kategorien</h2>
-          <Link href="/collections" className="text-sm underline">
-            Alle ansehen
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+          {error}
+        </div>
+      )}
+
+      {!cart || lines.length === 0 ? (
+        <div className="rounded-2xl border p-6">
+          <div className="font-medium">Dein Warenkorb ist leer.</div>
+          <Link href="/products" className="inline-block mt-3 underline text-sm">
+            Produkte ansehen
           </Link>
         </div>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-[1fr_320px]">
+          {/* LINES */}
+          <div className="space-y-3">
+            {lines.map((line) => {
+              const img = line.merchandise.image?.url ?? null;
+              const title = line.merchandise.product.title;
+              const handle = line.merchandise.product.handle;
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {categories.map((c) => (
-            <Link
-              key={c.href}
-              href={c.href}
-              className="rounded-xl border p-4 hover:bg-neutral-50 transition"
-            >
-              <div className="font-medium">{c.title}</div>
-              <div className="text-sm text-neutral-600">Entdecken</div>
-            </Link>
-          ))}
-        </div>
-      </section>
+              const linePrice = money(
+                line.merchandise.price.amount,
+                line.merchandise.price.currencyCode
+              );
 
-      {/* PRODUTOS */}
-      <section className="space-y-4">
-        <div className="flex items-end justify-between">
-          <h2 className="text-xl font-semibold">Neueste Produkte</h2>
-          <Link href="/products" className="text-sm underline">
-            Alle Produkte
-          </Link>
-        </div>
-
-        {products.length === 0 ? (
-          <div className="rounded-xl border p-6 text-neutral-700">
-            <div className="font-medium">Nenhum produto para mostrar.</div>
-            <div className="text-sm text-neutral-600">
-              Verifica o Storefront token e se há produtos publicados no Shopify.
-            </div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {products.map((p) => (
-              <div key={p.id} className="rounded-2xl border overflow-hidden">
-                <Link href={`/products/${p.handle}`} className="block">
-                  <div className="relative aspect-square bg-neutral-100">
-                    {p.imageUrl ? (
-                      <Image
-                        src={p.imageUrl}
-                        alt={p.imageAlt ?? p.title}
-                        fill
-                        className="object-cover"
-                      />
+              return (
+                <div key={line.id} className="rounded-2xl border p-4 flex gap-4">
+                  <div className="relative h-20 w-20 overflow-hidden rounded-lg bg-neutral-100 shrink-0">
+                    {img ? (
+                      <Image src={img} alt={title} fill className="object-cover" />
                     ) : (
-                      <div className="h-full w-full flex items-center justify-center text-sm text-neutral-500">
-                        Sem imagem
+                      <div className="h-full w-full grid place-items-center text-xs text-neutral-500">
+                        No image
                       </div>
                     )}
                   </div>
-                </Link>
 
-                <div className="p-3 space-y-2">
-                  <Link href={`/products/${p.handle}`} className="block">
-                    <div className="font-medium line-clamp-2">{p.title}</div>
-                  </Link>
+                  <div className="flex-1 min-w-0">
+                    <Link
+                      href={`/products/${handle}`}
+                      className="font-medium hover:underline line-clamp-2"
+                    >
+                      {title}
+                    </Link>
 
-                  <div className="text-sm text-neutral-700">
-                    <Price value={p.price} currency={p.currencyCode} />
+                    <div className="text-sm text-neutral-600 mt-1">{linePrice}</div>
+
+                    <div className="mt-3 flex items-center gap-2">
+                      <button
+                        className="rounded-md border px-2 py-1 disabled:opacity-50"
+                        onClick={() => updateLine(line.id, Math.max(1, line.quantity - 1))}
+                        disabled={loading}
+                        aria-label="Decrease quantity"
+                      >
+                        -
+                      </button>
+
+                      <div className="min-w-8 text-center">{line.quantity}</div>
+
+                      <button
+                        className="rounded-md border px-2 py-1 disabled:opacity-50"
+                        onClick={() => updateLine(line.id, line.quantity + 1)}
+                        disabled={loading}
+                        aria-label="Increase quantity"
+                      >
+                        +
+                      </button>
+
+                      <button
+                        className="ml-auto text-sm underline disabled:opacity-50"
+                        onClick={() => removeLine(line.id)}
+                        disabled={loading}
+                      >
+                        Entfernen
+                      </button>
+                    </div>
                   </div>
-
-                  {/* ✅ variantId correto (Storefront) */}
-                  <AddToCartButton variantId={p.variantId} quantity={1} />
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
-        )}
-      </section>
 
-      {/* NEWSLETTER */}
-      <section className="rounded-2xl border p-6">
-        <NewsletterSignup />
-      </section>
+          {/* SUMMARY */}
+          <aside className="rounded-2xl border p-4 h-fit space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-neutral-600">Zwischensumme</span>
+              <span className="font-medium">{money(subtotal, currency)}</span>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-neutral-600">Total</span>
+              <span className="font-semibold">{money(total, currency)}</span>
+            </div>
+
+            <button
+              onClick={goToCheckout}
+              disabled={loading || !cart?.checkoutUrl}
+              className="w-full rounded-lg bg-black px-4 py-2 text-white disabled:opacity-50"
+            >
+              {loading ? "Bitte warten..." : "Zur Kasse"}
+            </button>
+
+            <div className="text-xs text-neutral-500">
+              Checkout abre no Shopify (NEW) em{" "}
+              <span className="font-medium">shop.iumatec.ch</span>.
+            </div>
+          </aside>
+        </div>
+      )}
     </main>
   );
 }
