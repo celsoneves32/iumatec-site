@@ -1,4 +1,3 @@
-// context/CartContext.tsx
 "use client";
 
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
@@ -14,11 +13,10 @@ type CartState = {
   addItem: (variantId: string, quantity?: number) => Promise<void>;
   updateLine: (lineId: string, quantity: number) => Promise<void>;
   removeLine: (lineId: string) => Promise<void>;
-  goToCheckout: () => void;
+  goToCheckout: () => Promise<void>;
 };
 
 const CartContext = createContext<CartState | null>(null);
-
 const CART_ID_KEY = "iumatec_cart_id";
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
@@ -28,7 +26,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   async function ensureCart(): Promise<Cart> {
     setError(null);
-    setLoading(true);
 
     try {
       const saved = typeof window !== "undefined" ? localStorage.getItem(CART_ID_KEY) : null;
@@ -42,6 +39,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         localStorage.removeItem(CART_ID_KEY);
       }
 
+      setLoading(true);
       const created = await cartCreate();
       localStorage.setItem(CART_ID_KEY, created.id);
       setCart(created);
@@ -96,12 +94,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  function goToCheckout() {
-    if (!cart?.checkoutUrl) return;
-    window.location.href = cart.checkoutUrl;
+  async function goToCheckout() {
+    setError(null);
+    try {
+      const c = cart ?? (await ensureCart());
+      if (c?.checkoutUrl) window.location.href = c.checkoutUrl;
+    } catch (e: any) {
+      setError(e?.message || "Checkout failed");
+    }
   }
 
-  // load cart once (best-effort)
   useEffect(() => {
     (async () => {
       const saved = localStorage.getItem(CART_ID_KEY);
