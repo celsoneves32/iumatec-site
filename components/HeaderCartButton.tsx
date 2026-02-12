@@ -9,11 +9,11 @@ export default function HeaderCartButton() {
   return (
     <Link
       href="/cart"
-      className="relative inline-flex items-center justify-center rounded-lg px-2 py-1 hover:bg-neutral-100 transition"
+      className="relative inline-flex items-center justify-center rounded-xl border px-3 py-2 hover:bg-neutral-50 transition"
       aria-label="Warenkorb"
       title="Warenkorb"
     >
-      <span className="text-lg leading-none">🛒</span>
+      <span className="text-base leading-none">🛒</span>
 
       {totalQuantity > 0 && (
         <span
