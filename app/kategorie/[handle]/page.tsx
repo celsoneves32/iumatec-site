@@ -86,9 +86,7 @@ async function getProductsByCollectionHandle(
   }
 
   const edge = json.data?.collections?.edges?.[0];
-  if (!edge) {
-    return null;
-  }
+  if (!edge) return null;
 
   const col = edge.node;
 
@@ -97,7 +95,7 @@ async function getProductsByCollectionHandle(
       const node = p.node;
       const priceData = node.priceRangeV2?.minVariantPrice;
       const price =
-        priceData && priceData.amount
+        priceData?.amount
           ? `${Number(priceData.amount).toFixed(2)} ${priceData.currencyCode}`
           : null;
 
@@ -129,12 +127,9 @@ export default async function CategoryPage({ params }: PageProps) {
   const handle = params.handle;
 
   const cat = findCategoryByHandle(handle);
-  if (!cat) {
-    notFound();
-  }
+  if (!cat) notFound();
 
   const { section, item } = cat;
-
   const pageTitle = item?.title ?? section.title;
 
   const data = await getProductsByCollectionHandle(handle);
@@ -148,10 +143,7 @@ export default async function CategoryPage({ params }: PageProps) {
           Startseite
         </Link>
         <span className="mx-1">/</span>
-        <Link
-          href={`/kategorie/${section.handle}`}
-          className="hover:text-red-600"
-        >
+        <Link href={`/kategorie/${section.handle}`} className="hover:text-red-600">
           {section.title}
         </Link>
         {item && (
@@ -162,7 +154,7 @@ export default async function CategoryPage({ params }: PageProps) {
         )}
       </nav>
 
-      {/* Título + intro */}
+      {/* Title + intro */}
       <header className="mb-6">
         <h1 className="text-2xl md:text-3xl font-semibold tracking-tight mb-2">
           {pageTitle}
@@ -178,8 +170,8 @@ export default async function CategoryPage({ params }: PageProps) {
           In dieser Kategorie sind aktuell noch keine Produkte hinterlegt.
           <br />
           <span className="text-xs text-neutral-500">
-            Die Anbindung an Shopify ist bereit – du musst nur Produkte der
-            entsprechenden Collection zuordnen.
+            Die Anbindung an Shopify ist bereit – du musst nur Produkte der entsprechenden
+            Collection zuordnen.
           </span>
         </div>
       ) : (
@@ -188,7 +180,7 @@ export default async function CategoryPage({ params }: PageProps) {
             {products.map((product) => (
               <Link
                 key={product.id}
-                href={`/produkte/${product.handle}`}
+                href={`/products/${product.handle}`}
                 className="group border border-neutral-200 rounded-2xl bg-white overflow-hidden flex flex-col hover:shadow-sm transition-shadow"
               >
                 <div className="relative aspect-[3/4] bg-neutral-50">
@@ -205,10 +197,9 @@ export default async function CategoryPage({ params }: PageProps) {
                     </div>
                   )}
                 </div>
+
                 <div className="p-3 flex flex-col gap-1">
-                  <div className="text-xs text-neutral-500 line-clamp-1">
-                    {section.title}
-                  </div>
+                  <div className="text-xs text-neutral-500 line-clamp-1">{section.title}</div>
                   <div className="text-sm font-medium leading-tight line-clamp-2">
                     {product.title}
                   </div>
