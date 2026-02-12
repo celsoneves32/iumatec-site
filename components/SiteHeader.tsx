@@ -1,8 +1,7 @@
-// components/SiteHeader.tsx
 import Link from "next/link";
+import HeaderCartButton from "@/components/HeaderCartButton";
 
-const ACCOUNT_URL =
-  process.env.NEXT_PUBLIC_SHOPIFY_CUSTOMER_ACCOUNTS_URL;
+const ACCOUNT_URL = process.env.NEXT_PUBLIC_SHOPIFY_CUSTOMER_ACCOUNTS_URL;
 
 export default function SiteHeader() {
   return (
@@ -21,14 +20,13 @@ export default function SiteHeader() {
           </Link>
 
           {ACCOUNT_URL && (
-            <a
-              href={ACCOUNT_URL}
-              className="hover:underline"
-              target="_self"
-            >
+            <a href={ACCOUNT_URL} className="hover:underline" target="_self">
               Mein Konto
             </a>
           )}
+
+          {/* ✅ carrinho com badge */}
+          <HeaderCartButton />
         </nav>
       </div>
     </header>
