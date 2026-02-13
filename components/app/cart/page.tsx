@@ -1,30 +1,23 @@
-// app/cart/page.tsx
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 
-function money(amount: string, currency: string) {
-  const n = Number(amount || "0");
-  return new Intl.NumberFormat("de-CH", { style: "currency", currency }).format(n);
-}
-
 export default function CartPage() {
-  const { cart, loading, error, updateLine, removeLine, goToCheckout } = useCart();
+  const { cart, loading, error, totalQuantity, updateLine, removeLine, goToCheckout } =
+    useCart();
 
-  const lines = cart?.lines?.edges?.map((e) => e.node) ?? [];
-  const currency = cart?.cost?.totalAmount?.currencyCode ?? "CHF";
-
-  const subtotal = cart?.cost?.subtotalAmount?.amount ?? "0";
-  const total = cart?.cost?.totalAmount?.amount ?? "0";
+  const lines = cart?.lines ?? [];
+  const total = cart?.cost?.totalAmount;
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-8 space-y-6">
+    <main className="mx-auto max-w-6xl px-4 py-10">
       <div className="flex items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold">Warenkorb</h1>
-          <p className="text-sm text-neutral-600">Deine Auswahl für den Checkout.</p>
+          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Warenkorb</h1>
+          <p className="text-sm text-neutral-600 mt-1">
+            {totalQuantity > 0 ? `${totalQuantity} Artikel` : "Dein Warenkorb ist leer."}
+          </p>
         </div>
 
         <Link href="/products" className="text-sm underline">
@@ -33,113 +26,101 @@ export default function CartPage() {
       </div>
 
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+        <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
           {error}
         </div>
       )}
 
-      {!cart || lines.length === 0 ? (
-        <div className="rounded-2xl border p-6">
-          <div className="font-medium">Dein Warenkorb ist leer.</div>
-          <Link href="/products" className="inline-block mt-3 underline text-sm">
+      {lines.length === 0 ? (
+        <div className="mt-8 rounded-2xl border p-8 text-center bg-white">
+          <div className="text-base font-medium">Noch keine Produkte im Warenkorb.</div>
+          <div className="text-sm text-neutral-600 mt-2">
+            Geh zu den Produkten und füge etwas hinzu.
+          </div>
+          <Link
+            href="/products"
+            className="inline-flex mt-5 items-center justify-center rounded-lg bg-black px-4 py-2 text-white"
+          >
             Produkte ansehen
           </Link>
         </div>
       ) : (
-        <div className="grid gap-6 md:grid-cols-[1fr_320px]">
-          {/* LINES */}
-          <div className="space-y-3">
-            {lines.map((line) => {
-              const img = line.merchandise.image?.url ?? null;
-              const title = line.merchandise.product.title;
-              const handle = line.merchandise.product.handle;
-
-              const linePrice = money(
-                line.merchandise.price.amount,
-                line.merchandise.price.currencyCode
-              );
-
-              return (
-                <div key={line.id} className="rounded-2xl border p-4 flex gap-4">
-                  <div className="relative h-20 w-20 overflow-hidden rounded-lg bg-neutral-100 shrink-0">
-                    {img ? (
-                      <Image src={img} alt={title} fill className="object-cover" />
-                    ) : (
-                      <div className="h-full w-full grid place-items-center text-xs text-neutral-500">
-                        No image
-                      </div>
-                    )}
+        <div className="mt-8 grid gap-8 lg:grid-cols-3">
+          {/* Lines */}
+          <section className="lg:col-span-2 space-y-4">
+            {lines.map((line) => (
+              <div
+                key={line.id}
+                className="rounded-2xl border bg-white p-4 flex gap-4 items-start"
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium line-clamp-2">
+                    {line.merchandise?.productTitle ?? "Produkt"}
+                  </div>
+                  <div className="text-sm text-neutral-600 line-clamp-1">
+                    {line.merchandise?.title ?? ""}
                   </div>
 
-                  <div className="flex-1 min-w-0">
-                    <Link
-                      href={`/products/${handle}`}
-                      className="font-medium hover:underline line-clamp-2"
+                  <div className="mt-3 flex items-center gap-3">
+                    <label className="text-sm text-neutral-600">Menge</label>
+                    <input
+                      type="number"
+                      min={1}
+                      value={line.quantity}
+                      onChange={(e) => updateLine(line.id, Number(e.target.value))}
+                      className="w-20 rounded-lg border px-3 py-2 text-sm"
+                      disabled={loading}
+                    />
+
+                    <button
+                      onClick={() => removeLine(line.id)}
+                      className="text-sm underline text-neutral-700 hover:text-black"
+                      disabled={loading}
                     >
-                      {title}
-                    </Link>
-
-                    <div className="text-sm text-neutral-600 mt-1">{linePrice}</div>
-
-                    <div className="mt-3 flex items-center gap-2">
-                      <button
-                        className="rounded-md border px-2 py-1 disabled:opacity-50"
-                        onClick={() => updateLine(line.id, Math.max(1, line.quantity - 1))}
-                        disabled={loading}
-                        aria-label="Decrease quantity"
-                      >
-                        -
-                      </button>
-
-                      <div className="min-w-8 text-center">{line.quantity}</div>
-
-                      <button
-                        className="rounded-md border px-2 py-1 disabled:opacity-50"
-                        onClick={() => updateLine(line.id, line.quantity + 1)}
-                        disabled={loading}
-                        aria-label="Increase quantity"
-                      >
-                        +
-                      </button>
-
-                      <button
-                        className="ml-auto text-sm underline disabled:opacity-50"
-                        onClick={() => removeLine(line.id)}
-                        disabled={loading}
-                      >
-                        Entfernen
-                      </button>
-                    </div>
+                      Entfernen
+                    </button>
                   </div>
                 </div>
-              );
-            })}
-          </div>
 
-          {/* SUMMARY */}
-          <aside className="rounded-2xl border p-4 h-fit space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-neutral-600">Zwischensumme</span>
-              <span className="font-medium">{money(subtotal, currency)}</span>
+                <div className="text-right whitespace-nowrap">
+                  <div className="text-sm text-neutral-600">Preis</div>
+                  <div className="font-semibold">
+                    {line.cost?.totalAmount
+                      ? `${line.cost.totalAmount.amount} ${line.cost.totalAmount.currencyCode}`
+                      : "—"}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </section>
+
+          {/* Summary */}
+          <aside className="rounded-2xl border bg-white p-5 h-fit">
+            <h2 className="text-lg font-semibold">Zusammenfassung</h2>
+
+            <div className="mt-4 flex items-center justify-between text-sm">
+              <span className="text-neutral-600">Artikel</span>
+              <span className="font-medium">{totalQuantity}</span>
             </div>
 
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-neutral-600">Total</span>
-              <span className="font-semibold">{money(total, currency)}</span>
+            <div className="mt-2 flex items-center justify-between text-sm">
+              <span className="text-neutral-600">Total</span>
+              <span className="font-semibold">
+                {total ? `${total.amount} ${total.currencyCode}` : "—"}
+              </span>
             </div>
 
             <button
               onClick={goToCheckout}
-              disabled={loading || !cart?.checkoutUrl}
-              className="w-full rounded-lg bg-black px-4 py-2 text-white disabled:opacity-50"
+              disabled={!cart?.checkoutUrl || loading}
+              className="mt-5 w-full rounded-lg bg-black px-4 py-3 text-white disabled:opacity-50"
             >
-              {loading ? "Bitte warten..." : "Zur Kasse"}
+              {loading ? "Bitte warten…" : "Zur Kasse"}
             </button>
 
-            <div className="text-xs text-neutral-500">
-              Checkout abre no Shopify (NEW) em{" "}
-              <span className="font-medium">shop.iumatec.ch</span>.
-            </div>
+            <p className="mt-3 text-xs text-neutral-500">
+              Checkout wird sicher über Shopify abgewickelt.
+            </p>
           </aside>
         </div>
       )}
