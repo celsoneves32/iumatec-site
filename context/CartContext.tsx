@@ -1,144 +1,101 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
-import type { Cart } from "@/lib/cart";
-import { cartCreate, cartGet, cartLinesAdd, cartLinesRemove, cartLinesUpdate } from "@/lib/cart";
 
-type CartState = {
-  cart: Cart | null;
-  loading: boolean;
-  error: string | null;
-  totalQuantity: number;
-  ensureCart: () => Promise<Cart>;
-  addItem: (variantId: string, quantity?: number) => Promise<void>;
-  updateLine: (lineId: string, quantity: number) => Promise<void>;
-  removeLine: (lineId: string) => Promise<void>;
-  goToCheckout: () => Promise<void>;
+type CartItem = {
+  variantId: string;
+  quantity: number;
 };
 
-const CartContext = createContext<CartState | null>(null);
-const CART_ID_KEY = "iumatec_cart_id";
+type CartContextValue = {
+  items: CartItem[];
+  totalItems: number;
+  loading: boolean;
+  addItem: (variantId: string, quantity?: number) => void;
+  removeItem: (variantId: string) => void;
+  setQty: (variantId: string, quantity: number) => void;
+  clear: () => void;
+};
+
+const CartContext = createContext<CartContextValue | null>(null);
+
+const STORAGE_KEY = "iumatec_cart_v1";
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const [cart, setCart] = useState<Cart | null>(null);
+  const [items, setItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  async function ensureCart(): Promise<Cart> {
-    setError(null);
-
-    try {
-      const saved = typeof window !== "undefined" ? localStorage.getItem(CART_ID_KEY) : null;
-
-      if (saved) {
-        const existing = await cartGet(saved);
-        if (existing) {
-          setCart(existing);
-          return existing;
-        }
-        localStorage.removeItem(CART_ID_KEY);
-      }
-
-      setLoading(true);
-      const created = await cartCreate();
-      localStorage.setItem(CART_ID_KEY, created.id);
-      setCart(created);
-      return created;
-    } catch (e: any) {
-      setError(e?.message || "Cart error");
-      throw e;
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function addItem(variantId: string, quantity = 1) {
-    setError(null);
-    setLoading(true);
-    try {
-      const c = cart ?? (await ensureCart());
-      const updated = await cartLinesAdd(c.id, variantId, quantity);
-      setCart(updated);
-    } catch (e: any) {
-      setError(e?.message || "Add to cart failed");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function updateLine(lineId: string, quantity: number) {
-    if (!cart) return;
-    setError(null);
-    setLoading(true);
-    try {
-      const updated = await cartLinesUpdate(cart.id, lineId, quantity);
-      setCart(updated);
-    } catch (e: any) {
-      setError(e?.message || "Update cart failed");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function removeLine(lineId: string) {
-    if (!cart) return;
-    setError(null);
-    setLoading(true);
-    try {
-      const updated = await cartLinesRemove(cart.id, lineId);
-      setCart(updated);
-    } catch (e: any) {
-      setError(e?.message || "Remove item failed");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function goToCheckout() {
-    setError(null);
-    try {
-      const c = cart ?? (await ensureCart());
-      if (c?.checkoutUrl) window.location.href = c.checkoutUrl;
-    } catch (e: any) {
-      setError(e?.message || "Checkout failed");
-    }
-  }
-
+  // carregar do localStorage
   useEffect(() => {
-    (async () => {
-      const saved = localStorage.getItem(CART_ID_KEY);
-      if (!saved) return;
-      try {
-        const existing = await cartGet(saved);
-        if (existing) setCart(existing);
-      } catch {
-        localStorage.removeItem(CART_ID_KEY);
-      }
-    })();
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as CartItem[];
+      if (Array.isArray(parsed)) setItems(parsed);
+    } catch {
+      // ignore
+    }
   }, []);
 
-  const totalQuantity = cart?.totalQuantity ?? 0;
+  // guardar no localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    } catch {
+      // ignore
+    }
+  }, [items]);
 
-  const value = useMemo<CartState>(
-    () => ({
-      cart,
-      loading,
-      error,
-      totalQuantity,
-      ensureCart,
-      addItem,
-      updateLine,
-      removeLine,
-      goToCheckout,
-    }),
-    [cart, loading, error, totalQuantity]
+  const totalItems = useMemo(
+    () => items.reduce((acc, it) => acc + (it.quantity || 0), 0),
+    [items]
   );
+
+  function addItem(variantId: string, quantity = 1) {
+    if (!variantId) return;
+    setLoading(true);
+    setItems((prev) => {
+      const idx = prev.findIndex((p) => p.variantId === variantId);
+      if (idx >= 0) {
+        const copy = [...prev];
+        copy[idx] = { ...copy[idx], quantity: copy[idx].quantity + quantity };
+        return copy;
+      }
+      return [...prev, { variantId, quantity }];
+    });
+    setTimeout(() => setLoading(false), 150);
+  }
+
+  function removeItem(variantId: string) {
+    setItems((prev) => prev.filter((p) => p.variantId !== variantId));
+  }
+
+  function setQty(variantId: string, quantity: number) {
+    if (quantity <= 0) return removeItem(variantId);
+    setItems((prev) =>
+      prev.map((p) => (p.variantId === variantId ? { ...p, quantity } : p))
+    );
+  }
+
+  function clear() {
+    setItems([]);
+  }
+
+  const value: CartContextValue = {
+    items,
+    totalItems,
+    loading,
+    addItem,
+    removeItem,
+    setQty,
+    clear,
+  };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
 
 export function useCart() {
   const ctx = useContext(CartContext);
-  if (!ctx) throw new Error("useCart must be used inside <CartProvider>");
+  if (!ctx) throw new Error("useCart must be used within CartProvider");
   return ctx;
 }
