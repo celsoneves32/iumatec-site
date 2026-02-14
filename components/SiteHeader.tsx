@@ -6,7 +6,7 @@ import { useCart } from "@/context/CartContext";
 const ACCOUNT_URL = process.env.NEXT_PUBLIC_SHOPIFY_CUSTOMER_ACCOUNTS_URL;
 
 export default function SiteHeader() {
-  const { totalItems } = useCart();
+  const { totalQuantity } = useCart();
 
   return (
     <header className="border-b bg-white">
@@ -19,6 +19,7 @@ export default function SiteHeader() {
           <Link href="/products" className="hover:underline">
             Alle Produkte
           </Link>
+
           <Link href="/collections" className="hover:underline">
             Kategorien
           </Link>
@@ -37,9 +38,9 @@ export default function SiteHeader() {
           >
             <span className="text-base">🛒</span>
 
-            {totalItems > 0 && (
+            {totalQuantity > 0 && (
               <span className="absolute -right-2 -top-2 min-w-[18px] h-[18px] px-1 rounded-full bg-black text-white text-[11px] flex items-center justify-center leading-none">
-                {totalItems > 99 ? "99+" : totalItems}
+                {totalQuantity > 99 ? "99+" : totalQuantity}
               </span>
             )}
           </Link>
