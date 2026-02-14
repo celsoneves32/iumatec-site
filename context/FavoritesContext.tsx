@@ -4,29 +4,34 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from "
 
 type FavoritesState = {
   ids: string[];
+  count: number;
   has: (id: string) => boolean;
   toggle: (id: string) => void;
-  count: number;
+  clear: () => void;
 };
 
 const FavoritesContext = createContext<FavoritesState | null>(null);
 
-const KEY = "iumatec_favorites";
+const KEY = "iumatec_favorites_v1";
 
 export function FavoritesProvider({ children }: { children: React.ReactNode }) {
   const [ids, setIds] = useState<string[]>([]);
 
+  // load once
   useEffect(() => {
     try {
       const raw = localStorage.getItem(KEY);
       if (!raw) return;
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) setIds(parsed.filter((x) => typeof x === "string"));
+      if (Array.isArray(parsed)) {
+        setIds(parsed.filter((x) => typeof x === "string"));
+      }
     } catch {
       // ignore
     }
   }, []);
 
+  // persist
   useEffect(() => {
     try {
       localStorage.setItem(KEY, JSON.stringify(ids));
@@ -42,6 +47,7 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
       has: (id) => ids.includes(id),
       toggle: (id) =>
         setIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id])),
+      clear: () => setIds([]),
     }),
     [ids]
   );
