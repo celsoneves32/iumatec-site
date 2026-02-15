@@ -1,152 +1,173 @@
+// app/warenkorb/page.tsx
 "use client";
 
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 
+function formatMoney(amount?: string, currency?: string) {
+  if (!amount) return "";
+  const n = Number(amount);
+  if (Number.isNaN(n)) return `${amount} ${currency || ""}`.trim();
+  return `${n.toFixed(2)} ${currency || "CHF"}`.trim();
+}
+
 export default function WarenkorbPage() {
-  const {
-    cart,
-    loading,
-    error,
-    totalQuantity,
-    updateLine,
-    removeLine,
-    goToCheckout,
-  } = useCart();
+  const { cart, loading, error, totalQuantity, updateLine, removeLine, goToCheckout, clearCart } =
+    useCart();
+
+  const totalAmount = cart?.cost?.totalAmount?.amount;
+  const currency = cart?.cost?.totalAmount?.currencyCode;
 
   const lines = cart?.lines ?? [];
-  const total = cart?.cost?.totalAmount;
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-10">
-      <div className="flex items-end justify-between gap-4">
+    <main className="max-w-5xl mx-auto px-4 py-8">
+      <header className="flex items-start justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
-            Warenkorb
-          </h1>
-          <p className="text-sm text-neutral-600 mt-1">
-            {totalQuantity > 0
-              ? `${totalQuantity} Artikel`
-              : "Dein Warenkorb ist leer."}
+          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Warenkorb</h1>
+          <p className="text-sm text-neutral-500 mt-1">
+            {totalQuantity > 0 ? `${totalQuantity} Artikel` : "Dein Warenkorb ist leer."}
           </p>
         </div>
 
-        <Link href="/produkte" className="text-sm underline">
-          Weiter einkaufen
+        <Link
+          href="/produkte"
+          className="text-sm underline underline-offset-4 hover:opacity-80"
+        >
+          Weiter einkaufen →
         </Link>
-      </div>
+      </header>
 
       {error && (
-        <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           {error}
         </div>
       )}
 
-      {lines.length === 0 ? (
-        <div className="mt-8 rounded-2xl border p-8 text-center bg-white">
-          <div className="text-base font-medium">
-            Noch keine Produkte im Warenkorb.
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr),360px]">
+        {/* Lines */}
+        <section className="rounded-2xl border border-neutral-200 bg-white">
+          <div className="p-4 border-b border-neutral-200">
+            <h2 className="text-sm font-semibold text-neutral-800">Artikel</h2>
           </div>
-          <div className="text-sm text-neutral-600 mt-2">
-            Geh zu den Produkten und füge etwas hinzu.
+
+          {loading && (
+            <div className="p-4 text-sm text-neutral-500">Lade Warenkorb…</div>
+          )}
+
+          {!loading && lines.length === 0 && (
+            <div className="p-6 text-sm text-neutral-500">
+              Dein Warenkorb ist leer.{" "}
+              <Link href="/produkte" className="underline underline-offset-4">
+                Produkte ansehen
+              </Link>
+              .
+            </div>
+          )}
+
+          {!loading && lines.length > 0 && (
+            <ul className="divide-y divide-neutral-200">
+              {lines.map((line) => {
+                const title =
+                  line.merchandise?.productTitle ||
+                  line.merchandise?.title ||
+                  "Produkt";
+
+                const lineAmount = line.cost?.totalAmount?.amount;
+                const lineCurrency = line.cost?.totalAmount?.currencyCode;
+
+                return (
+                  <li key={line.id} className="p-4 flex gap-4 items-start">
+                    <div className="flex-1">
+                      <div className="font-medium text-neutral-900">{title}</div>
+                      {line.merchandise?.title && (
+                        <div className="text-xs text-neutral-500 mt-1">
+                          Variante: {line.merchandise.title}
+                        </div>
+                      )}
+
+                      <div className="text-sm text-neutral-700 mt-2">
+                        {formatMoney(lineAmount, lineCurrency)}
+                      </div>
+
+                      <div className="mt-3 flex items-center gap-2">
+                        <button
+                          className="h-9 w-9 rounded-lg border hover:bg-neutral-50 disabled:opacity-50"
+                          onClick={() => updateLine(line.id, Math.max(1, line.quantity - 1))}
+                          disabled={loading || line.quantity <= 1}
+                          aria-label="Menge reduzieren"
+                        >
+                          –
+                        </button>
+
+                        <div className="min-w-10 text-center text-sm">{line.quantity}</div>
+
+                        <button
+                          className="h-9 w-9 rounded-lg border hover:bg-neutral-50 disabled:opacity-50"
+                          onClick={() => updateLine(line.id, line.quantity + 1)}
+                          disabled={loading}
+                          aria-label="Menge erhöhen"
+                        >
+                          +
+                        </button>
+
+                        <button
+                          className="ml-3 text-sm text-red-600 hover:underline underline-offset-4 disabled:opacity-50"
+                          onClick={() => removeLine(line.id)}
+                          disabled={loading}
+                        >
+                          Entfernen
+                        </button>
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
+
+        {/* Summary */}
+        <aside className="rounded-2xl border border-neutral-200 bg-white p-5 h-fit">
+          <h2 className="text-sm font-semibold text-neutral-800 mb-4">Übersicht</h2>
+
+          <div className="flex items-center justify-between text-sm mb-2">
+            <span className="text-neutral-600">Zwischensumme</span>
+            <span className="font-medium text-neutral-900">
+              {formatMoney(totalAmount, currency)}
+            </span>
           </div>
-          <Link
-            href="/produkte"
-            className="inline-flex mt-5 items-center justify-center rounded-lg bg-black px-4 py-2 text-white"
+
+          <div className="text-xs text-neutral-500 mb-4">
+            Versand und Rabatte werden im Checkout berechnet.
+          </div>
+
+          <button
+            onClick={goToCheckout}
+            disabled={loading || lines.length === 0}
+            className="w-full rounded-xl bg-black px-4 py-3 text-sm text-white hover:opacity-90 disabled:opacity-50"
           >
-            Produkte ansehen
-          </Link>
-        </div>
-      ) : (
-        <div className="mt-8 grid gap-8 lg:grid-cols-3">
-          {/* 🔹 Produktlinien */}
-          <section className="lg:col-span-2 space-y-4">
-            {lines.map((line: any) => (
-              <div
-                key={line.id}
-                className="rounded-2xl border bg-white p-4 flex gap-4 items-start"
-              >
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium line-clamp-2">
-                    {line.merchandise?.product?.title ??
-                      line.merchandise?.productTitle ??
-                      "Produkt"}
-                  </div>
+            Zur Kasse
+          </button>
 
-                  <div className="text-sm text-neutral-600 line-clamp-1">
-                    {line.merchandise?.title ?? ""}
-                  </div>
-
-                  <div className="mt-3 flex items-center gap-3">
-                    <label className="text-sm text-neutral-600">
-                      Menge
-                    </label>
-
-                    <input
-                      type="number"
-                      min={1}
-                      value={line.quantity}
-                      onChange={(e) =>
-                        updateLine(line.id, Number(e.target.value))
-                      }
-                      className="w-20 rounded-lg border px-3 py-2 text-sm"
-                      disabled={loading}
-                    />
-
-                    <button
-                      onClick={() => removeLine(line.id)}
-                      className="text-sm underline text-neutral-700 hover:text-black"
-                      disabled={loading}
-                    >
-                      Entfernen
-                    </button>
-                  </div>
-                </div>
-
-                <div className="text-right whitespace-nowrap">
-                  <div className="text-sm text-neutral-600">Preis</div>
-                  <div className="font-semibold">
-                    {line.cost?.totalAmount
-                      ? `${line.cost.totalAmount.amount} ${line.cost.totalAmount.currencyCode}`
-                      : "—"}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </section>
-
-          {/* 🔹 Zusammenfassung */}
-          <aside className="rounded-2xl border bg-white p-5 h-fit">
-            <h2 className="text-lg font-semibold">Zusammenfassung</h2>
-
-            <div className="mt-4 flex items-center justify-between text-sm">
-              <span className="text-neutral-600">Artikel</span>
-              <span className="font-medium">{totalQuantity}</span>
-            </div>
-
-            <div className="mt-2 flex items-center justify-between text-sm">
-              <span className="text-neutral-600">Total</span>
-              <span className="font-semibold">
-                {total
-                  ? `${total.amount} ${total.currencyCode}`
-                  : "—"}
-              </span>
-            </div>
-
+          {lines.length > 0 && (
             <button
-              onClick={goToCheckout}
-              disabled={!cart?.checkoutUrl || loading}
-              className="mt-5 w-full rounded-lg bg-black px-4 py-3 text-white disabled:opacity-50"
+              onClick={clearCart}
+              disabled={loading}
+              className="mt-3 w-full rounded-xl border px-4 py-3 text-sm hover:bg-neutral-50 disabled:opacity-50"
             >
-              {loading ? "Bitte warten…" : "Zur Kasse"}
+              Warenkorb leeren
             </button>
+          )}
 
-            <p className="mt-3 text-xs text-neutral-500">
-              Checkout wird sicher über Shopify abgewickelt.
-            </p>
-          </aside>
-        </div>
-      )}
+          <div className="mt-4 text-[11px] text-neutral-500 leading-snug">
+            Sichere Bezahlung via Shopify Checkout. Unterstützung:{" "}
+            <a className="underline underline-offset-4" href="mailto:support@iumatec.ch">
+              support@iumatec.ch
+            </a>
+          </div>
+        </aside>
+      </div>
     </main>
   );
 }
