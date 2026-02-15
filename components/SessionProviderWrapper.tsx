@@ -1,11 +1,8 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { ReactNode } from "react";
+import { CartProvider } from "@/context/CartContext";
 
-export default function SessionProviderWrapper({
-  children,
-}: {
-  children: ReactNode;
-}) {
-  return <>{children}</>;
+export default function Providers({ children }: { children: ReactNode }) {
+  return <CartProvider>{children}</CartProvider>;
 }
