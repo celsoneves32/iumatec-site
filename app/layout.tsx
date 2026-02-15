@@ -9,7 +9,7 @@ import Providers from "@/components/Providers";
 import CookieConsent from "@/components/CookieConsent";
 
 const SITE_NAME = "IUMATEC";
-const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://iumatec.ch").replace(/\/$/, "");
+const SITE_URL = "https://iumatec.ch";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -27,9 +27,7 @@ export const metadata: Metadata = {
   description:
     "Elektronik & Technik zum besten Preis – schnelle Lieferung in der ganzen Schweiz. Sichere Bezahlung & Schweizer Support.",
   applicationName: SITE_NAME,
-  alternates: {
-    canonical: "/",
-  },
+  alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     url: SITE_URL,
@@ -37,14 +35,7 @@ export const metadata: Metadata = {
     title: "IUMATEC – Premium Tech Store Schweiz",
     description:
       "Elektronik & Technik zum besten Preis – schnelle Lieferung in der ganzen Schweiz. Sichere Bezahlung & Schweizer Support.",
-    images: [
-      {
-        url: "/opengraph-image.png",
-        width: 1200,
-        height: 630,
-        alt: "IUMATEC",
-      },
-    ],
+    images: [{ url: "/opengraph-image.png", width: 1200, height: 630, alt: "IUMATEC" }],
   },
   twitter: {
     card: "summary_large_image",
@@ -64,22 +55,16 @@ export const metadata: Metadata = {
       "max-video-preview": -1,
     },
   },
-  icons: {
-    icon: "/icon.png",
-    apple: "/icon.png",
-  },
+  icons: { icon: "/icon.png", apple: "/icon.png" },
 };
 
 function TrackingScripts() {
-  const gaId = process.env.NEXT_PUBLIC_GA_ID; // ex: G-XXXXXXX
-  const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID; // ex: 1234567890
+  const gaId = process.env.NEXT_PUBLIC_GA_ID;
+  const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;
 
-  // Nota: scripts só devem disparar após consentimento.
-  // O CookieConsent abaixo vai fazer: window.__cookieConsent = { analytics: true/false, marketing: true/false }
-  // e vai disparar eventos "iumatec_consent_updated".
   return (
     <>
-      {/* Helper global para consentimento */}
+      {/* global consent state (CookieConsent deve disparar "iumatec_consent_updated") */}
       <Script id="consent-helper" strategy="beforeInteractive">
         {`
           window.__cookieConsent = window.__cookieConsent || { analytics: false, marketing: false };
@@ -89,19 +74,18 @@ function TrackingScripts() {
         `}
       </Script>
 
-      {/* Google Analytics (GA4) - carrega mas só configura/track após consentimento */}
+      {/* Google Analytics (GA4) – só ativa após consent analytics */}
       {gaId ? (
         <>
-          <Script
-            id="ga-loader"
-            strategy="afterInteractive"
-            src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
-          />
+          <Script strategy="afterInteractive" src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`} />
           <Script id="ga-init" strategy="afterInteractive">
             {`
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
               gtag('js', new Date());
+
+              // default denied
+              gtag('consent', 'default', { 'analytics_storage': 'denied' });
 
               function iumatecEnableGA() {
                 gtag('consent', 'update', { 'analytics_storage': 'granted' });
@@ -111,10 +95,6 @@ function TrackingScripts() {
                 });
               }
 
-              // default: denied
-              gtag('consent', 'default', { 'analytics_storage': 'denied' });
-
-              // enable if already consented
               if (window.__cookieConsent && window.__cookieConsent.analytics) {
                 iumatecEnableGA();
               }
@@ -129,7 +109,7 @@ function TrackingScripts() {
         </>
       ) : null}
 
-      {/* Meta Pixel - só inicializa após consentimento marketing */}
+      {/* Meta Pixel – só ativa após consent marketing */}
       {pixelId ? (
         <Script id="meta-pixel" strategy="afterInteractive">
           {`
@@ -150,7 +130,6 @@ function TrackingScripts() {
               fbq('track', 'PageView');
             }
 
-            // enable if already consented
             if (window.__cookieConsent && window.__cookieConsent.marketing) {
               iumatecEnablePixel();
             }
@@ -175,7 +154,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <SiteHeader />
           <TrackingScripts />
 
-          {/* Conteúdo */}
           {children}
 
           <SiteFooter />
