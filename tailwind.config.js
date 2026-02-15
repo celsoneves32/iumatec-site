@@ -1,20 +1,12 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    "./app/**/*.{js,ts,jsx,tsx}",
-    "./components/**/*.{js,ts,jsx,tsx}",
+    "./app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./context/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
-    extend: {
-      colors: {
-        brand: {
-          red: "#E10600",
-          blue: "#0062A3",
-          gray: "#2B2B2B",
-        },
-      },
-    },
+    extend: {},
   },
-  darkMode: "media", // ou "class" se preferires alternar manualmente
   plugins: [],
 };
