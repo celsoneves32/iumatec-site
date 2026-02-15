@@ -1,23 +1,21 @@
 // app/layout.tsx
-import "./globals.css";
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
+import "./globals.css";
 
-// ✅ Ajusta estes imports conforme o teu projeto
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
-import Providers from "@/components/Providers"; // se não existir, remove
-
-import CookieConsent from "@/components/CookieConsent"; // (código abaixo)
+import Providers from "@/components/Providers";
+import CookieConsent from "@/components/CookieConsent";
 
 const SITE_NAME = "IUMATEC";
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://iumatec.ch";
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://iumatec.ch").replace(/\/$/, "");
 
 export const viewport: Viewport = {
-  themeColor: "#ffffff",
-  colorScheme: "light",
   width: "device-width",
   initialScale: 1,
+  themeColor: "#ffffff",
+  colorScheme: "light",
 };
 
 export const metadata: Metadata = {
@@ -27,10 +25,33 @@ export const metadata: Metadata = {
     template: "%s | IUMATEC",
   },
   description:
-    "Hochwertige Technikprodukte online kaufen. Schnelle Lieferung in der Schweiz. Top Preise, geprüfte Qualität und sicherer Checkout.",
+    "Elektronik & Technik zum besten Preis – schnelle Lieferung in der ganzen Schweiz. Sichere Bezahlung & Schweizer Support.",
   applicationName: SITE_NAME,
   alternates: {
     canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    title: "IUMATEC – Premium Tech Store Schweiz",
+    description:
+      "Elektronik & Technik zum besten Preis – schnelle Lieferung in der ganzen Schweiz. Sichere Bezahlung & Schweizer Support.",
+    images: [
+      {
+        url: "/opengraph-image.png",
+        width: 1200,
+        height: 630,
+        alt: "IUMATEC",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "IUMATEC – Premium Tech Store Schweiz",
+    description:
+      "Elektronik & Technik zum besten Preis – schnelle Lieferung in der ganzen Schweiz. Sichere Bezahlung & Schweizer Support.",
+    images: ["/opengraph-image.png"],
   },
   robots: {
     index: true,
@@ -43,73 +64,123 @@ export const metadata: Metadata = {
       "max-video-preview": -1,
     },
   },
-  openGraph: {
-    type: "website",
-    url: SITE_URL,
-    siteName: SITE_NAME,
-    title: "IUMATEC – Premium Tech Store Schweiz",
-    description:
-      "Hochwertige Technikprodukte online kaufen. Schnelle Lieferung in der Schweiz. Sicherer Checkout über Shopify.",
-    images: [
-      {
-        url: "/opengraph-image.png",
-        width: 1200,
-        height: 630,
-        alt: "IUMATEC – Premium Tech Store Schweiz",
-      },
-    ],
-    locale: "de_CH",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "IUMATEC – Premium Tech Store Schweiz",
-    description:
-      "Hochwertige Technikprodukte online kaufen. Schnelle Lieferung in der Schweiz. Sicherer Checkout über Shopify.",
-    images: ["/opengraph-image.png"],
-  },
   icons: {
     icon: "/icon.png",
     apple: "/icon.png",
   },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  // ✅ IDs via env vars (Vercel)
-  const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
-  const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID;
+function TrackingScripts() {
+  const gaId = process.env.NEXT_PUBLIC_GA_ID; // ex: G-XXXXXXX
+  const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID; // ex: 1234567890
 
+  // Nota: scripts só devem disparar após consentimento.
+  // O CookieConsent abaixo vai fazer: window.__cookieConsent = { analytics: true/false, marketing: true/false }
+  // e vai disparar eventos "iumatec_consent_updated".
+  return (
+    <>
+      {/* Helper global para consentimento */}
+      <Script id="consent-helper" strategy="beforeInteractive">
+        {`
+          window.__cookieConsent = window.__cookieConsent || { analytics: false, marketing: false };
+          window.addEventListener("iumatec_consent_updated", function(e) {
+            try { window.__cookieConsent = e.detail || window.__cookieConsent; } catch(_) {}
+          });
+        `}
+      </Script>
+
+      {/* Google Analytics (GA4) - carrega mas só configura/track após consentimento */}
+      {gaId ? (
+        <>
+          <Script
+            id="ga-loader"
+            strategy="afterInteractive"
+            src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
+          />
+          <Script id="ga-init" strategy="afterInteractive">
+            {`
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+
+              function iumatecEnableGA() {
+                gtag('consent', 'update', { 'analytics_storage': 'granted' });
+                gtag('config', '${gaId}', {
+                  anonymize_ip: true,
+                  page_path: window.location.pathname,
+                });
+              }
+
+              // default: denied
+              gtag('consent', 'default', { 'analytics_storage': 'denied' });
+
+              // enable if already consented
+              if (window.__cookieConsent && window.__cookieConsent.analytics) {
+                iumatecEnableGA();
+              }
+
+              window.addEventListener("iumatec_consent_updated", function() {
+                if (window.__cookieConsent && window.__cookieConsent.analytics) {
+                  iumatecEnableGA();
+                }
+              });
+            `}
+          </Script>
+        </>
+      ) : null}
+
+      {/* Meta Pixel - só inicializa após consentimento marketing */}
+      {pixelId ? (
+        <Script id="meta-pixel" strategy="afterInteractive">
+          {`
+            function iumatecEnablePixel() {
+              if (window.__pixelEnabled) return;
+              window.__pixelEnabled = true;
+
+              !(function(f,b,e,v,n,t,s)
+              {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+              n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+              if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+              n.queue=[];t=b.createElement(e);t.async=!0;
+              t.src=v;s=b.getElementsByTagName(e)[0];
+              s.parentNode.insertBefore(t,s)})(window, document,'script',
+              'https://connect.facebook.net/en_US/fbevents.js');
+
+              fbq('init', '${pixelId}');
+              fbq('track', 'PageView');
+            }
+
+            // enable if already consented
+            if (window.__cookieConsent && window.__cookieConsent.marketing) {
+              iumatecEnablePixel();
+            }
+
+            window.addEventListener("iumatec_consent_updated", function() {
+              if (window.__cookieConsent && window.__cookieConsent.marketing) {
+                iumatecEnablePixel();
+              }
+            });
+          `}
+        </Script>
+      ) : null}
+    </>
+  );
+}
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="de-CH">
       <body className="min-h-screen bg-white text-neutral-900">
-        {/* ✅ Consent + Analytics/Pixels (só dispara após consentimento no componente) */}
-        {/* Se quiseres SEM consentimento (não recomendado), eu digo-te já como simplificar */}
-        <CookieConsent gaId={GA_ID} metaPixelId={META_PIXEL_ID} />
-
-        {/* Estrutura */}
         <Providers>
           <SiteHeader />
-          {children}
-          <SiteFooter />
-        </Providers>
+          <TrackingScripts />
 
-        {/* ✅ Opcional: Preconnect (ligeiro boost performance) */}
-        <Script
-          id="preconnect-shopify"
-          strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                try {
-                  var l = document.createElement('link');
-                  l.rel='preconnect';
-                  l.href='https://cdn.shopify.com';
-                  l.crossOrigin='anonymous';
-                  document.head.appendChild(l);
-                } catch(e) {}
-              })();
-            `,
-          }}
-        />
+          {/* Conteúdo */}
+          {children}
+
+          <SiteFooter />
+          <CookieConsent />
+        </Providers>
       </body>
     </html>
   );
