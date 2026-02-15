@@ -3,28 +3,53 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import AddToCartButton from "@/components/AddToCartButton";
 
+type Money = { amount: string; currencyCode: string };
+
 type ShopifyProduct = {
   id: string;
   title: string;
   handle: string;
   descriptionHtml: string;
-  featuredImageUrl: string | null;
-  featuredImageAlt: string | null;
-  price: number | null;
-  currencyCode: string | null;
+  imageUrl: string | null;
+  imageAlt: string | null;
   variantId: string | null;
+  price: Money | null;
 };
 
-async function getProductByHandle(handle: string): Promise<ShopifyProduct | null> {
-  const domain = process.env.SHOPIFY_STORE_DOMAIN;
-  const token = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
-  const apiVersion = process.env.SHOPIFY_ADMIN_API_VERSION || "2024-04";
+function getStorefrontEndpoint() {
+  const domain = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN;
+  if (!domain) throw new Error("Missing NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN");
+  return `https://${domain}/api/2024-04/graphql.json`;
+}
 
-  if (!domain || !token) {
-    console.error("Missing Shopify env vars");
-    return null;
+function getStorefrontToken() {
+  const token = process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN;
+  if (!token) throw new Error("Missing NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN");
+  return token;
+}
+
+async function storefrontFetch<T>(query: string, variables?: Record<string, any>): Promise<T> {
+  const res = await fetch(getStorefrontEndpoint(), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Shopify-Storefront-Access-Token": getStorefrontToken(),
+    },
+    body: JSON.stringify({ query, variables }),
+    cache: "no-store",
+  });
+
+  const json = await res.json();
+  if (!res.ok || json.errors) {
+    const msg =
+      json?.errors?.[0]?.message ||
+      (typeof json === "string" ? json : "Storefront request failed");
+    throw new Error(msg);
   }
+  return json.data as T;
+}
 
+async function getProductByHandle(handle: string): Promise<ShopifyProduct | null> {
   const query = `
     query ProductByHandle($handle: String!) {
       productByHandle(handle: $handle) {
@@ -40,8 +65,10 @@ async function getProductByHandle(handle: string): Promise<ShopifyProduct | null
           edges {
             node {
               id
-              price
-              currencyCode
+              price {
+                amount
+                currencyCode
+              }
             }
           }
         }
@@ -49,45 +76,26 @@ async function getProductByHandle(handle: string): Promise<ShopifyProduct | null
     }
   `;
 
-  const res = await fetch(`https://${domain}/admin/api/${apiVersion}/graphql.json`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Shopify-Access-Token": token,
-    },
-    body: JSON.stringify({
-      query,
-      variables: { handle },
-    }),
-    cache: "no-store",
-  });
+  const data = await storefrontFetch<{ productByHandle: any }>(query, { handle });
+  const p = data?.productByHandle;
+  if (!p) return null;
 
-  if (!res.ok) {
-    console.error("Shopify product error", await res.text());
-    return null;
-  }
-
-  const json = await res.json();
-  const product = json?.data?.productByHandle;
-  if (!product) return null;
-
-  const firstVariant = product.variants?.edges?.[0]?.node;
+  const v = p?.variants?.edges?.[0]?.node ?? null;
 
   return {
-    id: product.id,
-    title: product.title,
-    handle: product.handle,
-    descriptionHtml: product.descriptionHtml || "",
-    featuredImageUrl: product.featuredImage?.url ?? null,
-    featuredImageAlt: product.featuredImage?.altText ?? null,
-    price: firstVariant?.price ? Number(firstVariant.price) : null,
-    currencyCode: firstVariant?.currencyCode ?? null,
-    variantId: firstVariant?.id ?? null,
+    id: p.id,
+    title: p.title,
+    handle: p.handle,
+    descriptionHtml: p.descriptionHtml || "",
+    imageUrl: p.featuredImage?.url ?? null,
+    imageAlt: p.featuredImage?.altText ?? null,
+    variantId: v?.id ?? null,
+    price: v?.price ?? null,
   };
 }
 
 type ProductPageProps = {
-  params: { id: string }; // [id] = HANDLE do produto
+  params: { id: string }; // [id] = handle
 };
 
 export default async function ProductDetailPage({ params }: ProductPageProps) {
@@ -98,18 +106,19 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
 
   const priceLabel =
     product.price != null
-      ? `${product.price.toFixed(2)} ${product.currencyCode || "CHF"}`
+      ? `${Number(product.price.amount).toFixed(2)} ${product.price.currencyCode}`
       : "Preis auf Anfrage";
 
   return (
     <main className="max-w-7xl mx-auto px-4 py-8">
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1.2fr),minmax(0,1fr)]">
+        {/* Imagem principal */}
         <section className="bg-white border border-neutral-200 rounded-2xl p-6 flex flex-col items-center justify-center">
-          {product.featuredImageUrl ? (
+          {product.imageUrl ? (
             <div className="relative w-full max-w-md aspect-[4/5]">
               <Image
-                src={product.featuredImageUrl}
-                alt={product.featuredImageAlt || product.title}
+                src={product.imageUrl}
+                alt={product.imageAlt || product.title}
                 fill
                 className="object-contain"
                 sizes="(min-width: 1024px) 400px, 80vw"
@@ -122,6 +131,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
           )}
         </section>
 
+        {/* Infos / Kaufen */}
         <section className="flex flex-col gap-4">
           <header>
             <h1 className="text-2xl md:text-3xl font-semibold tracking-tight mb-2">
@@ -139,16 +149,15 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
               inkl. MwSt., zzgl. Versand. Lieferung innerhalb der Schweiz und Liechtenstein.
             </p>
 
-            {product.price != null && product.variantId ? (
+            {product.variantId ? (
               <AddToCartButton variantId={product.variantId} />
             ) : (
-              <p className="text-xs text-red-600">
-                Für dieses Produkt ist kein Preis/Variant hinterlegt.
-              </p>
+              <p className="text-xs text-red-600">Für dieses Produkt ist keine Variant-ID verfügbar.</p>
             )}
 
             <p className="mt-3 text-[11px] text-neutral-500 leading-snug">
-              Lieferzeiten können je nach Verfügbarkeit variieren. Alle Angaben ohne Gewähr.
+              Die tatsächlichen Lieferzeiten können je nach Verfügbarkeit und Region leicht variieren.
+              Alle Angaben ohne Gewähr.
             </p>
           </div>
 
