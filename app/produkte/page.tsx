@@ -2,93 +2,153 @@
 import Image from "next/image";
 import Link from "next/link";
 import AddToCartButton from "@/components/AddToCartButton";
-import AddToFavoritesButton from "@/components/AddToFavoritesButton";
-import { PRODUCTS } from "@/data/products";
+import { shopifyFetch } from "@/lib/shopify";
 
-export const metadata = {
-  title: "Produkte | IUMATEC Schweiz",
-  description:
-    "Technik-Angebote zu unschlagbaren Preisen – schnelle Lieferung in der ganzen Schweiz.",
+type Product = {
+  id: string;
+  handle: string;
+  title: string;
+  price: number;
+  currencyCode: string;
+  imageUrl: string | null;
+  imageAlt: string | null;
+  variantId: string;
 };
 
-export default function ProductsPage() {
-  return (
-    <main className="max-w-7xl mx-auto px-4 py-8">
-      <header className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Produkte
-          </h1>
-          <p className="text-sm text-neutral-600">
-            Technik zu unschlagbaren Preisen – sofort lieferbar in der
-            ganzen Schweiz.
-          </p>
-        </div>
-      </header>
+type ProductsQuery = {
+  products: {
+    edges: Array<{
+      node: {
+        id: string;
+        handle: string;
+        title: string;
+        featuredImage: { url: string; altText: string | null } | null;
+        variants: {
+          edges: Array<{
+            node: {
+              id: string;
+              price: { amount: string; currencyCode: string };
+            };
+          }>;
+        };
+      };
+    }>;
+  };
+};
 
-      {/* Grid de produtos */}
-      <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {PRODUCTS.map((product) => (
-          <article
-            key={product.id}
-            className="group rounded-2xl border border-neutral-200 bg-white shadow-sm hover:shadow-md transition-shadow flex flex-col"
-          >
-            <Link
-              href={`/produkte/${product.id}`}
-              className="block relative w-full aspect-[4/3] overflow-hidden rounded-t-2xl"
-            >
-              <Image
-                src={product.image}
-                alt={product.title}
-                width={600}
-                height={400}
-                className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform"
-                priority={false}
-              />
-              {product.badge && (
-                <span className="absolute left-3 top-3 rounded-full bg-red-600 px-3 py-1 text-xs font-semibold text-white shadow">
-                  {product.badge}
-                </span>
-              )}
+async function getProducts(): Promise<Product[]> {
+  const query = `
+    query {
+      products(first: 24) {
+        edges {
+          node {
+            id
+            handle
+            title
+            featuredImage {
+              url
+              altText
+            }
+            variants(first: 1) {
+              edges {
+                node {
+                  id
+                  price {
+                    amount
+                    currencyCode
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  `;
+
+  const data = await shopifyFetch<ProductsQuery>({
+    query,
+    cache: "force-cache",
+  });
+
+  const edges = data?.products?.edges ?? [];
+
+  return edges
+    .map((e) => {
+      const node = e.node;
+      const variant = node.variants?.edges?.[0]?.node;
+      if (!variant?.id) return null;
+
+      return {
+        id: node.id,
+        handle: node.handle,
+        title: node.title,
+        variantId: variant.id,
+        price: Number(variant.price.amount),
+        currencyCode: variant.price.currencyCode,
+        imageUrl: node.featuredImage?.url ?? null,
+        imageAlt: node.featuredImage?.altText ?? node.title ?? null,
+      } as Product;
+    })
+    .filter((p): p is Product => Boolean(p));
+}
+
+function Price({ value, currency }: { value: number; currency: string }) {
+  return (
+    <span>
+      {new Intl.NumberFormat("de-CH", {
+        style: "currency",
+        currency,
+      }).format(value)}
+    </span>
+  );
+}
+
+export default async function ProduktePage() {
+  const products = await getProducts();
+
+  return (
+    <main className="mx-auto max-w-6xl px-4 py-8 space-y-8">
+      <h1 className="text-2xl font-semibold">Produkte</h1>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {products.map((product) => (
+          <div key={product.id} className="border rounded-xl overflow-hidden">
+            <Link href={`/products/${product.handle}`}>
+              <div className="relative aspect-square bg-neutral-100">
+                {product.imageUrl ? (
+                  <Image
+                    src={product.imageUrl}
+                    alt={product.imageAlt ?? product.title}
+                    fill
+                    className="object-cover"
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full text-sm text-neutral-500">
+                    Sem imagem
+                  </div>
+                )}
+              </div>
             </Link>
 
-            <div className="flex flex-1 flex-col p-4 gap-2">
-              <div className="flex-1">
-                <p className="text-[11px] uppercase tracking-wide text-neutral-500">
-                  {product.category}
-                </p>
-                <Link
-                  href={`/produkte/${product.id}`}
-                  className="line-clamp-2 text-sm font-semibold text-neutral-900 group-hover:text-red-600"
-                >
+            <div className="p-3 space-y-2">
+              <Link href={`/products/${product.handle}`}>
+                <div className="font-medium line-clamp-2">
                   {product.title}
-                </Link>
-                <p className="mt-1 line-clamp-2 text-xs text-neutral-600">
-                  {product.description}
-                </p>
-              </div>
-
-              <div className="mt-2 flex items-center justify-between">
-                <p className="text-base font-semibold text-neutral-900">
-                  CHF {product.price.toFixed(2)}
-                </p>
-              </div>
-
-              {/* Carrinho + Favoritos */}
-              <div className="mt-3 flex items-center justify-between gap-2">
-                <div className="flex-1">
-                  <AddToCartButton
-                    id={product.id}
-                    title={product.title}
-                    price={product.price}
-                  />
                 </div>
-                <AddToFavoritesButton productId={product.id} />
-              </div>
+              </Link>
+
+              <Price
+                value={product.price}
+                currency={product.currencyCode}
+              />
+
+              {/* ✅ CORRETO: apenas variantId */}
+              <AddToCartButton variantId={product.variantId} />
             </div>
-          </article>
+          </div>
         ))}
-      </section>
+      </div>
     </main>
   );
 }
