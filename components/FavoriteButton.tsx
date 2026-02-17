@@ -1,46 +1,61 @@
-// components/FavoriteButton.tsx
 "use client";
 
+import { useMemo } from "react";
 import { useFavorites } from "@/context/FavoritesContext";
 
 type FavoriteButtonProps = {
-  id: string;        // ID ou handle do produto
-  title?: string;
-  image?: string;
+  id: string;
+  className?: string;
 };
 
-export default function FavoriteButton({ id }: FavoriteButtonProps) {
-  const { isFavorite, toggle } = useFavorites();
+export default function FavoriteButton({ id, className }: FavoriteButtonProps) {
+  // O teu hook está tipado como FavoritesState (sem isFavorite),
+  // então tratamos como "state" e fazemos fallback para vários formatos.
+  const fav: any = useFavorites();
 
-  const active = isFavorite(id);
+  const active = useMemo(() => {
+    // Se existir função isFavorite (alguns projetos têm)
+    if (typeof fav?.isFavorite === "function") return !!fav.isFavorite(id);
+
+    // Se existir array favorites / ids / items
+    const arr =
+      (Array.isArray(fav?.favorites) && fav.favorites) ||
+      (Array.isArray(fav?.ids) && fav.ids) ||
+      (Array.isArray(fav?.items) && fav.items) ||
+      [];
+
+    return arr.includes(id);
+  }, [fav, id]);
+
+  function onToggle() {
+    // função toggle / toggleFavorite
+    if (typeof fav?.toggle === "function") return fav.toggle(id);
+    if (typeof fav?.toggleFavorite === "function") return fav.toggleFavorite(id);
+
+    // padrão reducer: dispatch({ type: 'TOGGLE', id })
+    if (typeof fav?.dispatch === "function") return fav.dispatch({ type: "TOGGLE", id });
+
+    // fallback: se houver setFavorites e favorites array
+    if (typeof fav?.setFavorites === "function" && Array.isArray(fav?.favorites)) {
+      const next = active ? fav.favorites.filter((x: string) => x !== id) : [...fav.favorites, id];
+      return fav.setFavorites(next);
+    }
+  }
 
   return (
     <button
       type="button"
-      onClick={() => toggle(id)}
-      aria-label={
-        active
-          ? "Aus Favoriten entfernen"
-          : "Zu Favoriten hinzufügen"
-      }
-      className={`inline-flex h-9 w-9 items-center justify-center rounded-full border text-xs transition-colors ${
-        active
-          ? "border-red-500 text-red-600 bg-red-50"
-          : "border-neutral-200 text-neutral-500 bg-white hover:border-red-400 hover:text-red-600"
-      }`}
+      onClick={onToggle}
+      className={[
+        "inline-flex items-center justify-center rounded-lg border px-3 py-2 text-sm hover:bg-neutral-50",
+        active ? "border-black" : "border-neutral-300",
+        className ?? "",
+      ].join(" ")}
+      aria-pressed={active}
+      aria-label={active ? "Remove from favorites" : "Add to favorites"}
     >
-      <svg
-        viewBox="0 0 24 24"
-        aria-hidden="true"
-        className="h-4 w-4"
-      >
-        <path
-          d="M12.1 5.05 12 5l-.1.05C10.14 6.18 8.5 7.2 7.3 8.4 6.06 9.66 5.25 11.1 5.25 12.75 5.25 15.7 7.55 18 10.5 18c.9 0 1.8-.24 2.6-.7.8.46 1.7.7 2.6.7 2.95 0 5.25-2.3 5.25-5.25 0-1.65-.81-3.09-2.05-4.35-1.2-1.2-2.84-2.22-4.8-3.35Z"
-          fill={active ? "currentColor" : "none"}
-          stroke="currentColor"
-          strokeWidth="1.4"
-        />
-      </svg>
+      <span className="mr-2">{active ? "♥" : "♡"}</span>
+      {active ? "Favorit" : "Favorisieren"}
     </button>
   );
 }
