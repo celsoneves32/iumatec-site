@@ -1,139 +1,174 @@
 // components/CartPageClient.tsx
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 
+function formatMoney(amount: number, currency: string) {
+  return new Intl.NumberFormat("de-CH", {
+    style: "currency",
+    currency,
+  }).format(amount);
+}
+
 export default function CartPageClient() {
-  const { items, totalItems, totalPrice, removeItem, updateQuantity } =
+  const { cart, loading, error, totalQuantity, updateLine, removeLine, goToCheckout } =
     useCart();
 
-  const hasItems = items.length > 0;
+  const lines: any[] = (cart as any)?.lines ?? [];
+  const currency: string = (cart as any)?.cost?.totalAmount?.currencyCode ?? "CHF";
+  const totalAmountRaw = (cart as any)?.cost?.totalAmount?.amount;
+  const totalAmount = totalAmountRaw ? Number(totalAmountRaw) : 0;
+
+  const hasItems = lines.length > 0;
+
+  if (loading) {
+    return (
+      <div className="mx-auto max-w-4xl px-4 py-10">
+        <div className="rounded-2xl border p-6">Lade Warenkorb...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="mx-auto max-w-4xl px-4 py-10">
+        <div className="rounded-2xl border p-6 text-red-600">{error}</div>
+      </div>
+    );
+  }
 
   return (
-    <main className="max-w-7xl mx-auto px-4 py-8">
-      <header className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight mb-1">
-            Warenkorb
-          </h1>
-          <p className="text-sm text-neutral-600">
-            {hasItems
-              ? `Du hast ${totalItems} Artikel im Warenkorb.`
-              : "Dein Warenkorb ist noch leer."}
-          </p>
+    <div className="mx-auto max-w-4xl px-4 py-10 space-y-6">
+      <div className="flex items-end justify-between">
+        <h1 className="text-2xl font-semibold">Warenkorb</h1>
+        <div className="text-sm text-neutral-600">
+          {totalQuantity ?? 0} Artikel
         </div>
-        {hasItems && (
-          <Link
-            href="/produkte"
-            className="text-xs font-semibold text-red-600 hover:text-red-700"
-          >
-            Weiter einkaufen
-          </Link>
-        )}
-      </header>
+      </div>
 
       {!hasItems ? (
-        <div className="border border-dashed border-neutral-300 rounded-2xl p-8 text-center text-sm text-neutral-600 bg-neutral-50">
-          In deinem Warenkorb befinden sich noch keine Produkte.
-          <br />
-          <span className="text-xs text-neutral-500">
-            Füge Produkte über die Produktseite hinzu.
-          </span>
+        <div className="rounded-2xl border p-8 text-center space-y-3">
+          <div className="text-lg font-medium">Dein Warenkorb ist leer.</div>
+          <Link href="/products" className="inline-flex underline">
+            Produkte ansehen
+          </Link>
         </div>
       ) : (
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr),minmax(0,1fr)] items-start">
-          {/* Lista de itens */}
-          <section className="space-y-3">
-            {items.map((item) => (
-              <div
-                key={item.id}
-                className="flex items-center gap-4 border border-neutral-200 rounded-2xl px-4 py-3 bg-white"
-              >
-                <div className="flex-1 min-w-0">
-                  <Link
-                    href={`/produkte/${item.id}`}
-                    className="text-sm font-medium text-neutral-900 hover:text-red-600 line-clamp-2"
-                  >
-                    {item.title}
-                  </Link>
-                  <div className="mt-1 text-xs text-neutral-500">
-                    Einzelpreis: {item.price.toFixed(2)} CHF
+        <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+          {/* LINES */}
+          <div className="space-y-4">
+            {lines.map((line) => {
+              const id = line?.id as string;
+
+              const qty = Number(line?.quantity ?? 1);
+
+              const merchandise = line?.merchandise;
+              const productTitle =
+                merchandise?.product?.title ?? merchandise?.title ?? "Produkt";
+              const handle = merchandise?.product?.handle ?? "";
+              const imageUrl = merchandise?.image?.url ?? null;
+              const imageAlt = merchandise?.image?.altText ?? productTitle;
+
+              const lineAmountRaw = line?.cost?.totalAmount?.amount;
+              const lineAmount = lineAmountRaw ? Number(lineAmountRaw) : 0;
+
+              return (
+                <div
+                  key={id}
+                  className="rounded-2xl border p-4 flex gap-4 items-center"
+                >
+                  <div className="relative h-20 w-20 overflow-hidden rounded-xl bg-neutral-100 shrink-0">
+                    {imageUrl ? (
+                      <Image
+                        src={imageUrl}
+                        alt={imageAlt}
+                        fill
+                        className="object-cover"
+                      />
+                    ) : null}
                   </div>
-                  <div className="mt-1 text-xs text-neutral-500">
-                    Zwischensumme:{" "}
-                    <span className="font-semibold text-neutral-900">
-                      {(item.price * item.quantity).toFixed(2)} CHF
-                    </span>
+
+                  <div className="min-w-0 flex-1">
+                    {handle ? (
+                      <Link
+                        href={`/products/${handle}`}
+                        className="font-medium hover:underline line-clamp-2"
+                      >
+                        {productTitle}
+                      </Link>
+                    ) : (
+                      <div className="font-medium line-clamp-2">{productTitle}</div>
+                    )}
+
+                    <div className="text-sm text-neutral-600 mt-1">
+                      {formatMoney(lineAmount, currency)}
+                    </div>
+
+                    <div className="mt-3 flex items-center gap-2">
+                      <button
+                        type="button"
+                        className="h-9 w-9 rounded-lg border hover:bg-neutral-50"
+                        onClick={() => updateLine(id, Math.max(1, qty - 1))}
+                        aria-label="Minus"
+                      >
+                        −
+                      </button>
+
+                      <div className="min-w-10 text-center text-sm">{qty}</div>
+
+                      <button
+                        type="button"
+                        className="h-9 w-9 rounded-lg border hover:bg-neutral-50"
+                        onClick={() => updateLine(id, qty + 1)}
+                        aria-label="Plus"
+                      >
+                        +
+                      </button>
+
+                      <button
+                        type="button"
+                        className="ml-3 text-sm underline text-neutral-700 hover:text-black"
+                        onClick={() => removeLine(id)}
+                      >
+                        Entfernen
+                      </button>
+                    </div>
                   </div>
                 </div>
+              );
+            })}
+          </div>
 
-                <div className="flex flex-col items-end gap-2">
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        updateQuantity(item.id, item.quantity - 1)
-                      }
-                      className="h-7 w-7 rounded-full border border-neutral-300 text-xs flex items-center justify-center hover:border-red-500 hover:text-red-600"
-                    >
-                      -
-                    </button>
-                    <span className="min-w-[2rem] text-center text-sm">
-                      {item.quantity}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        updateQuantity(item.id, item.quantity + 1)
-                      }
-                      className="h-7 w-7 rounded-full border border-neutral-300 text-xs flex items-center justify-center hover:border-red-500 hover:text-red-600"
-                    >
-                      +
-                    </button>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => removeItem(item.id)}
-                    className="text-[11px] text-neutral-500 hover:text-red-600"
-                  >
-                    Entfernen
-                  </button>
-                </div>
-              </div>
-            ))}
-          </section>
+          {/* SUMMARY */}
+          <div className="rounded-2xl border p-5 h-fit space-y-4">
+            <div className="text-lg font-semibold">Zusammenfassung</div>
 
-          {/* Resumo / Totais */}
-          <aside className="bg-white border border-neutral-200 rounded-2xl p-5">
-            <h2 className="text-sm font-semibold text-neutral-900 mb-3">
-              Bestellübersicht
-            </h2>
-            <dl className="space-y-1 text-sm text-neutral-700">
-              <div className="flex justify-between">
-                <dt>Zwischensumme</dt>
-                <dd>{totalPrice.toFixed(2)} CHF</dd>
-              </div>
-              <div className="flex justify-between text-xs text-neutral-500">
-                <dt>inkl. MwSt.</dt>
-                <dd>bereits enthalten</dd>
-              </div>
-            </dl>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-neutral-600">Total</span>
+              <span className="font-medium">
+                {formatMoney(totalAmount, currency)}
+              </span>
+            </div>
 
             <button
               type="button"
-              className="mt-4 w-full rounded-md bg-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-red-700"
+              className="w-full rounded-xl bg-black px-4 py-3 text-white hover:opacity-90"
+              onClick={goToCheckout}
             >
               Zur Kasse
             </button>
 
-            <p className="mt-2 text-[11px] text-neutral-500 leading-snug">
-              Die endgültigen Versandkosten und Steuern werden im nächsten
-              Schritt berechnet.
-            </p>
-          </aside>
+            <Link
+              href="/products"
+              className="block text-center text-sm underline text-neutral-700 hover:text-black"
+            >
+              Weiter einkaufen
+            </Link>
+          </div>
         </div>
       )}
-    </main>
+    </div>
   );
 }
