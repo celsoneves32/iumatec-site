@@ -133,3 +133,47 @@ export default function CartPageClient() {
                             className="px-3 py-1.5 text-sm hover:bg-neutral-50"
                             onClick={() => updateLine?.(lineId, qty + 1)}
                             disabled={!lineId || !updateLine}
+                            aria-label="Menge erhöhen"
+                          >
+                            +
+                          </button>
+                        </div>
+
+                        <button
+                          className="text-sm underline text-neutral-700 hover:text-black"
+                          onClick={() => removeLine?.(lineId)}
+                          disabled={!lineId || !removeLine}
+                        >
+                          Entfernen
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border p-5 flex items-center justify-between gap-4">
+            <div className="text-sm text-neutral-600">
+              <div>{totalQuantity ?? 0} Artikel</div>
+              {totalAmount != null && (
+                <div className="text-base font-semibold text-black">
+                  Total: {formatMoney(totalAmount, currency)}
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={() => goToCheckout?.()}
+              className="inline-flex items-center justify-center rounded-lg bg-black px-5 py-2.5 text-white"
+              disabled={!goToCheckout}
+            >
+              Zur Kasse
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
