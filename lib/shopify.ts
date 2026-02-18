@@ -1,24 +1,32 @@
 // lib/shopify.ts
-type ShopifyResponse<T> = { data?: T; errors?: any };
-
-const domain = process.env.SHOPIFY_STORE_DOMAIN;
-const token = process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN;
-const version = process.env.SHOPIFY_API_VERSION || "2024-10";
-
-if (!domain || !token) {
-  throw new Error(
-    "Missing SHOPIFY_STORE_DOMAIN or SHOPIFY_STOREFRONT_ACCESS_TOKEN"
-  );
-}
-
-export async function shopifyFetch<T>(params: {
+type ShopifyFetchParams<T> = {
   query: string;
   variables?: Record<string, any>;
   cache?: RequestCache;
-}): Promise<T> {
-  const { query, variables, cache = "no-store" } = params;
+  tags?: string[];
+};
 
-  const res = await fetch(`https://${domain}/api/${version}/graphql.json`, {
+const endpoint = () => {
+  const domain = process.env.SHOPIFY_STORE_DOMAIN;
+  if (!domain) return null;
+  return `https://${domain}/api/2024-04/graphql.json`;
+};
+
+export async function shopifyFetch<T>({
+  query,
+  variables,
+  cache = "no-store",
+}: ShopifyFetchParams<T>): Promise<T | null> {
+  const url = endpoint();
+  const token = process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN;
+
+  // ✅ NÃO rebenta build/SSR — só devolve null
+  if (!url || !token) {
+    console.warn("Shopify env vars missing. Returning null data.");
+    return null;
+  }
+
+  const res = await fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -28,13 +36,16 @@ export async function shopifyFetch<T>(params: {
     cache,
   });
 
-  const json = (await res.json()) as ShopifyResponse<T>;
-
-  if (!res.ok || json.errors) {
-    console.error("Shopify fetch error:", json.errors);
-    throw new Error("Shopify API error");
+  if (!res.ok) {
+    console.warn("Shopify fetch failed:", res.status, res.statusText);
+    return null;
   }
 
-  if (!json.data) throw new Error("No data returned from Shopify");
-  return json.data;
+  const json = (await res.json()) as { data?: T; errors?: any };
+  if (json.errors) {
+    console.warn("Shopify graphql errors:", json.errors);
+    return null;
+  }
+
+  return json.data ?? null;
 }
