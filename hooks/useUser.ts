@@ -1,32 +1,39 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { User, AuthChangeEvent, Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabaseClient";
 
 export function useUser() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let mounted = true;
 
-    // 1) sessão inicial
-    supabase.auth.getSession().then((res: any) => {
+    async function init() {
+      const { data, error } = await supabase.auth.getSession();
       if (!mounted) return;
-      setUser(res?.data?.session?.user ?? null);
-      setLoading(false);
-    });
 
-    // 2) updates de auth
-    const { data: sub }: any = supabase.auth.onAuthStateChange((_event: any, session: any) => {
-      if (!mounted) return;
-      setUser(session?.user ?? null);
+      if (error) {
+        console.warn("getSession error:", error.message);
+      }
+
+      setUser(data.session?.user ?? null);
       setLoading(false);
-    });
+    }
+
+    init();
+
+    const { data: sub } = supabase.auth.onAuthStateChange(
+      (_event: AuthChangeEvent, session: Session | null) => {
+        setUser(session?.user ?? null);
+      }
+    );
 
     return () => {
       mounted = false;
-      sub?.subscription?.unsubscribe?.();
+      sub.subscription.unsubscribe();
     };
   }, []);
 
