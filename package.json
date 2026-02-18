@@ -1,25 +1,5 @@
-{
-  "name": "iumatec-site",
-  "version": "1.0.1",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start"
-  },
-  "dependencies": {
-    "@supabase/supabase-js": "^2.96.0",
-    "next": "14.2.3",
-    "react": "18.2.0",
-    "react-dom": "18.2.0"
-  },
-  "devDependencies": {
-    "@tailwindcss/postcss": "^4.1.18",
-    "@types/node": "^25.2.3",
-    "@types/react": "^19.2.14",
-    "autoprefixer": "^10.4.20",
-    "postcss": "^8.4.47",
-    "tailwindcss": "^3.4.17",
-    "typescript": "^5.9.3"
-  }
+"devDependencies": {
+  "tailwindcss": "^3.4.17",
+  "postcss": "^8.4.49",
+  "autoprefixer": "^10.4.20"
 }
