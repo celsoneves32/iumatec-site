@@ -7,7 +7,10 @@ export default function AddToCartButton({ variantId }: { variantId: string }) {
   const { addItem, loading } = useCart();
   const [done, setDone] = useState(false);
 
-  async function onAdd() {
+  async function onAdd(e: React.MouseEvent<HTMLButtonElement>) {
+    e.preventDefault();
+    e.stopPropagation();
+
     await addItem(variantId, 1);
     setDone(true);
     setTimeout(() => setDone(false), 1200);
@@ -15,6 +18,7 @@ export default function AddToCartButton({ variantId }: { variantId: string }) {
 
   return (
     <button
+      type="button"
       onClick={onAdd}
       disabled={loading}
       className="w-full rounded-lg bg-black px-4 py-2 text-white text-sm hover:bg-neutral-800 disabled:opacity-50"
