@@ -21,7 +21,7 @@ export default function AddToCartButton({ variantId }: { variantId: string }) {
       type="button"
       onClick={onAdd}
       disabled={loading}
-      className="w-full rounded-lg bg-brand px-4 py-2 text-white text-sm hover:bg-brand-dark disabled:opacity-50"
+      className="w-full rounded-lg bg-brand px-4 py-2 text-white text-sm hover:bg-brand-dark transition disabled:opacity-50"
     >
       {loading ? "A adicionar..." : done ? "Adicionado ✅" : "In den Warenkorb"}
     </button>
