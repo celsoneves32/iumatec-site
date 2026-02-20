@@ -1,17 +1,28 @@
-/* underline animado */
-.nav-underline {
-  position: relative;
+/* ========= IUMATEC Brand Theme ========= */
+
+/* seleção de texto */
+::selection {
+  background: rgb(225 29 72 / 0.18); /* brand/18 */
 }
-.nav-underline::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  bottom: -6px;
-  height: 2px;
-  width: 0%;
-  background: theme(colors.brand.DEFAULT);
-  transition: width 200ms ease;
+
+/* foco (acessibilidade) */
+:focus-visible {
+  outline: 2px solid rgb(225 29 72 / 0.7);
+  outline-offset: 3px;
 }
-.nav-underline:hover::after {
-  width: 100%;
+
+/* utilitários simples (se quiseres usar className="btn-brand" etc.) */
+.btn-brand {
+  @apply rounded-xl bg-brand px-5 py-3 text-white text-sm font-semibold
+    hover:bg-brand-dark transition;
+}
+
+.btn-outline {
+  @apply rounded-xl border border-neutral-300 px-5 py-3 text-sm font-semibold
+    hover:bg-neutral-50 transition;
+}
+
+/* links (opcional) */
+a.brand-link {
+  @apply text-brand hover:text-brand-dark underline underline-offset-2;
 }
