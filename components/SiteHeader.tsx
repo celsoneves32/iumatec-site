@@ -2,126 +2,147 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useCart } from "@/context/CartContext";
 
 const ACCOUNT_URL = process.env.NEXT_PUBLIC_SHOPIFY_CUSTOMER_ACCOUNTS_URL;
 
-export default function SiteHeader() {
-  const { cart, totalQuantity, loading } = useCart();
-  const [open, setOpen] = useState(false);
+function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <Link
+      href={href}
+      className="relative text-sm font-medium text-neutral-800 hover:text-brand transition-colors
+                 after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full after:origin-left
+                 after:scale-x-0 after:bg-brand after:transition-transform after:duration-200
+                 hover:after:scale-x-100"
+    >
+      {children}
+    </Link>
+  );
+}
 
-  const totalAmount = useMemo(() => {
-    const amount = cart?.cost?.totalAmount?.amount;
-    const currency = cart?.cost?.totalAmount?.currencyCode;
-    if (!amount || !currency) return null;
-    return `${Number(amount).toFixed(2)} ${currency}`;
+export default function SiteHeader() {
+  const { cart, totalQuantity } = useCart();
+
+  const miniLines = useMemo(() => {
+    const lines = cart?.lines ?? [];
+    return lines.slice(0, 4);
   }, [cart]);
 
-  const lines = cart?.lines ?? [];
+  const totalAmount = cart?.cost?.totalAmount?.amount;
+  const currency = cart?.cost?.totalAmount?.currencyCode;
 
   return (
-    <header className="bg-white sticky top-0 z-50 border-b shadow-sm">
-      <div className="mx-auto max-w-6xl px-4 py-4 flex items-center justify-between gap-6">
+    <header className="sticky top-0 z-50 border-b bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/70 shadow-sm">
+      <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between gap-4">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-3">
-          <Image src="/logo.svg" alt="IUMATEC" width={140} height={40} priority />
+        <Link href="/" className="flex items-center gap-2">
+          <Image
+            src="/logo.svg"
+            alt="IUMATEC"
+            width={120}
+            height={28}
+            className="h-7 w-auto"
+            priority
+          />
         </Link>
 
-        {/* Nav */}
-        <nav className="flex items-center gap-6 text-sm font-medium">
-          <Link href="/products" className="text-neutral-800 hover:text-brand nav-underline">
-            Alle Produkte
-          </Link>
-
-          <Link href="/collections" className="text-neutral-800 hover:text-brand nav-underline">
-            Kategorien
-          </Link>
+        <nav className="flex items-center gap-5">
+          <NavLink href="/products">Alle Produkte</NavLink>
+          <NavLink href="/collections">Kategorien</NavLink>
 
           {ACCOUNT_URL && (
-            <a href={ACCOUNT_URL} className="text-neutral-800 hover:text-brand nav-underline" target="_self">
+            <a
+              href={ACCOUNT_URL}
+              className="relative text-sm font-medium text-neutral-800 hover:text-brand transition-colors
+                         after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full after:origin-left
+                         after:scale-x-0 after:bg-brand after:transition-transform after:duration-200
+                         hover:after:scale-x-100"
+              target="_self"
+            >
               Mein Konto
             </a>
           )}
 
-          {/* Mini-cart hover */}
-          <div
-            className="relative"
-            onMouseEnter={() => setOpen(true)}
-            onMouseLeave={() => setOpen(false)}
-          >
+          {/* Cart (hover dropdown) */}
+          <div className="relative group">
             <Link
               href="/cart"
-              className="relative inline-flex items-center justify-center rounded-full border border-neutral-300 px-3 py-2 hover:bg-neutral-50 transition"
+              className="relative inline-flex items-center justify-center rounded-full border px-3 py-2
+                         hover:bg-neutral-50 transition"
               aria-label="Warenkorb"
             >
-              <span className="text-lg">🛒</span>
+              <span className="text-base">🛒</span>
 
               {totalQuantity > 0 && (
-                <span className="absolute -right-2 -top-2 min-w-[20px] h-[20px] px-1 rounded-full bg-brand text-white text-[11px] flex items-center justify-center leading-none shadow-md">
+                <span className="absolute -right-2 -top-2 min-w-[18px] h-[18px] px-1 rounded-full bg-brand text-white text-[11px]
+                                 flex items-center justify-center leading-none">
                   {totalQuantity > 99 ? "99+" : totalQuantity}
                 </span>
               )}
             </Link>
 
             {/* Dropdown */}
-            {open && (
-              <div className="absolute right-0 mt-3 w-[320px] rounded-2xl border bg-white shadow-lg p-4">
+            <div
+              className="pointer-events-none opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0
+                         group-hover:pointer-events-auto transition duration-150
+                         absolute right-0 mt-2 w-80 rounded-xl border bg-white shadow-lg"
+            >
+              <div className="p-4">
                 <div className="flex items-center justify-between">
-                  <div className="font-semibold">Warenkorb</div>
-                  <div className="text-xs text-neutral-500">{loading ? "…" : `${totalQuantity} Artikel`}</div>
+                  <p className="font-semibold">Warenkorb</p>
+                  <p className="text-sm text-neutral-500">{totalQuantity} Artikel</p>
                 </div>
 
-                <div className="mt-3 space-y-3 max-h-[260px] overflow-auto">
-                  {lines.length === 0 ? (
-                    <div className="text-sm text-neutral-600">
-                      Dein Warenkorb ist leer.
-                    </div>
+                <div className="mt-3 space-y-2">
+                  {miniLines.length === 0 ? (
+                    <p className="text-sm text-neutral-600">Dein Warenkorb ist leer.</p>
                   ) : (
-                    lines.slice(0, 5).map((l) => (
-                      <div key={l.id} className="flex items-start justify-between gap-3">
+                    miniLines.map((l) => (
+                      <div key={l.id} className="flex items-start justify-between gap-3 text-sm">
                         <div className="min-w-0">
-                          <div className="text-sm font-medium truncate">
-                            {l.merchandise?.productTitle ?? "Produkt"}
-                          </div>
-                          <div className="text-xs text-neutral-500 truncate">
-                            {l.merchandise?.title ?? ""}
-                          </div>
+                          <p className="truncate font-medium">
+                            {l.merchandise?.productTitle || "Produkt"}
+                          </p>
+                          <p className="text-neutral-500 truncate">
+                            {l.merchandise?.title || ""}
+                          </p>
                         </div>
-                        <div className="text-sm font-semibold">×{l.quantity}</div>
+                        <div className="shrink-0 text-neutral-700">× {l.quantity}</div>
                       </div>
                     ))
                   )}
                 </div>
 
-                <div className="mt-4 flex items-center justify-between border-t pt-3">
-                  <div className="text-sm text-neutral-600">Total</div>
-                  <div className="text-sm font-semibold">{totalAmount ?? "—"}</div>
+                <div className="mt-4 border-t pt-3 flex items-center justify-between">
+                  <p className="text-sm text-neutral-600">Total</p>
+                  <p className="font-semibold">
+                    {totalAmount ? `${totalAmount} ${currency ?? ""}` : "—"}
+                  </p>
                 </div>
 
-                <div className="mt-3 flex gap-2">
+                <div className="mt-3 grid grid-cols-2 gap-2">
                   <Link
                     href="/cart"
-                    className="flex-1 text-center rounded-xl border border-neutral-300 py-2 text-sm hover:bg-neutral-50 transition"
+                    className="rounded-lg border px-3 py-2 text-center text-sm hover:bg-neutral-50 transition"
                   >
-                    Warenkorb
+                    Ansehen
                   </Link>
                   <Link
                     href="/cart"
-                    className="flex-1 text-center rounded-xl bg-brand py-2 text-sm text-white hover:bg-brand-dark transition"
+                    className="rounded-lg bg-brand px-3 py-2 text-center text-sm text-white hover:bg-brand-dark transition"
                   >
-                    Zur Kasse
+                    Checkout
                   </Link>
-                </div>
-
-                <div className="mt-2 text-xs text-neutral-500">
-                  (Dropdown mostra até 5 items)
                 </div>
               </div>
-            )}
+            </div>
           </div>
         </nav>
       </div>
+
+      {/* linha fina com gradiente suave */}
+      <div className="h-[2px] w-full bg-gradient-to-r from-brand/0 via-brand/70 to-brand/0" />
     </header>
   );
 }
