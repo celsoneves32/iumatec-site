@@ -1,51 +1,41 @@
 // lib/shopify.ts
-type ShopifyFetchParams<T> = {
+type ShopifyFetchOptions = {
   query: string;
   variables?: Record<string, any>;
-  cache?: RequestCache;
   tags?: string[];
 };
 
-const endpoint = () => {
-  const domain = process.env.SHOPIFY_STORE_DOMAIN;
-  if (!domain) return null;
-  return `https://${domain}/api/2024-04/graphql.json`;
-};
+function getRequiredEnv(name: string): string {
+  const v = process.env[name];
+  if (!v) throw new Error(`Missing env var: ${name}`);
+  return v;
+}
 
 export async function shopifyFetch<T>({
   query,
   variables,
-  cache = "no-store",
-}: ShopifyFetchParams<T>): Promise<T | null> {
-  const url = endpoint();
-  const token = process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN;
+}: ShopifyFetchOptions): Promise<T> {
+  const domain = getRequiredEnv("NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN");
+  const token = getRequiredEnv("NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN");
+  const apiVersion = process.env.NEXT_PUBLIC_SHOPIFY_API_VERSION || "2024-04";
 
-  // ✅ NÃO rebenta build/SSR — só devolve null
-  if (!url || !token) {
-    console.warn("Shopify env vars missing. Returning null data.");
-    return null;
-  }
-
-  const res = await fetch(url, {
+  const res = await fetch(`https://${domain}/api/${apiVersion}/graphql.json`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "X-Shopify-Storefront-Access-Token": token,
     },
     body: JSON.stringify({ query, variables }),
-    cache,
   });
 
-  if (!res.ok) {
-    console.warn("Shopify fetch failed:", res.status, res.statusText);
-    return null;
+  const json = await res.json();
+
+  if (!res.ok || json?.errors) {
+    const msg =
+      json?.errors?.[0]?.message ||
+      `Shopify request failed (${res.status})`;
+    throw new Error(msg);
   }
 
-  const json = (await res.json()) as { data?: T; errors?: any };
-  if (json.errors) {
-    console.warn("Shopify graphql errors:", json.errors);
-    return null;
-  }
-
-  return json.data ?? null;
+  return json.data as T;
 }
