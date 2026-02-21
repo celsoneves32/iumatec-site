@@ -4,29 +4,25 @@
 
 /* ========= IUMATEC Brand Theme ========= */
 
-/* seleção de texto */
-::selection {
-  background: rgb(225 29 72 / 0.18); /* brand/18 */
-}
+::selection { background: rgb(225 29 72 / 0.18); }
 
-/* foco (acessibilidade) */
 :focus-visible {
   outline: 2px solid rgb(225 29 72 / 0.7);
   outline-offset: 3px;
 }
 
-/* utilitários simples (se quiseres usar className="btn-brand" etc.) */
-.btn-brand {
-  @apply rounded-xl bg-brand px-5 py-3 text-white text-sm font-semibold
-    hover:bg-brand-dark transition;
-}
+@layer components {
+  .btn-brand {
+    @apply rounded-xl bg-brand px-5 py-3 text-white text-sm font-semibold
+      hover:bg-brand-dark transition;
+  }
 
-.btn-outline {
-  @apply rounded-xl border border-neutral-300 px-5 py-3 text-sm font-semibold
-    hover:bg-neutral-50 transition;
-}
+  .btn-outline {
+    @apply rounded-xl border border-neutral-300 px-5 py-3 text-sm font-semibold
+      hover:bg-neutral-50 transition;
+  }
 
-/* links (opcional) */
-a.brand-link {
-  @apply text-brand hover:text-brand-dark underline underline-offset-2;
+  a.brand-link {
+    @apply text-brand hover:text-brand-dark underline underline-offset-2;
+  }
 }
