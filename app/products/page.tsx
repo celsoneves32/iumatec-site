@@ -55,9 +55,8 @@ export default async function ProductsPage() {
           const variantId = p.variants.edges[0]?.node.id;
 
           return (
-            <div key={p.id} className="rounded-xl border p-3 bg-white">
-              {/* ✅ link vai para /produkte/[handle] */}
-              <Link href={`/produkte/${p.handle}`}>
+            <div key={p.id} className="rounded-xl border border-neutral-200 p-3 bg-white">
+              <Link href={`/products/${p.handle}`} className="block">
                 <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-neutral-50">
                   {p.featuredImage ? (
                     <Image
@@ -69,20 +68,16 @@ export default async function ProductsPage() {
                   ) : null}
                 </div>
 
-                <div className="mt-3 font-medium">{p.title}</div>
+                <div className="mt-3 font-medium text-neutral-900">{p.title}</div>
                 <div className="text-sm text-neutral-600">
                   {Number(price.amount).toFixed(2)} {price.currencyCode}
                 </div>
               </Link>
 
-              {/* ✅ agora adiciona ao carrinho real */}
-              {variantId ? (
-                <div className="mt-3">
-                  <AddToCartButton variantId={variantId} />
-                </div>
-              ) : (
-                <div className="mt-3 text-xs text-red-600">Sem variante disponível.</div>
-              )}
+              {/* Adiciona ao carrinho (CartContext) */}
+              <div className="mt-3">
+                {variantId ? <AddToCartButton variantId={variantId} /> : null}
+              </div>
             </div>
           );
         })}
