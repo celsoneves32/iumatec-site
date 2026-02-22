@@ -65,8 +65,8 @@ export default function SiteHeader() {
               src="/logo-iumatec.svg"
               alt="IUMATEC"
               width={140}
-              height={40}
-              className="h-9 w-auto"
+              height={32}
+              className="h-7 w-auto"
               priority
             />
             <span className="sr-only">IUMATEC</span>
@@ -106,8 +106,8 @@ export default function SiteHeader() {
             {/* Cart (hover dropdown) */}
             <div className="relative group">
               <Link
-                href="/warenkorb"
-                className="relative inline-flex items-center justify-center rounded-full border px-3 py-2
+                href="/cart"
+                className="relative inline-flex items-center justify-center rounded-full border border-neutral-300 px-3 py-2
                            hover:bg-neutral-50 transition"
                 aria-label="Warenkorb"
               >
@@ -127,9 +127,9 @@ export default function SiteHeader() {
               <div
                 className="pointer-events-none opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0
                            group-hover:pointer-events-auto transition absolute right-0 mt-2 w-[320px]
-                           rounded-2xl border bg-white shadow-lg overflow-hidden"
+                           rounded-2xl border border-neutral-200 bg-white shadow-lg overflow-hidden"
               >
-                <div className="p-4 border-b">
+                <div className="p-4 border-b border-neutral-200">
                   <div className="flex items-center justify-between">
                     <div className="font-semibold text-neutral-900">Warenkorb</div>
                     <div className="text-xs text-neutral-600">
@@ -144,7 +144,7 @@ export default function SiteHeader() {
                       Dein Warenkorb ist leer.
                     </div>
                   ) : (
-                    <ul className="divide-y">
+                    <ul className="divide-y divide-neutral-200">
                       {lines.slice(0, 6).map((l) => (
                         <li key={l.id} className="p-4">
                           <div className="text-sm font-medium text-neutral-900 line-clamp-1">
@@ -154,7 +154,9 @@ export default function SiteHeader() {
                             <div className="text-xs text-neutral-600 line-clamp-1">
                               {l.merchandise?.title ?? ""}
                             </div>
-                            <div className="text-xs text-neutral-700">x{l.quantity}</div>
+                            <div className="text-xs text-neutral-700">
+                              x{l.quantity}
+                            </div>
                           </div>
                         </li>
                       ))}
@@ -162,15 +164,17 @@ export default function SiteHeader() {
                   )}
                 </div>
 
-                <div className="p-4 border-t bg-neutral-50">
+                <div className="p-4 border-t border-neutral-200 bg-neutral-50">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-neutral-700">Zwischensumme</span>
-                    <span className="font-semibold text-neutral-900">{subtotal ?? "—"}</span>
+                    <span className="font-semibold text-neutral-900">
+                      {subtotal ?? "—"}
+                    </span>
                   </div>
 
                   <div className="mt-3 grid grid-cols-2 gap-2">
                     <Link
-                      href="/warenkorb"
+                      href="/cart"
                       className="rounded-xl border border-neutral-300 px-4 py-2 text-sm font-semibold
                                  hover:bg-white transition text-center"
                     >
@@ -197,7 +201,7 @@ export default function SiteHeader() {
               </div>
             </div>
 
-            {/* Optional: small CTA */}
+            {/* CTA Shop */}
             <Link
               href="/products"
               className="hidden sm:inline-flex rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white
