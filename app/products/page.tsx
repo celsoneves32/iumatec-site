@@ -1,6 +1,7 @@
 // app/products/page.tsx
 import Link from "next/link";
 import Image from "next/image";
+import AddToCartButton from "@/components/AddToCartButton";
 import { shopifyFetch } from "@/lib/shopify";
 
 type ProductsQuery = {
@@ -54,9 +55,10 @@ export default async function ProductsPage() {
           const variantId = p.variants.edges[0]?.node.id;
 
           return (
-            <div key={p.id} className="rounded-xl border p-3">
-              <Link href={`/products/${p.handle}`}>
-                <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-gray-50">
+            <div key={p.id} className="rounded-xl border p-3 bg-white">
+              {/* ✅ link vai para /produkte/[handle] */}
+              <Link href={`/produkte/${p.handle}`}>
+                <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-neutral-50">
                   {p.featuredImage ? (
                     <Image
                       src={p.featuredImage.url}
@@ -66,22 +68,21 @@ export default async function ProductsPage() {
                     />
                   ) : null}
                 </div>
+
                 <div className="mt-3 font-medium">{p.title}</div>
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-neutral-600">
                   {Number(price.amount).toFixed(2)} {price.currencyCode}
                 </div>
               </Link>
 
-              {/* Botão comprar direto (checkout) */}
+              {/* ✅ agora adiciona ao carrinho real */}
               {variantId ? (
-                <form action={`/api/checkout`} method="POST" className="mt-3">
-                  <input type="hidden" name="variantId" value={variantId} />
-                  <input type="hidden" name="quantity" value="1" />
-                  <button className="w-full rounded-lg bg-black px-4 py-2 text-white">
-                    Kaufen
-                  </button>
-                </form>
-              ) : null}
+                <div className="mt-3">
+                  <AddToCartButton variantId={variantId} />
+                </div>
+              ) : (
+                <div className="mt-3 text-xs text-red-600">Sem variante disponível.</div>
+              )}
             </div>
           );
         })}
