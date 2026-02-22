@@ -167,7 +167,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setCart(mapCart(data.cart));
   }
 
-  // init: load cartId and fetch cart
   useEffect(() => {
     const id = loadCartId();
     if (!id) return;
@@ -231,7 +230,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
       setCart(mapCart(data.cartLinesAdd.cart));
     } catch (e: any) {
-      setError(e.message || "Fehler beim Hinzufügen.");
+      const msg = e?.message || "Fehler beim Hinzufügen.";
+      setError(msg);
+      throw new Error(msg); // ✅ importante: não “fingir” sucesso
     } finally {
       setLoading(false);
     }
@@ -266,7 +267,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
       setCart(mapCart(data.cartLinesUpdate.cart));
     } catch (e: any) {
-      setError(e.message || "Fehler beim Aktualisieren.");
+      const msg = e?.message || "Fehler beim Aktualisieren.";
+      setError(msg);
+      throw new Error(msg);
     } finally {
       setLoading(false);
     }
@@ -301,7 +304,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
       setCart(mapCart(data.cartLinesRemove.cart));
     } catch (e: any) {
-      setError(e.message || "Fehler beim Entfernen.");
+      const msg = e?.message || "Fehler beim Entfernen.";
+      setError(msg);
+      throw new Error(msg);
     } finally {
       setLoading(false);
     }
