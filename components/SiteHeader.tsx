@@ -62,11 +62,11 @@ export default function SiteHeader() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
             <Image
-              src="/logo.svg"
+              src="/logo-iumatec.svg"
               alt="IUMATEC"
               width={140}
-              height={32}
-              className="h-7 w-auto"
+              height={40}
+              className="h-9 w-auto"
               priority
             />
             <span className="sr-only">IUMATEC</span>
@@ -106,7 +106,7 @@ export default function SiteHeader() {
             {/* Cart (hover dropdown) */}
             <div className="relative group">
               <Link
-                href="/cart"
+                href="/warenkorb"
                 className="relative inline-flex items-center justify-center rounded-full border px-3 py-2
                            hover:bg-neutral-50 transition"
                 aria-label="Warenkorb"
@@ -154,9 +154,7 @@ export default function SiteHeader() {
                             <div className="text-xs text-neutral-600 line-clamp-1">
                               {l.merchandise?.title ?? ""}
                             </div>
-                            <div className="text-xs text-neutral-700">
-                              x{l.quantity}
-                            </div>
+                            <div className="text-xs text-neutral-700">x{l.quantity}</div>
                           </div>
                         </li>
                       ))}
@@ -167,14 +165,12 @@ export default function SiteHeader() {
                 <div className="p-4 border-t bg-neutral-50">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-neutral-700">Zwischensumme</span>
-                    <span className="font-semibold text-neutral-900">
-                      {subtotal ?? "—"}
-                    </span>
+                    <span className="font-semibold text-neutral-900">{subtotal ?? "—"}</span>
                   </div>
 
                   <div className="mt-3 grid grid-cols-2 gap-2">
                     <Link
-                      href="/cart"
+                      href="/warenkorb"
                       className="rounded-xl border border-neutral-300 px-4 py-2 text-sm font-semibold
                                  hover:bg-white transition text-center"
                     >
