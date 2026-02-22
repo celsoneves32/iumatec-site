@@ -60,9 +60,11 @@ async function storefrontFetch<T>(query: string, variables?: Record<string, any>
       "X-Shopify-Storefront-Access-Token": getStorefrontToken(),
     },
     body: JSON.stringify({ query, variables }),
+    cache: "no-store",
   });
 
   const json = await res.json();
+
   if (!res.ok || json.errors) {
     const msg =
       json?.errors?.[0]?.message ||
@@ -93,6 +95,10 @@ function mapCart(cart: any): ShopifyCart {
   };
 }
 
+/**
+ * ✅ FIX PRINCIPAL AQUI:
+ * merchandise TEM que ser um objeto: merchandise { ... on ProductVariant { ... } }
+ */
 const CART_FRAGMENT = `
   fragment CartFragment on Cart {
     id
@@ -108,10 +114,12 @@ const CART_FRAGMENT = `
           cost {
             totalAmount { amount currencyCode }
           }
-          merchandise ... on ProductVariant {
-            id
-            title
-            product { title }
+          merchandise {
+            ... on ProductVariant {
+              id
+              title
+              product { title }
+            }
           }
         }
       }
@@ -167,6 +175,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setCart(mapCart(data.cart));
   }
 
+  // init: load cartId and fetch cart
   useEffect(() => {
     const id = loadCartId();
     if (!id) return;
@@ -230,9 +239,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
       setCart(mapCart(data.cartLinesAdd.cart));
     } catch (e: any) {
-      const msg = e?.message || "Fehler beim Hinzufügen.";
-      setError(msg);
-      throw new Error(msg); // ✅ importante: não “fingir” sucesso
+      setError(e.message || "Fehler beim Hinzufügen.");
     } finally {
       setLoading(false);
     }
@@ -267,9 +274,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
       setCart(mapCart(data.cartLinesUpdate.cart));
     } catch (e: any) {
-      const msg = e?.message || "Fehler beim Aktualisieren.";
-      setError(msg);
-      throw new Error(msg);
+      setError(e.message || "Fehler beim Aktualisieren.");
     } finally {
       setLoading(false);
     }
@@ -304,9 +309,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
       setCart(mapCart(data.cartLinesRemove.cart));
     } catch (e: any) {
-      const msg = e?.message || "Fehler beim Entfernen.";
-      setError(msg);
-      throw new Error(msg);
+      setError(e.message || "Fehler beim Entfernen.");
     } finally {
       setLoading(false);
     }
