@@ -2,14 +2,11 @@
 const nextConfig = {
   images: {
     remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "cdn.shopify.com",
-      },
-      {
-        protocol: "https",
-        hostname: "*.myshopify.com",
-      },
+      // Shopify CDN (produtos)
+      { protocol: "https", hostname: "cdn.shopify.com" },
+
+      // Se tiveres imagens noutras origens, adiciona aqui
+      // { protocol: "https", hostname: "your-domain.com" },
     ],
   },
 };
