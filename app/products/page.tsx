@@ -40,7 +40,6 @@ export default async function ProductsPage() {
   const data = await shopifyFetch<ProductsQuery>({
     query: PRODUCTS_QUERY,
     variables: { first: 24 },
-    cache: "no-store",
   });
 
   const items = data.products.edges.map((e) => e.node);
@@ -55,8 +54,8 @@ export default async function ProductsPage() {
           const variantId = p.variants.edges[0]?.node.id;
 
           return (
-            <div key={p.id} className="rounded-xl border border-neutral-200 p-3 bg-white">
-              <Link href={`/products/${p.handle}`} className="block">
+            <div key={p.id} className="rounded-xl border p-3 bg-white">
+              <Link href={`/products/${p.handle}`}>
                 <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-neutral-50">
                   {p.featuredImage ? (
                     <Image
@@ -68,16 +67,17 @@ export default async function ProductsPage() {
                   ) : null}
                 </div>
 
-                <div className="mt-3 font-medium text-neutral-900">{p.title}</div>
+                <div className="mt-3 font-medium">{p.title}</div>
                 <div className="text-sm text-neutral-600">
                   {Number(price.amount).toFixed(2)} {price.currencyCode}
                 </div>
               </Link>
 
-              {/* Adiciona ao carrinho (CartContext) */}
-              <div className="mt-3">
-                {variantId ? <AddToCartButton variantId={variantId} /> : null}
-              </div>
+              {variantId ? (
+                <div className="mt-3">
+                  <AddToCartButton variantId={variantId} />
+                </div>
+              ) : null}
             </div>
           );
         })}
