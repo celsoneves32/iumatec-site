@@ -25,17 +25,6 @@ type SearchProductsResponse = {
     edges: Array<{
       node: SearchProduct;
     }>;
-    filters?: Array<{
-      id: string;
-      label: string;
-      type: string;
-      values?: Array<{
-        id: string;
-        label: string;
-        count: number;
-        input?: string;
-      }>;
-    }>;
     pageInfo: {
       hasNextPage: boolean;
       hasPreviousPage: boolean;
@@ -66,17 +55,6 @@ const SEARCH_PRODUCTS_QUERY = `
           }
         }
       }
-      filters {
-        id
-        label
-        type
-        values {
-          id
-          label
-          count
-          input
-        }
-      }
       pageInfo {
         hasNextPage
         hasPreviousPage
@@ -98,11 +76,58 @@ export async function searchProducts({
       first,
       query: q || null,
     },
+    tags: ["search-products"],
   });
 
   return {
     products: data.products.edges.map((edge) => edge.node),
-    filters: data.products.filters || [],
     pageInfo: data.products.pageInfo,
+  };
+}
+
+export function filterProductsLocally(
+  products: SearchProduct[],
+  filters: {
+    vendor?: string;
+    productType?: string;
+    minPrice?: number;
+    maxPrice?: number;
+  }
+) {
+  return products.filter((product) => {
+    const price = Number(product.priceRange.minVariantPrice.amount);
+
+    if (filters.vendor && product.vendor !== filters.vendor) {
+      return false;
+    }
+
+    if (filters.productType && product.productType !== filters.productType) {
+      return false;
+    }
+
+    if (typeof filters.minPrice === "number" && price < filters.minPrice) {
+      return false;
+    }
+
+    if (typeof filters.maxPrice === "number" && price > filters.maxPrice) {
+      return false;
+    }
+
+    return true;
+  });
+}
+
+export function extractFilterOptions(products: SearchProduct[]) {
+  const vendors = Array.from(
+    new Set(products.map((p) => p.vendor).filter(Boolean))
+  ).sort() as string[];
+
+  const productTypes = Array.from(
+    new Set(products.map((p) => p.productType).filter(Boolean))
+  ).sort() as string[];
+
+  return {
+    vendors,
+    productTypes,
   };
 }
