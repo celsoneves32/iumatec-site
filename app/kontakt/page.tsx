@@ -53,39 +53,67 @@ export default function KontaktPage() {
   }
 
   return (
-    <main className="max-w-4xl mx-auto px-4 py-10">
+    <main className="max-w-4xl mx-auto px-4 py-10 text-gray-800 dark:text-gray-100">
       <h1 className="text-3xl font-semibold tracking-tight mb-2">Kontakt</h1>
-      <p className="text-sm text-neutral-600 mb-8">
-        Hast du Fragen zu deiner Bestellung oder zu unseren Produkten? Kontaktiere
-        uns – wir helfen dir gerne weiter.
+      <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-8">
+        Hast du Fragen zu deiner Bestellung oder zu unseren Produkten?
+        Kontaktiere uns – wir helfen dir gerne weiter.
       </p>
 
       {/* Infos: Kundendienst & Adresse */}
       <div className="grid gap-8 md:grid-cols-2 mb-10">
-        <div className="bg-white border border-neutral-200 rounded-2xl p-6">
-          <h2 className="text-sm font-semibold mb-2 flex items-center gap-2">
+        <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl p-6">
+          <h2 className="text-sm font-semibold mb-3 flex items-center gap-2">
             <span className="text-red-600 text-lg">☎</span>
             Kundendienst
           </h2>
-          <p className="text-sm text-neutral-700 mb-1">
-            E-Mail: <span className="font-medium">support@iumatec.ch</span>
+
+          <p className="text-sm text-neutral-700 dark:text-neutral-300 mb-2">
+            E-Mail:{" "}
+            <a
+              href="mailto:support@iumatec.ch"
+              className="font-medium underline underline-offset-2 hover:text-brand-red"
+            >
+              support@iumatec.ch
+            </a>
           </p>
-          <p className="text-sm text-neutral-700 mb-1">
-            Telefon: <span className="font-medium">+41 44 000 00 00</span>
+
+          <p className="text-sm text-neutral-700 dark:text-neutral-300 mb-2">
+            Telefon:{" "}
+            <a
+              href="tel:+41765053344"
+              className="font-medium underline underline-offset-2 hover:text-brand-red"
+            >
+              +41 76 505 33 44
+            </a>{" "}
+            <span className="text-xs text-neutral-500">(temporär)</span>
           </p>
-          <p className="text-xs text-neutral-500 mt-2">
+
+          <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-3">
             Antwort in der Regel innerhalb von 24 Stunden.
           </p>
         </div>
 
-        <div className="bg-white border border-neutral-200 rounded-2xl p-6">
-          <h2 className="text-sm font-semibold mb-2 flex items-center gap-2">
+        <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl p-6">
+          <h2 className="text-sm font-semibold mb-3 flex items-center gap-2">
             <span className="text-red-600 text-lg">📍</span>
             Adresse
           </h2>
-          <p className="text-sm text-neutral-700">IUMATEC Schweiz</p>
-          <p className="text-sm text-neutral-700">Zürich, Schweiz</p>
-          <p className="text-xs text-neutral-500 mt-2">
+
+          <p className="text-sm text-neutral-700 dark:text-neutral-300">
+            IUMATEC Schweiz
+          </p>
+          <p className="text-sm text-neutral-700 dark:text-neutral-300">
+            Elsässerstrasse 255
+          </p>
+          <p className="text-sm text-neutral-700 dark:text-neutral-300">
+            4056 Basel
+          </p>
+          <p className="text-sm text-neutral-700 dark:text-neutral-300">
+            Schweiz
+          </p>
+
+          <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-3">
             Online-Shop mit Versand in die ganze Schweiz &amp; Liechtenstein.
           </p>
         </div>
@@ -97,6 +125,7 @@ export default function KontaktPage() {
           {error}
         </div>
       )}
+
       {success && (
         <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
           {success}
@@ -106,12 +135,12 @@ export default function KontaktPage() {
       {/* Formular */}
       <form
         onSubmit={handleSubmit}
-        className="bg-white border border-neutral-200 rounded-2xl p-6 space-y-4"
+        className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl p-6 space-y-4"
       >
         <div>
           <label
             htmlFor="name"
-            className="block text-sm font-medium text-neutral-800 mb-1"
+            className="block text-sm font-medium text-neutral-800 dark:text-neutral-200 mb-1"
           >
             Name
           </label>
@@ -121,7 +150,7 @@ export default function KontaktPage() {
             autoComplete="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
+            className="w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-950 px-3 py-2 text-sm outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
             placeholder="Dein Name"
           />
         </div>
@@ -129,7 +158,7 @@ export default function KontaktPage() {
         <div>
           <label
             htmlFor="email"
-            className="block text-sm font-medium text-neutral-800 mb-1"
+            className="block text-sm font-medium text-neutral-800 dark:text-neutral-200 mb-1"
           >
             E-Mail-Adresse
           </label>
@@ -139,7 +168,7 @@ export default function KontaktPage() {
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
+            className="w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-950 px-3 py-2 text-sm outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
             placeholder="kunde@example.ch"
           />
         </div>
@@ -147,7 +176,7 @@ export default function KontaktPage() {
         <div>
           <label
             htmlFor="message"
-            className="block text-sm font-medium text-neutral-800 mb-1"
+            className="block text-sm font-medium text-neutral-800 dark:text-neutral-200 mb-1"
           >
             Deine Nachricht
           </label>
@@ -156,7 +185,7 @@ export default function KontaktPage() {
             rows={5}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 resize-none"
+            className="w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-950 px-3 py-2 text-sm outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 resize-none"
             placeholder="Wie können wir dir helfen?"
           />
         </div>
