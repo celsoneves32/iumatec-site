@@ -15,9 +15,9 @@ export async function shopifyFetch<T>({
   query,
   variables,
 }: ShopifyFetchOptions): Promise<T> {
-  const domain = getRequiredEnv("NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN");
-  const token = getRequiredEnv("NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN");
-  const apiVersion = process.env.NEXT_PUBLIC_SHOPIFY_API_VERSION || "2024-04";
+  const domain = getRequiredEnv("SHOPIFY_STORE_DOMAIN");
+  const token = getRequiredEnv("SHOPIFY_STOREFRONT_ACCESS_TOKEN");
+  const apiVersion = process.env.SHOPIFY_API_VERSION || "2024-04";
 
   const res = await fetch(`https://${domain}/api/${apiVersion}/graphql.json`, {
     method: "POST",
@@ -26,6 +26,7 @@ export async function shopifyFetch<T>({
       "X-Shopify-Storefront-Access-Token": token,
     },
     body: JSON.stringify({ query, variables }),
+    cache: "no-store",
   });
 
   const json = await res.json();
