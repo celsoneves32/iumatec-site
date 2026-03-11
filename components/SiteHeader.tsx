@@ -31,6 +31,7 @@ function NavLink({
 export default function SiteHeader() {
   const { cart, totalQuantity, goToCheckout } = useCart();
   const [scrolled, setScrolled] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -47,7 +48,10 @@ export default function SiteHeader() {
     if (!amt || !cur) return null;
     const n = Number(amt);
     if (Number.isNaN(n)) return `${amt} ${cur}`;
-    return new Intl.NumberFormat("de-CH", { style: "currency", currency: cur }).format(n);
+    return new Intl.NumberFormat("de-CH", {
+      style: "currency",
+      currency: cur,
+    }).format(n);
   }, [cart?.cost?.totalAmount?.amount, cart?.cost?.totalAmount?.currencyCode]);
 
   return (
@@ -60,7 +64,7 @@ export default function SiteHeader() {
       <div className="mx-auto max-w-6xl px-4">
         <div className="flex h-16 items-center justify-between gap-4">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2 shrink-0">
             <Image
               src="/logo-iumatec.svg"
               alt="IUMATEC"
@@ -91,17 +95,53 @@ export default function SiteHeader() {
             )}
           </nav>
 
+          {/* Desktop Search */}
+          <form action="/search" className="hidden lg:flex items-center flex-1 max-w-sm">
+            <input
+              type="text"
+              name="q"
+              placeholder="Suche nach Produkten..."
+              className="w-full rounded-l-xl border border-neutral-300 px-4 py-2 text-sm text-neutral-900
+                         outline-none focus:border-neutral-500"
+            />
+            <button
+              type="submit"
+              className="rounded-r-xl border border-l-0 border-neutral-300 px-4 py-2 text-sm
+                         text-neutral-700 hover:bg-neutral-50 transition"
+              aria-label="Suchen"
+            >
+              🔍
+            </button>
+          </form>
+
           {/* Right side */}
           <div className="flex items-center gap-3">
             {/* Mobile quick links */}
             <div className="md:hidden flex items-center gap-3">
-              <Link href="/products" className="text-sm text-neutral-700 hover:text-neutral-900">
+              <Link
+                href="/products"
+                className="text-sm text-neutral-700 hover:text-neutral-900"
+              >
                 Produkte
               </Link>
-              <Link href="/collections" className="text-sm text-neutral-700 hover:text-neutral-900">
+              <Link
+                href="/collections"
+                className="text-sm text-neutral-700 hover:text-neutral-900"
+              >
                 Kategorien
               </Link>
             </div>
+
+            {/* Mobile Search button */}
+            <button
+              type="button"
+              onClick={() => setMobileSearchOpen((v) => !v)}
+              className="inline-flex lg:hidden items-center justify-center rounded-full border border-neutral-300 px-3 py-2
+                         hover:bg-neutral-50 transition"
+              aria-label="Suche öffnen"
+            >
+              <span className="text-base">🔍</span>
+            </button>
 
             {/* Cart (hover dropdown) */}
             <div className="relative group">
@@ -211,6 +251,29 @@ export default function SiteHeader() {
             </Link>
           </div>
         </div>
+
+        {/* Mobile Search Bar */}
+        {mobileSearchOpen && (
+          <div className="pb-4 lg:hidden">
+            <form action="/search" className="flex items-center">
+              <input
+                type="text"
+                name="q"
+                placeholder="Suche nach Produkten..."
+                className="w-full rounded-l-xl border border-neutral-300 px-4 py-3 text-sm text-neutral-900
+                           outline-none focus:border-neutral-500"
+              />
+              <button
+                type="submit"
+                className="rounded-r-xl border border-l-0 border-neutral-300 px-4 py-3 text-sm
+                           text-neutral-700 hover:bg-neutral-50 transition"
+                aria-label="Suchen"
+              >
+                🔍
+              </button>
+            </form>
+          </div>
+        )}
       </div>
     </header>
   );
