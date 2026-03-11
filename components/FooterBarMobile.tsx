@@ -1,4 +1,3 @@
-// components/FooterBarMobile.tsx
 "use client";
 import { useEffect, useState } from "react";
 
@@ -69,6 +68,7 @@ function IconUp(props: React.SVGProps<SVGSVGElement>) {
 
 export default function FooterBarMobile() {
   const [visible, setVisible] = useState(false);
+
   useEffect(() => {
     const onScroll = () => setVisible(window.scrollY > 200);
     window.addEventListener("scroll", onScroll);
@@ -112,7 +112,7 @@ export default function FooterBarMobile() {
     <div className="fixed bottom-0 left-0 right-0 z-50 sm:hidden">
       <div className="flex justify-around bg-white dark:bg-neutral-900 border-t dark:border-neutral-800 py-2 text-xs text-gray-700 dark:text-gray-200 shadow-[0_-2px_8px_rgba(0,0,0,0.1)]">
         <Item
-          href="https://wa.me/41791234567"
+          href="https://wa.me/41765053344"
           icon={<IconWhatsApp className="h-5 w-5 mb-0.5" />}
           label="WhatsApp"
         />
@@ -122,7 +122,7 @@ export default function FooterBarMobile() {
           label="E-Mail"
         />
         <Item
-          href="tel:+41440000000"
+          href="tel:+41765053344"
           icon={<IconPhone className="h-5 w-5 mb-0.5" />}
           label="Anrufen"
         />
