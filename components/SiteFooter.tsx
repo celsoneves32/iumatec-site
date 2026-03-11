@@ -16,12 +16,13 @@ export default function SiteFooter() {
               className="h-7 mb-3"
             />
           </Link>
+
           <p className="text-gray-600 dark:text-gray-300">
             Technik zum besten Preis – schnelle Lieferung in der ganzen Schweiz.
           </p>
 
           <div className="mt-4 space-y-1 text-gray-500 dark:text-gray-400">
-            <div>📍 Zürich, Schweiz 🇨🇭</div>
+            <div>📍 Basel, Schweiz 🇨🇭</div>
             <div>
               ✉️{" "}
               <a
@@ -64,6 +65,11 @@ export default function SiteFooter() {
                 Kontakt
               </Link>
             </li>
+            <li>
+              <Link href="/faq" className="hover:text-brand-red">
+                FAQ
+              </Link>
+            </li>
           </ul>
         </div>
 
@@ -86,6 +92,16 @@ export default function SiteFooter() {
             <li>
               <Link href="/impressum" className="hover:text-brand-red">
                 Impressum
+              </Link>
+            </li>
+            <li>
+              <Link href="/versand" className="hover:text-brand-red">
+                Versand & Lieferung
+              </Link>
+            </li>
+            <li>
+              <Link href="/retouren" className="hover:text-brand-red">
+                Retouren
               </Link>
             </li>
           </ul>
