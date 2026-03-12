@@ -194,7 +194,7 @@ function MegaMenuDesktop() {
         <div
           className="pointer-events-none opacity-0 translate-y-2
                      group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto
-                     transition absolute left-1/2 top-full z-50 w-[1040px] -translate-x-1/2 pt-3"
+                     transition absolute left-1/2 top-full z-50 w-[980px] -translate-x-1/2 pt-3"
         >
           <div className="rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 shadow-2xl p-6">
             <div className="grid grid-cols-4 gap-x-8 gap-y-8">
@@ -226,8 +226,8 @@ function MegaMenuDesktop() {
               ))}
             </div>
 
-            <div className="mt-6 border-t border-neutral-200 dark:border-neutral-800 pt-4 flex items-center justify-between gap-6">
-              <p className="text-sm text-neutral-500 dark:text-neutral-400 leading-relaxed">
+            <div className="mt-6 border-t border-neutral-200 dark:border-neutral-800 pt-4 flex items-start justify-between gap-4">
+              <p className="max-w-[680px] text-sm text-neutral-500 dark:text-neutral-400 leading-relaxed">
                 Entdecke alle Kategorien und finde schnell die passende Technik.
               </p>
               <Link
