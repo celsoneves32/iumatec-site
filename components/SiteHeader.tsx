@@ -1,4 +1,3 @@
-// components/SiteHeader.tsx
 "use client";
 
 import Image from "next/image";
@@ -18,7 +17,7 @@ function NavLink({
   return (
     <Link
       href={href}
-      className="relative text-sm text-neutral-700 hover:text-neutral-900 transition
+      className="relative text-sm font-medium text-neutral-700 hover:text-neutral-900 transition
                  after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full
                  after:origin-left after:scale-x-0 after:bg-brand after:transition-transform after:duration-200
                  hover:after:scale-x-100"
@@ -57,11 +56,11 @@ export default function SiteHeader() {
   return (
     <header
       className={[
-        "sticky top-0 z-50 border-b bg-white/85 backdrop-blur",
+        "sticky top-0 z-50 border-b border-neutral-200 bg-white/85 backdrop-blur dark:border-neutral-800 dark:bg-neutral-950/85",
         scrolled ? "shadow-sm" : "",
       ].join(" ")}
     >
-      <div className="mx-auto max-w-6xl px-4">
+      <div className="mx-auto max-w-7xl px-4">
         <div className="flex h-16 items-center justify-between gap-4">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 shrink-0">
@@ -76,19 +75,24 @@ export default function SiteHeader() {
             <span className="sr-only">IUMATEC</span>
           </Link>
 
-          {/* Nav */}
-          <nav className="hidden md:flex items-center gap-6">
-            <NavLink href="/products">Alle Produkte</NavLink>
+          {/* Desktop Nav */}
+          <nav className="hidden xl:flex items-center gap-6">
             <NavLink href="/collections">Kategorien</NavLink>
+            <NavLink href="/collections/laptops">Computer</NavLink>
+            <NavLink href="/collections/komponenten">PC-Komponenten</NavLink>
+            <NavLink href="/collections/tastaturen">Peripherie</NavLink>
+            <NavLink href="/collections/netzwerk">Netzwerk</NavLink>
+            <NavLink href="/collections/smartphones">Mobile</NavLink>
+            <NavLink href="/collections/smart-home">Smart Home</NavLink>
 
             {ACCOUNT_URL && (
               <a
                 href={ACCOUNT_URL}
                 target="_self"
-                className="relative text-sm text-neutral-700 hover:text-neutral-900 transition
+                className="relative text-sm font-medium text-neutral-700 hover:text-neutral-900 transition
                            after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full
                            after:origin-left after:scale-x-0 after:bg-brand after:transition-transform after:duration-200
-                           hover:after:scale-x-100"
+                           hover:after:scale-x-100 dark:text-neutral-300 dark:hover:text-white"
               >
                 Mein Konto
               </a>
@@ -96,18 +100,19 @@ export default function SiteHeader() {
           </nav>
 
           {/* Desktop Search */}
-          <form action="/search" className="hidden lg:flex items-center flex-1 max-w-sm">
+          <form
+            action="/search"
+            className="hidden lg:flex items-center flex-1 max-w-sm"
+          >
             <input
               type="text"
               name="q"
               placeholder="Suche nach Produkten..."
-              className="w-full rounded-l-xl border border-neutral-300 px-4 py-2 text-sm text-neutral-900
-                         outline-none focus:border-neutral-500"
+              className="w-full rounded-l-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-4 py-2 text-sm text-neutral-900 dark:text-neutral-100 outline-none focus:border-neutral-500"
             />
             <button
               type="submit"
-              className="rounded-r-xl border border-l-0 border-neutral-300 px-4 py-2 text-sm
-                         text-neutral-700 hover:bg-neutral-50 transition"
+              className="rounded-r-xl border border-l-0 border-neutral-300 dark:border-neutral-700 px-4 py-2 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition"
               aria-label="Suchen"
             >
               🔍
@@ -120,13 +125,13 @@ export default function SiteHeader() {
             <div className="md:hidden flex items-center gap-3">
               <Link
                 href="/products"
-                className="text-sm text-neutral-700 hover:text-neutral-900"
+                className="text-sm text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white"
               >
                 Produkte
               </Link>
               <Link
                 href="/collections"
-                className="text-sm text-neutral-700 hover:text-neutral-900"
+                className="text-sm text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white"
               >
                 Kategorien
               </Link>
@@ -136,19 +141,17 @@ export default function SiteHeader() {
             <button
               type="button"
               onClick={() => setMobileSearchOpen((v) => !v)}
-              className="inline-flex lg:hidden items-center justify-center rounded-full border border-neutral-300 px-3 py-2
-                         hover:bg-neutral-50 transition"
+              className="inline-flex lg:hidden items-center justify-center rounded-full border border-neutral-300 dark:border-neutral-700 px-3 py-2 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition"
               aria-label="Suche öffnen"
             >
               <span className="text-base">🔍</span>
             </button>
 
-            {/* Cart (hover dropdown) */}
+            {/* Cart */}
             <div className="relative group">
               <Link
                 href="/cart"
-                className="relative inline-flex items-center justify-center rounded-full border border-neutral-300 px-3 py-2
-                           hover:bg-neutral-50 transition"
+                className="relative inline-flex items-center justify-center rounded-full border border-neutral-300 dark:border-neutral-700 px-3 py-2 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition"
                 aria-label="Warenkorb"
               >
                 <span className="text-base">🛒</span>
@@ -167,12 +170,14 @@ export default function SiteHeader() {
               <div
                 className="pointer-events-none opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0
                            group-hover:pointer-events-auto transition absolute right-0 mt-2 w-[320px]
-                           rounded-2xl border border-neutral-200 bg-white shadow-lg overflow-hidden"
+                           rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-lg overflow-hidden"
               >
-                <div className="p-4 border-b border-neutral-200">
+                <div className="p-4 border-b border-neutral-200 dark:border-neutral-800">
                   <div className="flex items-center justify-between">
-                    <div className="font-semibold text-neutral-900">Warenkorb</div>
-                    <div className="text-xs text-neutral-600">
+                    <div className="font-semibold text-neutral-900 dark:text-neutral-100">
+                      Warenkorb
+                    </div>
+                    <div className="text-xs text-neutral-600 dark:text-neutral-400">
                       {totalQuantity > 0 ? `${totalQuantity} Artikel` : "leer"}
                     </div>
                   </div>
@@ -180,21 +185,21 @@ export default function SiteHeader() {
 
                 <div className="max-h-[280px] overflow-auto">
                   {lines.length === 0 ? (
-                    <div className="p-4 text-sm text-neutral-600">
+                    <div className="p-4 text-sm text-neutral-600 dark:text-neutral-400">
                       Dein Warenkorb ist leer.
                     </div>
                   ) : (
-                    <ul className="divide-y divide-neutral-200">
+                    <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
                       {lines.slice(0, 6).map((l) => (
                         <li key={l.id} className="p-4">
-                          <div className="text-sm font-medium text-neutral-900 line-clamp-1">
+                          <div className="text-sm font-medium text-neutral-900 dark:text-neutral-100 line-clamp-1">
                             {l.merchandise?.productTitle ?? "Produkt"}
                           </div>
                           <div className="mt-1 flex items-center justify-between">
-                            <div className="text-xs text-neutral-600 line-clamp-1">
+                            <div className="text-xs text-neutral-600 dark:text-neutral-400 line-clamp-1">
                               {l.merchandise?.title ?? ""}
                             </div>
-                            <div className="text-xs text-neutral-700">
+                            <div className="text-xs text-neutral-700 dark:text-neutral-300">
                               x{l.quantity}
                             </div>
                           </div>
@@ -204,10 +209,12 @@ export default function SiteHeader() {
                   )}
                 </div>
 
-                <div className="p-4 border-t border-neutral-200 bg-neutral-50">
+                <div className="p-4 border-t border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-neutral-700">Zwischensumme</span>
-                    <span className="font-semibold text-neutral-900">
+                    <span className="text-neutral-700 dark:text-neutral-300">
+                      Zwischensumme
+                    </span>
+                    <span className="font-semibold text-neutral-900 dark:text-neutral-100">
                       {subtotal ?? "—"}
                     </span>
                   </div>
@@ -215,8 +222,8 @@ export default function SiteHeader() {
                   <div className="mt-3 grid grid-cols-2 gap-2">
                     <Link
                       href="/cart"
-                      className="rounded-xl border border-neutral-300 px-4 py-2 text-sm font-semibold
-                                 hover:bg-white transition text-center"
+                      className="rounded-xl border border-neutral-300 dark:border-neutral-700 px-4 py-2 text-sm font-semibold
+                                 hover:bg-white dark:hover:bg-neutral-900 transition text-center"
                     >
                       Ansehen
                     </Link>
@@ -233,7 +240,7 @@ export default function SiteHeader() {
                   </div>
 
                   {lines.length > 6 && (
-                    <div className="mt-2 text-xs text-neutral-600">
+                    <div className="mt-2 text-xs text-neutral-600 dark:text-neutral-400">
                       + weitere Artikel im Warenkorb…
                     </div>
                   )}
@@ -244,8 +251,7 @@ export default function SiteHeader() {
             {/* CTA Shop */}
             <Link
               href="/products"
-              className="hidden sm:inline-flex rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white
-                         hover:bg-brand-dark transition"
+              className="hidden sm:inline-flex rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark transition"
             >
               Shop
             </Link>
@@ -260,13 +266,11 @@ export default function SiteHeader() {
                 type="text"
                 name="q"
                 placeholder="Suche nach Produkten..."
-                className="w-full rounded-l-xl border border-neutral-300 px-4 py-3 text-sm text-neutral-900
-                           outline-none focus:border-neutral-500"
+                className="w-full rounded-l-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-4 py-3 text-sm text-neutral-900 dark:text-neutral-100 outline-none focus:border-neutral-500"
               />
               <button
                 type="submit"
-                className="rounded-r-xl border border-l-0 border-neutral-300 px-4 py-3 text-sm
-                           text-neutral-700 hover:bg-neutral-50 transition"
+                className="rounded-r-xl border border-l-0 border-neutral-300 dark:border-neutral-700 px-4 py-3 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition"
                 aria-label="Suchen"
               >
                 🔍
