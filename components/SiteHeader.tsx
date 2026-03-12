@@ -7,6 +7,87 @@ import { useCart } from "@/context/CartContext";
 
 const ACCOUNT_URL = process.env.NEXT_PUBLIC_SHOPIFY_CUSTOMER_ACCOUNTS_URL;
 
+type MegaMenuGroup = {
+  title: string;
+  href?: string;
+  items: { label: string; href: string }[];
+};
+
+const megaMenu: MegaMenuGroup[] = [
+  {
+    title: "Computer",
+    href: "/collections",
+    items: [
+      { label: "Laptops", href: "/collections/laptops" },
+      { label: "Desktop-PCs", href: "/collections/desktop-pcs" },
+      { label: "Mini PCs", href: "/collections/mini-pcs" },
+    ],
+  },
+  {
+    title: "PC-Komponenten",
+    href: "/collections",
+    items: [
+      { label: "Grafikkarten", href: "/collections/gpus" },
+      { label: "Arbeitsspeicher (RAM)", href: "/collections/ram" },
+      { label: "Mainboards", href: "/collections/mainboards" },
+      { label: "Netzteile", href: "/collections/netzteile" },
+    ],
+  },
+  {
+    title: "Peripherie",
+    href: "/collections",
+    items: [
+      { label: "Tastaturen", href: "/collections/tastaturen" },
+      { label: "Monitors", href: "/collections/monitors" },
+      { label: "Mäuse", href: "/collections/mice" },
+      { label: "Headsets", href: "/collections/headsets" },
+      { label: "Webcams", href: "/collections/webcams" },
+      { label: "Gaming-Stühle", href: "/collections/gaming-chairs" },
+      { label: "Dockingstationen", href: "/collections/docking-stations" },
+    ],
+  },
+  {
+    title: "Netzwerk",
+    href: "/collections",
+    items: [
+      { label: "Router", href: "/collections/routers" },
+      { label: "Netzwerk-Switches", href: "/collections/switches" },
+      { label: "WLAN Mesh", href: "/collections/wlan-mesh" },
+    ],
+  },
+  {
+    title: "Mobile",
+    href: "/collections",
+    items: [
+      { label: "Smartphones", href: "/collections/smartphones" },
+      { label: "Tablets", href: "/collections/tablets" },
+      { label: "Zubehör", href: "/collections/accessories" },
+    ],
+  },
+  {
+    title: "Office & Business",
+    href: "/collections",
+    items: [{ label: "Drucker", href: "/collections/printers" }],
+  },
+  {
+    title: "Datenspeicher",
+    href: "/collections",
+    items: [
+      { label: "Externe SSD", href: "/collections/external-ssd" },
+      { label: "NAS", href: "/collections/nas" },
+    ],
+  },
+  {
+    title: "Smart Home",
+    href: "/collections",
+    items: [
+      { label: "Kameras", href: "/collections/cameras" },
+      { label: "Smarte Steckdosen", href: "/collections/smart-plugs" },
+      { label: "Smarte Beleuchtung", href: "/collections/smart-lighting" },
+    ],
+  },
+];
+
 function NavLink({
   href,
   children,
@@ -17,13 +98,92 @@ function NavLink({
   return (
     <Link
       href={href}
-      className="relative text-sm font-medium text-neutral-700 hover:text-neutral-900 transition
+      className="relative text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition
                  after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full
                  after:origin-left after:scale-x-0 after:bg-brand after:transition-transform after:duration-200
                  hover:after:scale-x-100"
     >
       {children}
     </Link>
+  );
+}
+
+function MegaMenuDesktop() {
+  return (
+    <div className="hidden xl:flex items-center gap-6">
+      <div className="relative group">
+        <button
+          type="button"
+          className="relative text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition
+                     after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full
+                     after:origin-left after:scale-x-0 after:bg-brand after:transition-transform after:duration-200
+                     group-hover:after:scale-x-100"
+        >
+          Kategorien
+        </button>
+
+        <div
+          className="pointer-events-none opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0
+                     group-hover:pointer-events-auto transition absolute left-1/2 top-full z-50 mt-4 w-[980px] -translate-x-1/2
+                     rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 shadow-2xl p-6"
+        >
+          <div className="grid grid-cols-4 gap-6">
+            {megaMenu.map((group) => (
+              <div key={group.title}>
+                <div className="mb-3">
+                  <Link
+                    href={group.href || "/collections"}
+                    className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 hover:text-brand"
+                  >
+                    {group.title}
+                  </Link>
+                </div>
+
+                <ul className="space-y-2">
+                  {group.items.map((item) => (
+                    <li key={item.label}>
+                      <Link
+                        href={item.href}
+                        className="text-sm text-neutral-600 dark:text-neutral-400 hover:text-brand transition"
+                      >
+                        {item.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 border-t border-neutral-200 dark:border-neutral-800 pt-4 flex items-center justify-between">
+            <p className="text-sm text-neutral-500 dark:text-neutral-400">
+              Entdecke alle Kategorien und finde schnell die passende Technik.
+            </p>
+            <Link
+              href="/collections"
+              className="rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark transition"
+            >
+              Alle Kategorien
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      <NavLink href="/products">Alle Produkte</NavLink>
+
+      {ACCOUNT_URL && (
+        <a
+          href={ACCOUNT_URL}
+          target="_self"
+          className="relative text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white transition
+                     after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full
+                     after:origin-left after:scale-x-0 after:bg-brand after:transition-transform after:duration-200
+                     hover:after:scale-x-100"
+        >
+          Mein Konto
+        </a>
+      )}
+    </div>
   );
 }
 
@@ -62,7 +222,6 @@ export default function SiteHeader() {
     >
       <div className="mx-auto max-w-7xl px-4">
         <div className="flex h-16 items-center justify-between gap-4">
-          {/* Logo */}
           <Link href="/" className="flex items-center gap-2 shrink-0">
             <Image
               src="/logo-iumatec.svg"
@@ -75,31 +234,8 @@ export default function SiteHeader() {
             <span className="sr-only">IUMATEC</span>
           </Link>
 
-          {/* Desktop Nav */}
-          <nav className="hidden xl:flex items-center gap-6">
-            <NavLink href="/collections">Kategorien</NavLink>
-            <NavLink href="/collections/laptops">Computer</NavLink>
-            <NavLink href="/collections/komponenten">PC-Komponenten</NavLink>
-            <NavLink href="/collections/tastaturen">Peripherie</NavLink>
-            <NavLink href="/collections/netzwerk">Netzwerk</NavLink>
-            <NavLink href="/collections/smartphones">Mobile</NavLink>
-            <NavLink href="/collections/smart-home">Smart Home</NavLink>
+          <MegaMenuDesktop />
 
-            {ACCOUNT_URL && (
-              <a
-                href={ACCOUNT_URL}
-                target="_self"
-                className="relative text-sm font-medium text-neutral-700 hover:text-neutral-900 transition
-                           after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full
-                           after:origin-left after:scale-x-0 after:bg-brand after:transition-transform after:duration-200
-                           hover:after:scale-x-100 dark:text-neutral-300 dark:hover:text-white"
-              >
-                Mein Konto
-              </a>
-            )}
-          </nav>
-
-          {/* Desktop Search */}
           <form
             action="/search"
             className="hidden lg:flex items-center flex-1 max-w-sm"
@@ -119,9 +255,7 @@ export default function SiteHeader() {
             </button>
           </form>
 
-          {/* Right side */}
           <div className="flex items-center gap-3">
-            {/* Mobile quick links */}
             <div className="md:hidden flex items-center gap-3">
               <Link
                 href="/products"
@@ -137,7 +271,6 @@ export default function SiteHeader() {
               </Link>
             </div>
 
-            {/* Mobile Search button */}
             <button
               type="button"
               onClick={() => setMobileSearchOpen((v) => !v)}
@@ -147,7 +280,6 @@ export default function SiteHeader() {
               <span className="text-base">🔍</span>
             </button>
 
-            {/* Cart */}
             <div className="relative group">
               <Link
                 href="/cart"
@@ -166,7 +298,6 @@ export default function SiteHeader() {
                 )}
               </Link>
 
-              {/* Dropdown */}
               <div
                 className="pointer-events-none opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0
                            group-hover:pointer-events-auto transition absolute right-0 mt-2 w-[320px]
@@ -248,7 +379,6 @@ export default function SiteHeader() {
               </div>
             </div>
 
-            {/* CTA Shop */}
             <Link
               href="/products"
               className="hidden sm:inline-flex rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark transition"
@@ -258,7 +388,6 @@ export default function SiteHeader() {
           </div>
         </div>
 
-        {/* Mobile Search Bar */}
         {mobileSearchOpen && (
           <div className="pb-4 lg:hidden">
             <form action="/search" className="flex items-center">
