@@ -6,13 +6,14 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "alltron:sync-catalog": "tsx integrations/alltron/syncCatalog.ts"
+    "alltron:sync-catalog": "tsx integrations/alltron/syncCatalog.ts",
+    "alltron:test": "tsx integrations/alltron/testConnection.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.1",
     "basic-ftp": "^5.0.5",
-    "fast-xml-parser": "^4.5.0",
-    "form-data": "^4.0.0",
+    "fast-xml-parser": "^4.5.3",
+    "form-data": "^4.0.4",
     "next": "14.2.3",
     "react": "18.2.0",
     "react-dom": "18.2.0",
@@ -24,7 +25,7 @@
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.17",
-    "tsx": "^4.19.2",
+    "tsx": "^4.19.3",
     "typescript": "^5.5.4"
   }
 }
