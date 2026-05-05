@@ -4,11 +4,11 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "cdn.shopify.com",
+        hostname: "**.myshopify.com",
       },
       {
         protocol: "https",
-        hostname: "iumatec-2.myshopify.com",
+        hostname: "cdn.shopify.com",
       },
     ],
   },

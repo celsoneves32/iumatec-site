@@ -1,309 +1,183 @@
-// app/page.tsx
 import Image from "next/image";
 import Link from "next/link";
-import AddToCartButton from "@/components/AddToCartButton";
-import { shopifyFetch } from "@/lib/shopify";
+import ProductCard from "@/components/ProductCard";
+import { getStorefrontProducts } from "@/lib/shopifyStorefront";
 
-type MoneyV2 = { amount: string; currencyCode: string };
-
-type HomeProduct = {
-  id: string;
-  handle: string;
-  title: string;
-  imageUrl: string | null;
-  imageAlt: string | null;
-  price: string; // formatted string
-  currencyCode: string;
-  variantId: string | null;
-};
-
-type HomeCollection = {
-  id: string;
-  handle: string;
-  title: string;
-  imageUrl: string | null;
-  imageAlt: string | null;
-};
-
-function formatPrice(amount: string, currency: string) {
-  const n = Number(amount);
-  if (Number.isNaN(n)) return `${amount} ${currency}`;
-  return new Intl.NumberFormat("de-CH", { style: "currency", currency }).format(n);
-}
-
-async function getLatestProducts(limit = 8): Promise<HomeProduct[]> {
-  const query = /* GraphQL */ `
-    query HomeLatestProducts($first: Int!) {
-      products(first: $first, sortKey: CREATED_AT, reverse: true) {
-        edges {
-          node {
-            id
-            handle
-            title
-            featuredImage {
-              url
-              altText
-            }
-            priceRange {
-              minVariantPrice {
-                amount
-                currencyCode
-              }
-            }
-            variants(first: 1) {
-              edges {
-                node {
-                  id
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  `;
-
-  type Resp = {
-    products: {
-      edges: Array<{
-        node: {
-          id: string;
-          handle: string;
-          title: string;
-          featuredImage: { url: string; altText: string | null } | null;
-          priceRange: { minVariantPrice: MoneyV2 };
-          variants: { edges: Array<{ node: { id: string } }> };
-        };
-      }>;
-    };
-  };
-
-  const data = await shopifyFetch<Resp>({ query, variables: { first: limit } });
-
-  return data.products.edges.map(({ node }) => {
-    const min = node.priceRange.minVariantPrice;
-    const variantId = node.variants.edges?.[0]?.node?.id ?? null;
-
-    return {
-      id: node.id,
-      handle: node.handle,
-      title: node.title,
-      imageUrl: node.featuredImage?.url ?? null,
-      imageAlt: node.featuredImage?.altText ?? node.title,
-      price: formatPrice(min.amount, min.currencyCode),
-      currencyCode: min.currencyCode,
-      variantId,
-    };
-  });
-}
-
-async function getFeaturedCollections(limit = 4): Promise<HomeCollection[]> {
-  const query = /* GraphQL */ `
-    query HomeCollections($first: Int!) {
-      collections(first: $first, sortKey: UPDATED_AT, reverse: true) {
-        edges {
-          node {
-            id
-            handle
-            title
-            image {
-              url
-              altText
-            }
-          }
-        }
-      }
-    }
-  `;
-
-  type Resp = {
-    collections: {
-      edges: Array<{
-        node: {
-          id: string;
-          handle: string;
-          title: string;
-          image: { url: string; altText: string | null } | null;
-        };
-      }>;
-    };
-  };
-
-  const data = await shopifyFetch<Resp>({ query, variables: { first: limit } });
-
-  return data.collections.edges.map(({ node }) => ({
-    id: node.id,
-    handle: node.handle,
-    title: node.title,
-    imageUrl: node.image?.url ?? null,
-    imageAlt: node.image?.altText ?? node.title,
-  }));
-}
+const quickCategories = [
+  {
+    title: "Laptops",
+    href: "/produkte?q=laptop",
+    image: "/categories/laptops.png",
+  },
+  {
+    title: "Monitore",
+    href: "/produkte?q=monitor",
+    image: "/categories/monitors.png",
+  },
+  {
+    title: "Smartphones",
+    href: "/produkte?q=smartphone",
+    image: "/categories/smartphones.png",
+  },
+  {
+    title: "Zubehör",
+    href: "/produkte?q=zubehör",
+    image: "/categories/keyboards.png",
+  },
+];
 
 export default async function HomePage() {
-  const [products, collections] = await Promise.all([
-    getLatestProducts(8),
-    getFeaturedCollections(4),
-  ]);
+  const products = await getStorefrontProducts(16);
 
   return (
     <main className="bg-white">
-      {/* HERO */}
-      <section className="relative overflow-hidden border-b">
-        <div className="absolute inset-0 bg-gradient-to-br from-brand/15 via-white to-white" />
-        <div className="relative mx-auto max-w-6xl px-4 py-14 grid gap-10 md:grid-cols-2 items-center">
+      <section className="border-b border-neutral-200 bg-neutral-50">
+        <div className="mx-auto max-w-7xl px-4 py-12 text-center md:py-16">
+          <div className="mx-auto inline-flex items-center rounded-full border border-red-100 bg-white px-4 py-2 text-sm font-bold text-red-700 shadow-sm">
+            <span className="mr-2 h-2 w-2 rounded-full bg-red-600" />
+            IUMATEC Schweiz
+          </div>
+
+          <h1 className="mx-auto mt-6 max-w-4xl text-5xl font-extrabold leading-[0.95] tracking-tight text-neutral-950 md:text-7xl">
+            Technik schnell und sicher kaufen.
+          </h1>
+
+          <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-neutral-600">
+            Verfügbare Produkte, transparente Preise inkl. MWST und sicherer
+            Checkout für die Schweiz.
+          </p>
+
+          <div className="mt-8 flex justify-center gap-4">
+            <Link
+              href="/produkte"
+              className="rounded-2xl bg-red-600 px-8 py-4 text-base font-extrabold text-white shadow-sm transition hover:bg-red-700"
+            >
+              Jetzt einkaufen
+            </Link>
+
+            <Link
+              href="#top-deals"
+              className="rounded-2xl border border-neutral-300 bg-white px-8 py-4 text-base font-bold text-neutral-900 transition hover:bg-neutral-50"
+            >
+              Angebote ansehen
+            </Link>
+          </div>
+
+          <div className="mx-auto mt-8 grid max-w-3xl gap-3 sm:grid-cols-3">
+            <div className="rounded-2xl bg-white p-4 text-sm font-bold text-neutral-800 shadow-sm">
+              🇨🇭 Schweizer Lieferung
+            </div>
+            <div className="rounded-2xl bg-white p-4 text-sm font-bold text-neutral-800 shadow-sm">
+              🔒 Sicherer Checkout
+            </div>
+            <div className="rounded-2xl bg-white p-4 text-sm font-bold text-neutral-800 shadow-sm">
+              💰 Preise inkl. MWST
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="border-b border-neutral-200 bg-white">
+        <div className="mx-auto max-w-7xl px-4 py-8">
+          <div className="mb-5 flex items-end justify-between gap-4">
+            <div>
+              <h2 className="text-2xl font-extrabold text-neutral-950">
+                Schnell einkaufen nach Kategorie
+              </h2>
+              <p className="mt-1 text-sm text-neutral-500">
+                Die beliebtesten Bereiche direkt öffnen.
+              </p>
+            </div>
+
+            <Link
+              href="/produkte"
+              className="text-sm font-bold text-red-600 hover:underline"
+            >
+              Alle Produkte
+            </Link>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {quickCategories.map((item) => (
+              <Link
+                key={item.title}
+                href={item.href}
+                className="group flex items-center gap-4 rounded-3xl border border-neutral-200 bg-white p-5 transition hover:-translate-y-1 hover:shadow-lg"
+              >
+                <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-neutral-50">
+                  <Image
+                    src={item.image}
+                    alt={item.title}
+                    fill
+                    className="object-contain p-2 transition group-hover:scale-105"
+                  />
+                </div>
+
+                <div>
+                  <div className="font-extrabold text-neutral-950">
+                    {item.title}
+                  </div>
+                  <div className="text-sm text-neutral-500 group-hover:text-red-600">
+                    Jetzt entdecken →
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="top-deals" className="mx-auto max-w-7xl px-4 py-12">
+        <div className="mb-6 flex items-end justify-between gap-4">
           <div>
-            <p className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs text-neutral-600 bg-white/70">
-              <span className="h-2 w-2 rounded-full bg-brand" />
-              Premium Tech Store Schweiz
-            </p>
-
-            <h1 className="mt-4 text-4xl md:text-5xl font-extrabold tracking-tight text-neutral-900">
-              IUMATEC Schweiz — Tech, <span className="text-brand">schnell</span> & sicher.
-            </h1>
-
-            <p className="mt-4 text-neutral-600">
-              Neuheiten, Bestseller und Zubehör — direkt bereit für deinen Warenkorb.
-            </p>
-
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Link
-                href="/products"
-                className="rounded-xl bg-brand px-5 py-3 text-white text-sm font-semibold hover:bg-brand-dark transition"
-              >
-                Produkte ansehen
-              </Link>
-              <Link
-                href="/collections"
-                className="rounded-xl border border-neutral-300 px-5 py-3 text-sm font-semibold hover:bg-neutral-50 transition"
-              >
-                Kategorien
-              </Link>
+            <div className="inline-flex rounded-full bg-red-50 px-4 py-2 text-sm font-extrabold text-red-700">
+              🔥 Aktuelle Angebote
             </div>
-
-            <div className="mt-6 grid grid-cols-3 gap-3 text-xs text-neutral-600">
-              <div className="rounded-xl border bg-white/70 px-3 py-2">
-                <span className="font-semibold text-neutral-900">24h</span> Support
-              </div>
-              <div className="rounded-xl border bg-white/70 px-3 py-2">
-                <span className="font-semibold text-neutral-900">CH</span> Versand
-              </div>
-              <div className="rounded-xl border bg-white/70 px-3 py-2">
-                <span className="font-semibold text-neutral-900">Secure</span> Checkout
-              </div>
-            </div>
+            <h2 className="mt-4 text-4xl font-extrabold tracking-tight text-neutral-950">
+              Sofort verfügbare Produkte
+            </h2>
+            <p className="mt-2 text-neutral-600">
+              Direkt bestellbar mit sicherem Shopify Checkout.
+            </p>
           </div>
 
-          <div className="rounded-3xl border bg-white/60 backdrop-blur p-3 shadow-sm">
-            <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-neutral-100">
-              {/* Troca para a tua imagem (já tens no /public) */}
-              <Image
-                src="/hero-tech.png"
-                alt="IUMATEC"
-                fill
-                priority
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 50vw"
+          <Link
+            href="/produkte"
+            className="hidden text-sm font-bold text-red-600 underline-offset-4 hover:underline sm:block"
+          >
+            Alle Produkte ansehen
+          </Link>
+        </div>
+
+        {products.length > 0 ? (
+          <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+            {products.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={{
+                  slug: product.handle,
+                  title: product.title,
+                  brand: product.vendor,
+                  price: product.price,
+                  image: product.image ?? null,
+                  inStock: product.availableForSale,
+                  stockQty: product.stockQty ?? 999,
+                  merchandiseId: product.merchandiseId,
+                  productHandle: product.handle,
+                }}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-white/30 via-transparent to-transparent" />
-            </div>
+            ))}
           </div>
-        </div>
-      </section>
-
-      {/* CATEGORIES / COLLECTIONS */}
-      <section className="mx-auto max-w-6xl px-4 py-10">
-        <div className="flex items-end justify-between gap-4">
-          <h2 className="text-xl font-bold text-neutral-900">Kategorien</h2>
-          <Link href="/collections" className="text-sm text-brand hover:underline underline-offset-4">
-            Alle ansehen
-          </Link>
-        </div>
-
-        <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {collections.map((c) => (
-            <Link
-              key={c.id}
-              href={`/collections/${c.handle}`}
-              className="group rounded-2xl border bg-white hover:shadow-sm transition overflow-hidden"
-            >
-              <div className="relative h-36 bg-neutral-100">
-                {c.imageUrl ? (
-                  <Image
-                    src={c.imageUrl}
-                    alt={c.imageAlt ?? c.title}
-                    fill
-                    className="object-cover group-hover:scale-[1.02] transition"
-                    sizes="(max-width: 768px) 100vw, 25vw"
-                  />
-                ) : (
-                  <div className="absolute inset-0 bg-gradient-to-br from-brand/10 via-white to-neutral-100" />
-                )}
-              </div>
-              <div className="p-4">
-                <div className="font-semibold text-neutral-900 group-hover:text-brand transition">
-                  {c.title}
-                </div>
-                <div className="text-sm text-neutral-600">Entdecken</div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* LATEST PRODUCTS */}
-      <section className="mx-auto max-w-6xl px-4 pb-14">
-        <div className="flex items-end justify-between gap-4">
-          <h2 className="text-xl font-bold text-neutral-900">Neueste Produkte</h2>
-          <Link href="/products" className="text-sm text-brand hover:underline underline-offset-4">
-            Alle Produkte
-          </Link>
-        </div>
-
-        <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {products.map((p) => (
-            <Link
-              key={p.id}
-              href={`/products/${p.handle}`}
-              className="group rounded-2xl border bg-white hover:shadow-sm transition overflow-hidden"
-            >
-              <div className="relative aspect-square bg-neutral-100">
-                {p.imageUrl ? (
-                  <Image
-                    src={p.imageUrl}
-                    alt={p.imageAlt ?? p.title}
-                    fill
-                    className="object-contain p-6 group-hover:scale-[1.02] transition"
-                    sizes="(max-width: 768px) 100vw, 25vw"
-                  />
-                ) : (
-                  <div className="absolute inset-0 bg-gradient-to-br from-brand/10 via-white to-neutral-100" />
-                )}
-              </div>
-
-              <div className="p-4">
-                <div className="line-clamp-2 font-semibold text-neutral-900 group-hover:text-brand transition">
-                  {p.title}
-                </div>
-                <div className="mt-2 text-sm font-bold text-neutral-900">{p.price}</div>
-
-                <div className="mt-3">
-                  {p.variantId ? (
-                    <AddToCartButton variantId={p.variantId} />
-                  ) : (
-                    <button
-                      type="button"
-                      disabled
-                      className="w-full rounded-lg bg-neutral-200 px-4 py-2 text-neutral-600 text-sm"
-                    >
-                      Nicht verfügbar
-                    </button>
-                  )}
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
+        ) : (
+          <div className="rounded-3xl border border-neutral-200 bg-white p-10 text-center">
+            <h3 className="text-2xl font-bold tracking-tight text-neutral-950">
+              Keine Shopify Produkte gefunden
+            </h3>
+            <p className="mt-3 text-neutral-600">
+              Der Shopify Storefront liefert aktuell keine verkaufbaren Produkte.
+            </p>
+          </div>
+        )}
       </section>
     </main>
   );

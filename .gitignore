@@ -7,3 +7,6 @@ out
 .env
 .env.local
 .env.*
+# Alltron (ficheiros grandes - NÃO subir)
+integrations/alltron/downloads/
+integrations/alltron/out/

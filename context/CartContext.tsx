@@ -1,345 +1,438 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
-type Money = { amount: string; currencyCode: string };
-
-type CartLine = {
-  id: string;
+type CartItem = {
+  lineId: string;
+  merchandiseId: string;
+  productHandle: string;
+  title: string;
+  variantTitle: string;
+  imageUrl: string | null;
+  imageAlt: string | null;
   quantity: number;
-  cost?: { totalAmount?: Money };
-  merchandise?: {
-    id: string; // variant id
-    title?: string;
-    productTitle?: string;
-  };
+  unitPrice: string;
+  totalPrice: string;
+  currencyCode: string;
 };
 
-type ShopifyCart = {
+type CartState = {
   id: string;
-  checkoutUrl?: string;
-  cost?: { totalAmount?: Money };
-  lines?: CartLine[];
+  checkoutUrl: string;
+  totalQuantity: number;
+  subtotal: string;
+  total: string;
+  currencyCode: string;
+  items: CartItem[];
+};
+
+type CartToast = {
+  type: "success" | "error";
+  message: string;
+};
+
+type AddItemInput = {
+  merchandiseId?: string | null;
+  productHandle?: string | null;
+  quantity?: number;
+  imageUrl?: string | null;
 };
 
 type CartContextValue = {
-  cart: ShopifyCart | null;
+  cartId: string | null;
+  items: CartItem[];
   loading: boolean;
-  error: string | null;
   totalQuantity: number;
-
-  addItem: (variantId: string, quantity?: number) => Promise<void>;
-  updateLine: (lineId: string, quantity: number) => Promise<void>;
-  removeLine: (lineId: string) => Promise<void>;
-  goToCheckout: () => void;
-
-  clearCart: () => void;
+  subtotal: number;
+  total: number;
+  currencyCode: string;
+  checkoutUrl: string | null;
+  isDrawerOpen: boolean;
+  toast: CartToast | null;
+  ensureCart: () => Promise<string | null>;
+  addItem: (input: AddItemInput) => Promise<boolean>;
+  updateQuantity: (lineId: string, quantity: number) => Promise<boolean>;
+  removeItem: (lineId: string) => Promise<boolean>;
+  refreshCart: () => Promise<void>;
+  openDrawer: () => void;
+  closeDrawer: () => void;
+  clearToast: () => void;
+  resetCart: () => void;
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
 
-const STORAGE_KEY = "iumatec_cart_id_v1";
+const STORAGE_KEY = "iumatec_cart_id";
 
-function getStorefrontEndpoint() {
-  const domain = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN;
-  if (!domain) throw new Error("Missing NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN");
-  return `https://${domain}/api/2024-04/graphql.json`;
+function parseAmount(value: string) {
+  const n = Number(value);
+  return Number.isNaN(n) ? 0 : n;
 }
 
-function getStorefrontToken() {
-  const token = process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN;
-  if (!token) throw new Error("Missing NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN");
-  return token;
-}
+function getMessageFromJson(json: any, fallback: string) {
+  if (!json) return fallback;
 
-async function storefrontFetch<T>(query: string, variables?: Record<string, any>): Promise<T> {
-  const res = await fetch(getStorefrontEndpoint(), {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Shopify-Storefront-Access-Token": getStorefrontToken(),
-    },
-    body: JSON.stringify({ query, variables }),
-    cache: "no-store",
-  });
+  if (typeof json.message === "string" && json.message.trim()) return json.message;
 
-  const json = await res.json();
-
-  if (!res.ok || json.errors) {
-    const msg =
-      json?.errors?.[0]?.message ||
-      (typeof json === "string" ? json : "Storefront request failed");
-    throw new Error(msg);
+  if (Array.isArray(json.userErrors) && json.userErrors.length > 0) {
+    const first = json.userErrors[0];
+    if (typeof first?.message === "string" && first.message.trim()) return first.message;
   }
-  return json.data as T;
-}
 
-function mapCart(cart: any): ShopifyCart {
-  return {
-    id: cart.id,
-    checkoutUrl: cart.checkoutUrl,
-    cost: cart.cost?.totalAmount ? { totalAmount: cart.cost.totalAmount } : cart.cost,
-    lines: (cart.lines?.edges ?? []).map((e: any) => {
-      const line = e.node;
-      return {
-        id: line.id,
-        quantity: line.quantity,
-        cost: line.cost,
-        merchandise: {
-          id: line.merchandise?.id,
-          title: line.merchandise?.title,
-          productTitle: line.merchandise?.product?.title,
-        },
-      } as CartLine;
-    }),
-  };
-}
-
-/**
- * ✅ FIX PRINCIPAL AQUI:
- * merchandise TEM que ser um objeto: merchandise { ... on ProductVariant { ... } }
- */
-const CART_FRAGMENT = `
-  fragment CartFragment on Cart {
-    id
-    checkoutUrl
-    cost {
-      totalAmount { amount currencyCode }
-    }
-    lines(first: 100) {
-      edges {
-        node {
-          id
-          quantity
-          cost {
-            totalAmount { amount currencyCode }
-          }
-          merchandise {
-            ... on ProductVariant {
-              id
-              title
-              product { title }
-            }
-          }
-        }
-      }
-    }
+  if (Array.isArray(json.errors) && json.errors.length > 0) {
+    const first = json.errors[0];
+    if (typeof first?.message === "string" && first.message.trim()) return first.message;
   }
-`;
+
+  if (typeof json.error === "string" && json.error.trim()) return json.error;
+
+  return fallback;
+}
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const [cart, setCart] = useState<ShopifyCart | null>(null);
+  const [cart, setCart] = useState<CartState | null>(null);
+  const [cartId, setCartId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [toast, setToast] = useState<CartToast | null>(null);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const totalQuantity = useMemo(() => {
-    const lines = cart?.lines ?? [];
-    return lines.reduce((acc, l) => acc + (l.quantity || 0), 0);
-  }, [cart]);
-
-  function saveCartId(id: string) {
-    try {
-      localStorage.setItem(STORAGE_KEY, id);
-    } catch {}
-  }
-
-  function loadCartId(): string | null {
-    try {
-      return localStorage.getItem(STORAGE_KEY);
-    } catch {
-      return null;
+  const clearToast = useCallback(() => {
+    if (toastTimerRef.current) {
+      clearTimeout(toastTimerRef.current);
+      toastTimerRef.current = null;
     }
-  }
-
-  function clearCart() {
-    setCart(null);
-    setError(null);
-    try {
-      localStorage.removeItem(STORAGE_KEY);
-    } catch {}
-  }
-
-  async function fetchCart(cartId: string) {
-    const QUERY = `
-      ${CART_FRAGMENT}
-      query GetCart($id: ID!) {
-        cart(id: $id) { ...CartFragment }
-      }
-    `;
-
-    const data = await storefrontFetch<{ cart: any }>(QUERY, { id: cartId });
-    if (!data.cart) {
-      clearCart();
-      return;
-    }
-    setCart(mapCart(data.cart));
-  }
-
-  // init: load cartId and fetch cart
-  useEffect(() => {
-    const id = loadCartId();
-    if (!id) return;
-    setLoading(true);
-    fetchCart(id)
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setToast(null);
   }, []);
 
-  async function ensureCart(): Promise<string> {
-    const existingId = loadCartId();
-    if (existingId) return existingId;
+  const showToast = useCallback((nextToast: CartToast) => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
 
-    const MUTATION = `
-      ${CART_FRAGMENT}
-      mutation CreateCart {
-        cartCreate {
-          cart { ...CartFragment }
-          userErrors { message }
-        }
+    setToast(nextToast);
+
+    toastTimerRef.current = setTimeout(() => {
+      setToast(null);
+      toastTimerRef.current = null;
+    }, 3500);
+  }, []);
+
+  const saveCartId = useCallback((value: string | null) => {
+    setCartId(value);
+
+    if (typeof window === "undefined") return;
+
+    if (value) {
+      localStorage.setItem(STORAGE_KEY, value);
+    } else {
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  }, []);
+
+  const resetCart = useCallback(() => {
+    clearToast();
+    setCart(null);
+    saveCartId(null);
+    setIsDrawerOpen(false);
+    showToast({
+      type: "success",
+      message: "Warenkorb wurde zurückgesetzt.",
+    });
+  }, [clearToast, saveCartId, showToast]);
+
+  const openDrawer = useCallback(() => setIsDrawerOpen(true), []);
+  const closeDrawer = useCallback(() => setIsDrawerOpen(false), []);
+
+  const createCart = useCallback(async (): Promise<string | null> => {
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/cart/create", {
+        method: "POST",
+        cache: "no-store",
+      });
+
+      const json = await res.json().catch(() => null);
+
+      if (!res.ok || !json?.ok || !json?.cart?.id) {
+        showToast({
+          type: "error",
+          message: getMessageFromJson(json, "Warenkorb konnte nicht erstellt werden."),
+        });
+        return null;
       }
-    `;
 
-    const data = await storefrontFetch<any>(MUTATION);
-    const err = data?.cartCreate?.userErrors?.[0]?.message;
-    if (err) throw new Error(err);
-
-    const newCart = data.cartCreate.cart;
-    const mapped = mapCart(newCart);
-    setCart(mapped);
-    saveCartId(mapped.id);
-    return mapped.id;
-  }
-
-  async function addItem(variantId: string, quantity = 1) {
-    if (!variantId) return;
-    setError(null);
-    setLoading(true);
-
-    try {
-      const cartId = await ensureCart();
-
-      const MUTATION = `
-        ${CART_FRAGMENT}
-        mutation AddLines($cartId: ID!, $lines: [CartLineInput!]!) {
-          cartLinesAdd(cartId: $cartId, lines: $lines) {
-            cart { ...CartFragment }
-            userErrors { message }
-          }
-        }
-      `;
-
-      const data = await storefrontFetch<any>(MUTATION, {
-        cartId,
-        lines: [{ merchandiseId: variantId, quantity }],
+      saveCartId(json.cart.id);
+      setCart(json.cart);
+      return json.cart.id;
+    } catch (error) {
+      console.error("createCart error:", error);
+      showToast({
+        type: "error",
+        message: "Warenkorb konnte nicht erstellt werden.",
       });
-
-      const err = data?.cartLinesAdd?.userErrors?.[0]?.message;
-      if (err) throw new Error(err);
-
-      setCart(mapCart(data.cartLinesAdd.cart));
-    } catch (e: any) {
-      setError(e.message || "Fehler beim Hinzufügen.");
+      return null;
     } finally {
       setLoading(false);
     }
-  }
+  }, [saveCartId, showToast]);
 
-  async function updateLine(lineId: string, quantity: number) {
-    if (!lineId || quantity < 1) return;
-    setError(null);
+  const refreshCart = useCallback(async () => {
+    if (!cartId) return;
+
     setLoading(true);
 
     try {
-      const cartId = loadCartId();
-      if (!cartId) throw new Error("Kein Warenkorb gefunden.");
-
-      const MUTATION = `
-        ${CART_FRAGMENT}
-        mutation UpdateLines($cartId: ID!, $lines: [CartLineUpdateInput!]!) {
-          cartLinesUpdate(cartId: $cartId, lines: $lines) {
-            cart { ...CartFragment }
-            userErrors { message }
-          }
-        }
-      `;
-
-      const data = await storefrontFetch<any>(MUTATION, {
-        cartId,
-        lines: [{ id: lineId, quantity }],
+      const res = await fetch(`/api/cart/get?cartId=${encodeURIComponent(cartId)}`, {
+        method: "GET",
+        cache: "no-store",
       });
 
-      const err = data?.cartLinesUpdate?.userErrors?.[0]?.message;
-      if (err) throw new Error(err);
+      const json = await res.json().catch(() => null);
 
-      setCart(mapCart(data.cartLinesUpdate.cart));
-    } catch (e: any) {
-      setError(e.message || "Fehler beim Aktualisieren.");
+      if (!res.ok || !json?.ok || !json?.cart) {
+        console.error("refreshCart failed:", json);
+        saveCartId(null);
+        setCart(null);
+        setIsDrawerOpen(false);
+        return;
+      }
+
+      setCart(json.cart);
+    } catch (error) {
+      console.error("refreshCart error:", error);
     } finally {
       setLoading(false);
     }
-  }
+  }, [cartId, saveCartId]);
 
-  async function removeLine(lineId: string) {
-    if (!lineId) return;
-    setError(null);
-    setLoading(true);
+  const ensureCart = useCallback(async (): Promise<string | null> => {
+    if (cartId) return cartId;
+    return createCart();
+  }, [cartId, createCart]);
 
-    try {
-      const cartId = loadCartId();
-      if (!cartId) throw new Error("Kein Warenkorb gefunden.");
+  const addItem = useCallback(
+    async (input: AddItemInput): Promise<boolean> => {
+      const ensuredCartId = await ensureCart();
+      if (!ensuredCartId) return false;
 
-      const MUTATION = `
-        ${CART_FRAGMENT}
-        mutation RemoveLines($cartId: ID!, $lineIds: [ID!]!) {
-          cartLinesRemove(cartId: $cartId, lineIds: $lineIds) {
-            cart { ...CartFragment }
-            userErrors { message }
-          }
+      const merchandiseId = input.merchandiseId?.trim() || null;
+      const productHandle = input.productHandle?.trim() || null;
+      const quantity = Math.max(1, Number(input.quantity || 1));
+      const imageUrl = input.imageUrl?.trim() || null;
+
+      if (!merchandiseId && !productHandle) {
+        showToast({
+          type: "error",
+          message: "Produkt kann aktuell nicht bestellt werden.",
+        });
+        return false;
+      }
+
+      setLoading(true);
+
+      try {
+        const res = await fetch("/api/cart/add", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            cartId: ensuredCartId,
+            merchandiseId,
+            productHandle,
+            quantity,
+            imageUrl,
+          }),
+        });
+
+        const json = await res.json().catch(() => null);
+
+        if (!res.ok || !json?.ok || !json?.cart) {
+          showToast({
+            type: "error",
+            message: getMessageFromJson(
+              json,
+              "Produkt konnte nicht zum Warenkorb hinzugefügt werden."
+            ),
+          });
+          return false;
         }
-      `;
 
-      const data = await storefrontFetch<any>(MUTATION, {
-        cartId,
-        lineIds: [lineId],
-      });
+        setCart(json.cart);
+        setIsDrawerOpen(true);
+        showToast({
+          type: "success",
+          message: "Produkt wurde zum Warenkorb hinzugefügt.",
+        });
 
-      const err = data?.cartLinesRemove?.userErrors?.[0]?.message;
-      if (err) throw new Error(err);
+        return true;
+      } catch (error) {
+        console.error("addItem error:", error);
+        showToast({
+          type: "error",
+          message: "Produkt konnte nicht zum Warenkorb hinzugefügt werden.",
+        });
+        return false;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [ensureCart, showToast]
+  );
 
-      setCart(mapCart(data.cartLinesRemove.cart));
-    } catch (e: any) {
-      setError(e.message || "Fehler beim Entfernen.");
-    } finally {
-      setLoading(false);
-    }
-  }
+  const removeItem = useCallback(
+    async (lineId: string): Promise<boolean> => {
+      if (!cartId) return false;
 
-  function goToCheckout() {
-    if (cart?.checkoutUrl) {
-      window.location.href = cart.checkoutUrl;
-      return;
-    }
-    setError("Checkout-Link ist nicht verfügbar.");
-  }
+      setLoading(true);
 
-  const value: CartContextValue = {
-    cart,
-    loading,
-    error,
-    totalQuantity,
-    addItem,
-    updateLine,
-    removeLine,
-    goToCheckout,
-    clearCart,
-  };
+      try {
+        const res = await fetch("/api/cart/remove", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ cartId, lineId }),
+        });
+
+        const json = await res.json().catch(() => null);
+
+        if (!res.ok || !json?.ok || !json?.cart) {
+          showToast({
+            type: "error",
+            message: getMessageFromJson(json, "Produkt konnte nicht entfernt werden."),
+          });
+          return false;
+        }
+
+        setCart(json.cart);
+        return true;
+      } catch (error) {
+        console.error("removeItem error:", error);
+        showToast({
+          type: "error",
+          message: "Produkt konnte nicht entfernt werden.",
+        });
+        return false;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [cartId, showToast]
+  );
+
+  const updateQuantity = useCallback(
+    async (lineId: string, quantity: number): Promise<boolean> => {
+      if (!cartId) return false;
+
+      if (quantity <= 0) return removeItem(lineId);
+
+      setLoading(true);
+
+      try {
+        const res = await fetch("/api/cart/update", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ cartId, lineId, quantity }),
+        });
+
+        const json = await res.json().catch(() => null);
+
+        if (!res.ok || !json?.ok || !json?.cart) {
+          showToast({
+            type: "error",
+            message: getMessageFromJson(json, "Menge konnte nicht aktualisiert werden."),
+          });
+          return false;
+        }
+
+        setCart(json.cart);
+        return true;
+      } catch (error) {
+        console.error("updateQuantity error:", error);
+        showToast({
+          type: "error",
+          message: "Menge konnte nicht aktualisiert werden.",
+        });
+        return false;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [cartId, removeItem, showToast]
+  );
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) setCartId(stored);
+  }, []);
+
+  useEffect(() => {
+    if (!cartId) return;
+    void refreshCart();
+  }, [cartId, refreshCart]);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    };
+  }, []);
+
+  const value = useMemo<CartContextValue>(
+    () => ({
+      cartId,
+      items: cart?.items ?? [],
+      loading,
+      totalQuantity: cart?.totalQuantity ?? 0,
+      subtotal: parseAmount(cart?.subtotal ?? "0"),
+      total: parseAmount(cart?.total ?? "0"),
+      currencyCode: cart?.currencyCode ?? "CHF",
+      checkoutUrl: cart?.checkoutUrl ?? null,
+      isDrawerOpen,
+      toast,
+      ensureCart,
+      addItem,
+      updateQuantity,
+      removeItem,
+      refreshCart,
+      openDrawer,
+      closeDrawer,
+      clearToast,
+      resetCart,
+    }),
+    [
+      cart,
+      cartId,
+      loading,
+      isDrawerOpen,
+      toast,
+      ensureCart,
+      addItem,
+      updateQuantity,
+      removeItem,
+      refreshCart,
+      openDrawer,
+      closeDrawer,
+      clearToast,
+      resetCart,
+    ]
+  );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
 
 export function useCart() {
-  const ctx = useContext(CartContext);
-  if (!ctx) throw new Error("useCart must be used within CartProvider");
-  return ctx;
+  const context = useContext(CartContext);
+
+  if (!context) {
+    throw new Error("useCart must be used within CartProvider");
+  }
+
+  return context;
 }

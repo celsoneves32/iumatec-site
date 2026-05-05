@@ -4,20 +4,37 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "sync:sellable": "node scripts/sync-shopify-sellable.mjs",
+    "shopify:publish": "node scripts/publish-to-storefront.mjs",
+    "shopify:sync-price-stock": "node scripts/sync-shopify-price-stock.mjs",
+    "shopify:sync-images": "node scripts/sync-shopify-images.mjs",
+    "sync:all": "npm run shopify:sync-price-stock && npm run shopify:sync-images && npm run shopify:publish && npm run sync:sellable",
+    "auto:sync": "node scripts/auto-sync.mjs",
+    "reviews:send": "node scripts/send-review-requests.mjs",
     "build": "next build",
     "start": "next start",
+    "alltron:test": "tsx integrations/alltron/testConnection.ts",
     "alltron:sync-catalog": "tsx integrations/alltron/syncCatalog.ts",
-    "alltron:test": "tsx integrations/alltron/testConnection.ts"
+    "shopify:enrich-ids": "node scripts/enrich-catalog-with-shopify-ids.mjs",
+    "shopify:create-products": "node scripts/create-products-shopify.mjs",
+    "shopify:get-location": "node scripts/get-shopify-location-id.mjs",
+    "shopify:variantids": "node scripts/get-shopify-variant-ids.mjs"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.49.1",
+    "@react-pdf/renderer": "^4.3.2",
+    "@supabase/supabase-js": "^2.100.0",
     "basic-ftp": "^5.0.5",
-    "fast-xml-parser": "^4.5.3",
+    "csv-parse": "^6.1.0",
+    "dotenv": "^17.3.1",
+    "fast-xml-parser": "^4.5.4",
     "form-data": "^4.0.4",
+    "iconv-lite": "^0.7.2",
     "next": "14.2.3",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "slugify": "^1.6.6"
+    "resend": "^6.12.2",
+    "slugify": "^1.6.6",
+    "ssh2-sftp-client": "^12.1.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.30",

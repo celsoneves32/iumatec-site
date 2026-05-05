@@ -1,337 +1,157 @@
-// lib/shopify.ts
-type ShopifyFetchOptions = {
-  query: string;
-  variables?: Record<string, any>;
-  tags?: string[];
-};
+const domain =
+  process.env.SHOPIFY_STORE_DOMAIN ||
+  process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN;
 
-function getRequiredEnv(name: string): string {
-  const v = process.env[name];
-  if (!v) throw new Error(`Missing env var: ${name}`);
-  return v;
+const storefrontAccessToken =
+  process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN ||
+  process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN;
+
+const apiVersion =
+  process.env.SHOPIFY_API_VERSION ||
+  process.env.NEXT_PUBLIC_SHOPIFY_API_VERSION ||
+  "2024-04";
+
+if (!domain) {
+  throw new Error("Missing env var: SHOPIFY_STORE_DOMAIN");
 }
 
-export async function shopifyFetch<T>({
+if (!storefrontAccessToken) {
+  throw new Error("Missing env var: SHOPIFY_STOREFRONT_ACCESS_TOKEN");
+}
+
+const endpoint = `https://${domain}/api/${apiVersion}/graphql.json`;
+
+type ShopifyFetchParams<TVariables = Record<string, unknown>> = {
+  query: string;
+  variables?: TVariables;
+  cache?: RequestCache;
+};
+
+type ShopifyErrorItem = {
+  message: string;
+  locations?: { line: number; column: number }[];
+  path?: string[];
+  extensions?: Record<string, unknown>;
+};
+
+type ShopifyResponse<TData> = {
+  data?: TData;
+  errors?: ShopifyErrorItem[];
+};
+
+export async function shopifyFetch<TData, TVariables = Record<string, unknown>>({
   query,
   variables,
-  tags = [],
-}: ShopifyFetchOptions): Promise<T> {
-  const domain = getRequiredEnv("NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN");
-  const token = getRequiredEnv("NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN");
-  const apiVersion = process.env.SHOPIFY_API_VERSION || "2024-04";
-
-  const res = await fetch(`https://${domain}/api/${apiVersion}/graphql.json`, {
+  cache = "no-store",
+}: ShopifyFetchParams<TVariables>): Promise<TData> {
+  const res = await fetch(endpoint, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "X-Shopify-Storefront-Access-Token": token,
+      "X-Shopify-Storefront-Access-Token": storefrontAccessToken,
     },
-    body: JSON.stringify({ query, variables }),
-    next: {
-      revalidate: 300,
-      tags,
-    },
+    body: JSON.stringify({
+      query,
+      variables,
+    }),
+    cache,
   });
 
-  const json = await res.json();
+  const text = await res.text();
 
-  if (!res.ok || json?.errors) {
-    const msg =
-      json?.errors?.[0]?.message || `Shopify request failed (${res.status})`;
-    throw new Error(msg);
+  let json: ShopifyResponse<TData>;
+  try {
+    json = JSON.parse(text);
+  } catch {
+    console.error("Shopify non-JSON response:", text);
+    throw new Error(`Shopify returned invalid JSON (${res.status})`);
   }
 
-  return json.data as T;
+  if (!res.ok) {
+    console.error("Shopify HTTP error:", {
+      status: res.status,
+      statusText: res.statusText,
+      body: json,
+    });
+
+    throw new Error(`Shopify HTTP error ${res.status}: ${res.statusText}`);
+  }
+
+  if (json.errors?.length) {
+    console.error("Shopify GraphQL errors:", json.errors);
+
+    throw new Error(
+      `Shopify GraphQL error: ${json.errors.map((e) => e.message).join(" | ")}`
+    );
+  }
+
+  if (!json.data) {
+    console.error("Shopify missing data:", json);
+    throw new Error("Shopify response missing data");
+  }
+
+  return json.data;
 }
 
-/* =========================
-   TYPES
-========================= */
-
-export type ShopifyMoney = {
-  amount: string;
-  currencyCode: string;
-};
-
-export type ShopifyImage = {
+type ShopifyImage = {
   url: string;
-  altText: string | null;
+  altText?: string | null;
 };
 
-export type ShopifyProduct = {
+export type ShopifyCollectionCard = {
   id: string;
-  handle: string;
   title: string;
-  description?: string;
-  descriptionHtml?: string;
-  featuredImage: ShopifyImage | null;
-  images?: {
-    edges: Array<{
-      node: ShopifyImage;
-    }>;
-  };
-  priceRange: {
-    minVariantPrice: ShopifyMoney;
-    maxVariantPrice?: ShopifyMoney;
-  };
-  variants?: {
-    edges: Array<{
-      node: {
-        id: string;
-        title: string;
-        availableForSale?: boolean;
-        price: ShopifyMoney;
-      };
-    }>;
-  };
-  vendor?: string;
-  productType?: string;
-  tags?: string[];
+  handle: string;
+  image: ShopifyImage | null;
 };
 
-export type ShopifyCollection = {
-  id: string;
-  handle: string;
-  title: string;
-  description?: string;
-  image?: ShopifyImage | null;
-};
-
-/* =========================
-   QUERIES
-========================= */
-
-const PRODUCTS_QUERY = /* GraphQL */ `
-  query Products($first: Int!) {
-    products(first: $first, sortKey: CREATED_AT, reverse: true) {
-      edges {
-        node {
+export async function getCollectionByHandle(handle: string): Promise<ShopifyCollectionCard | null> {
+  const data = await shopifyFetch<{
+    collection: {
+      id: string;
+      title: string;
+      handle: string;
+      image?: ShopifyImage | null;
+    } | null;
+  }>({
+    query: `
+      query GetCollectionByHandle($handle: String!) {
+        collection(handle: $handle) {
           id
-          handle
           title
-          vendor
-          productType
-          tags
-          featuredImage {
-            url
-            altText
-          }
-          priceRange {
-            minVariantPrice {
-              amount
-              currencyCode
-            }
-          }
-          variants(first: 1) {
-            edges {
-              node {
-                id
-                title
-                availableForSale
-                price {
-                  amount
-                  currencyCode
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-`;
-
-const COLLECTIONS_QUERY = /* GraphQL */ `
-  query Collections($first: Int!) {
-    collections(first: $first) {
-      edges {
-        node {
-          id
           handle
-          title
-          description
           image {
             url
             altText
           }
         }
       }
-    }
-  }
-`;
-
-const COLLECTION_BY_HANDLE_QUERY = /* GraphQL */ `
-  query CollectionByHandle($handle: String!) {
-    collectionByHandle(handle: $handle) {
-      id
-      handle
-      title
-      description
-      image {
-        url
-        altText
-      }
-      products(first: 24) {
-        edges {
-          node {
-            id
-            handle
-            title
-            vendor
-            productType
-            tags
-            featuredImage {
-              url
-              altText
-            }
-            priceRange {
-              minVariantPrice {
-                amount
-                currencyCode
-              }
-            }
-            variants(first: 1) {
-              edges {
-                node {
-                  id
-                  title
-                  availableForSale
-                  price {
-                    amount
-                    currencyCode
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-`;
-
-const PRODUCT_BY_HANDLE_QUERY = /* GraphQL */ `
-  query ProductByHandle($handle: String!) {
-    productByHandle(handle: $handle) {
-      id
-      handle
-      title
-      description
-      descriptionHtml
-      vendor
-      productType
-      tags
-      featuredImage {
-        url
-        altText
-      }
-      images(first: 10) {
-        edges {
-          node {
-            url
-            altText
-          }
-        }
-      }
-      priceRange {
-        minVariantPrice {
-          amount
-          currencyCode
-        }
-        maxVariantPrice {
-          amount
-          currencyCode
-        }
-      }
-      variants(first: 20) {
-        edges {
-          node {
-            id
-            title
-            availableForSale
-            price {
-              amount
-              currencyCode
-            }
-          }
-        }
-      }
-    }
-  }
-`;
-
-/* =========================
-   HELPERS
-========================= */
-
-export async function getProducts(first = 12): Promise<ShopifyProduct[]> {
-  const data = await shopifyFetch<{
-    products: { edges: Array<{ node: ShopifyProduct }> };
-  }>({
-    query: PRODUCTS_QUERY,
-    variables: { first },
-    tags: ["products"],
-  });
-
-  return data.products.edges.map((edge) => edge.node);
-}
-
-export async function getCollections(first = 20): Promise<ShopifyCollection[]> {
-  const data = await shopifyFetch<{
-    collections: { edges: Array<{ node: ShopifyCollection }> };
-  }>({
-    query: COLLECTIONS_QUERY,
-    variables: { first },
-    tags: ["collections"],
-  });
-
-  return data.collections.edges.map((edge) => edge.node);
-}
-
-export async function getCollectionByHandle(handle: string): Promise<{
-  collection: ShopifyCollection | null;
-  products: ShopifyProduct[];
-}> {
-  const data = await shopifyFetch<{
-    collectionByHandle:
-      | (ShopifyCollection & {
-          products: { edges: Array<{ node: ShopifyProduct }> };
-        })
-      | null;
-  }>({
-    query: COLLECTION_BY_HANDLE_QUERY,
+    `,
     variables: { handle },
-    tags: [`collection-${handle}`],
   });
 
-  const collection = data.collectionByHandle;
-
-  if (!collection) {
-    return { collection: null, products: [] };
-  }
+  if (!data.collection) return null;
 
   return {
-    collection: {
-      id: collection.id,
-      handle: collection.handle,
-      title: collection.title,
-      description: collection.description,
-      image: collection.image ?? null,
-    },
-    products: collection.products.edges.map((edge) => edge.node),
+    id: data.collection.id,
+    title: data.collection.title,
+    handle: data.collection.handle,
+    image: data.collection.image ?? null,
   };
 }
 
-export async function getProductByHandle(
-  handle: string
-): Promise<ShopifyProduct | null> {
-  const data = await shopifyFetch<{
-    productByHandle: ShopifyProduct | null;
-  }>({
-    query: PRODUCT_BY_HANDLE_QUERY,
-    variables: { handle },
-    tags: [`product-${handle}`],
-  });
+export async function getFeaturedCollections(handles: string[]): Promise<ShopifyCollectionCard[]> {
+  const results = await Promise.allSettled(
+    handles.map((handle) => getCollectionByHandle(handle))
+  );
 
-  return data.productByHandle;
+  return results
+    .filter(
+      (
+        result
+      ): result is PromiseFulfilledResult<ShopifyCollectionCard | null> =>
+        result.status === "fulfilled"
+    )
+    .map((result) => result.value)
+    .filter((collection): collection is ShopifyCollectionCard => Boolean(collection));
 }

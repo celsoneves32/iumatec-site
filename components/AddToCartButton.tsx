@@ -1,39 +1,50 @@
-// components/AddToCartButton.tsx
 "use client";
 
 import { useState } from "react";
 import { useCart } from "@/context/CartContext";
 
-export default function AddToCartButton({ variantId }: { variantId: string }) {
-  const { addItem, loading, error } = useCart();
-  const [done, setDone] = useState(false);
+type Props = {
+  variantId: string;
+  className?: string;
+};
 
-  async function onAdd(e: React.MouseEvent<HTMLButtonElement>) {
-    e.preventDefault();
-    e.stopPropagation();
+export default function AddToCartButton({ variantId, className }: Props) {
+  const { addItem, loading } = useCart();
+  const [adding, setAdding] = useState(false);
+  const [added, setAdded] = useState(false);
 
-    await addItem(variantId, 1);
-    setDone(true);
-    setTimeout(() => setDone(false), 1200);
+  async function handleAddToCart() {
+    try {
+      setAdding(true);
+      setAdded(false);
+      await addItem(variantId, 1);
+      setAdded(true);
+
+      setTimeout(() => {
+        setAdded(false);
+      }, 1800);
+    } finally {
+      setAdding(false);
+    }
   }
 
-  return (
-    <div className="w-full">
-      <button
-        type="button"
-        onClick={onAdd}
-        disabled={loading}
-        className="w-full rounded-lg bg-brand px-4 py-2 text-white text-sm font-semibold
-                   hover:bg-brand-dark transition disabled:opacity-50"
-      >
-        {loading ? "A adicionar..." : done ? "Adicionado ✅" : "In den Warenkorb"}
-      </button>
+  const disabled = loading || adding || !variantId;
 
-      {!!error && (
-        <p className="mt-2 text-xs text-red-600">
-          {error}
-        </p>
-      )}
-    </div>
+  return (
+    <button
+      type="button"
+      onClick={handleAddToCart}
+      disabled={disabled}
+      className={
+        className ??
+        "w-full rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
+      }
+    >
+      {adding
+        ? "Wird hinzugefügt..."
+        : added
+        ? "Hinzugefügt ✓"
+        : "In den Warenkorb"}
+    </button>
   );
 }
