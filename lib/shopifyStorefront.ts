@@ -2,11 +2,19 @@ import "server-only";
 import fs from "node:fs";
 import path from "node:path";
 
+export type StorefrontCollection = {
+  title: string;
+  handle: string;
+};
+
 export type StorefrontProduct = {
   id: string;
   handle: string;
   title: string;
   vendor?: string | null;
+  productType?: string | null;
+  tags?: string[];
+  collections?: StorefrontCollection[];
   price: number;
   image?: string | null;
   availableForSale: boolean;
@@ -29,14 +37,35 @@ const apiVersion =
   "2025-04";
 
 const CATALOG_PATHS = [
-  path.join(process.cwd(), "integrations", "alltron", "out", "iumatec-catalog-sellable.json"),
-  path.join(process.cwd(), "integrations", "alltron", "out", "iumatec-catalog-enriched.json"),
-  path.join(process.cwd(), "integrations", "alltron", "out", "iumatec-catalog-filtered.json"),
+  path.join(
+    process.cwd(),
+    "integrations",
+    "alltron",
+    "out",
+    "iumatec-catalog-sellable.json"
+  ),
+  path.join(
+    process.cwd(),
+    "integrations",
+    "alltron",
+    "out",
+    "iumatec-catalog-enriched.json"
+  ),
+  path.join(
+    process.cwd(),
+    "integrations",
+    "alltron",
+    "out",
+    "iumatec-catalog-filtered.json"
+  ),
 ];
 
 function getShopifyUrl() {
   if (!domain) throw new Error("Missing env var: SHOPIFY_STORE_DOMAIN");
-  if (!storefrontAccessToken) throw new Error("Missing env var: SHOPIFY_STOREFRONT_ACCESS_TOKEN");
+
+  if (!storefrontAccessToken) {
+    throw new Error("Missing env var: SHOPIFY_STOREFRONT_ACCESS_TOKEN");
+  }
 
   return `https://${domain}/api/${apiVersion}/graphql.json`;
 }
@@ -110,7 +139,10 @@ function findLocalProductImage(handle: string, title: string): string | null {
   );
 }
 
-async function storefrontFetch(query: string, variables?: Record<string, unknown>) {
+async function storefrontFetch(
+  query: string,
+  variables?: Record<string, unknown>
+) {
   const res = await fetch(getShopifyUrl(), {
     method: "POST",
     headers: {
@@ -170,40 +202,72 @@ function mapProduct(node: any): StorefrontProduct | null {
     typeof availableVariant?.quantityAvailable === "number"
       ? availableVariant.quantityAvailable
       : node?.availableForSale
-      ? 999
-      : 0;
+        ? 999
+        : 0;
 
   return {
     id: node.id,
     handle: node.handle,
     title: node.title,
     vendor: node.vendor ?? null,
+    productType: node.productType ?? "",
+    tags: Array.isArray(node.tags) ? node.tags : [],
+    collections:
+      node?.collections?.edges
+        ?.map((edge: any) => edge?.node)
+        ?.filter(Boolean)
+        ?.map((collection: any) => ({
+          title: collection.title,
+          handle: collection.handle,
+        })) ?? [],
     price: parsePrice(
-      availableVariant?.price?.amount ?? node?.priceRange?.minVariantPrice?.amount
+      availableVariant?.price?.amount ??
+        node?.priceRange?.minVariantPrice?.amount
     ),
     image: shopifyImage ?? localImage,
-    availableForSale: Boolean(node?.availableForSale || availableVariant?.availableForSale),
+    availableForSale: Boolean(
+      node?.availableForSale || availableVariant?.availableForSale
+    ),
     stockQty,
     deliveryDate: null,
     merchandiseId: availableVariant?.id ?? null,
   };
 }
 
-export async function getStorefrontProducts(limit = 24): Promise<StorefrontProduct[]> {
+export async function getStorefrontProducts(
+  limit = 1000
+): Promise<StorefrontProduct[]> {
   const query = `
-    query GetProducts($first: Int!) {
-      products(first: $first, sortKey: BEST_SELLING) {
+    query GetProducts($first: Int!, $after: String) {
+      products(first: $first, after: $after, sortKey: BEST_SELLING) {
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
         edges {
           node {
             id
             handle
             title
             vendor
+            productType
+            tags
             availableForSale
+
+            collections(first: 10) {
+              edges {
+                node {
+                  title
+                  handle
+                }
+              }
+            }
+
             featuredImage {
               url
               altText
             }
+
             images(first: 5) {
               edges {
                 node {
@@ -212,12 +276,14 @@ export async function getStorefrontProducts(limit = 24): Promise<StorefrontProdu
                 }
               }
             }
+
             priceRange {
               minVariantPrice {
                 amount
                 currencyCode
               }
             }
+
             variants(first: 10) {
               edges {
                 node {
@@ -242,14 +308,34 @@ export async function getStorefrontProducts(limit = 24): Promise<StorefrontProdu
     }
   `;
 
-  const json = await storefrontFetch(query, { first: limit });
+  const allItems: StorefrontProduct[] = [];
+  let after: string | null = null;
 
-  const items =
-    json?.data?.products?.edges
-      ?.map((edge: any) => mapProduct(edge?.node))
-      ?.filter(Boolean) ?? [];
+  while (allItems.length < limit) {
+    const first = Math.min(250, limit - allItems.length);
 
-  console.log("STORE_FRONT_PRODUCTS_COUNT", items.length);
+    const json = await storefrontFetch(query, {
+      first,
+      after,
+    });
 
-  return items;
+    const edges = json?.data?.products?.edges || [];
+
+    const items =
+      edges
+        .map((edge: any) => mapProduct(edge?.node))
+        .filter(Boolean) ?? [];
+
+    allItems.push(...items);
+
+    const pageInfo = json?.data?.products?.pageInfo;
+
+    if (!pageInfo?.hasNextPage) break;
+
+    after = pageInfo.endCursor;
+  }
+
+  console.log("STORE_FRONT_PRODUCTS_COUNT", allItems.length);
+
+  return allItems;
 }

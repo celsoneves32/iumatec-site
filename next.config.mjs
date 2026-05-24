@@ -1,15 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "**.myshopify.com",
-      },
-      {
-        protocol: "https",
-        hostname: "cdn.shopify.com",
-      },
+    domains: [
+      "cdn.shopify.com",
+      "images.alltron.ch",
+      "media.digitec.ch",
+      "static.digitecgalaxus.ch",
     ],
   },
 };

@@ -8,11 +8,10 @@ function ensureDir(dir: string) {
   fs.mkdirSync(dir, { recursive: true });
 }
 
-/**
- * Gera JSONL para productCreate.
- * Mantemos 1 variante por produto na fase inicial.
- */
-export function buildProductCreateJsonl(products: NormalizedProduct[], fileName = "products.jsonl") {
+export function buildProductCreateJsonl(
+  products: NormalizedProduct[],
+  fileName = "products.jsonl"
+) {
   ensureDir(OUT_DIR);
 
   const outPath = path.join(OUT_DIR, fileName);
@@ -28,7 +27,10 @@ export function buildProductCreateJsonl(products: NormalizedProduct[], fileName 
         tags: p.tags,
         status: p.status,
       },
-      media: [],
+      media: p.images.slice(0, 5).map((url) => ({
+        originalSource: url,
+        mediaContentType: "IMAGE",
+      })),
     })
   );
 

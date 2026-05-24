@@ -14,21 +14,12 @@ const apiVersion =
   "2025-04";
 
 function getShopifyUrl() {
-  if (!domain) {
-    throw new Error("Missing env var: SHOPIFY_STORE_DOMAIN");
-  }
-
-  if (!storefrontAccessToken) {
-    throw new Error("Missing env var: SHOPIFY_STOREFRONT_ACCESS_TOKEN");
-  }
-
+  if (!domain) throw new Error("Missing env var: SHOPIFY_STORE_DOMAIN");
+  if (!storefrontAccessToken) throw new Error("Missing env var: SHOPIFY_STOREFRONT_ACCESS_TOKEN");
   return `https://${domain}/api/${apiVersion}/graphql.json`;
 }
 
-async function shopifyFetch(
-  query: string,
-  variables?: Record<string, unknown>
-) {
+async function shopifyFetch(query: string, variables?: Record<string, unknown>) {
   const res = await fetch(getShopifyUrl(), {
     method: "POST",
     headers: {
@@ -39,27 +30,26 @@ async function shopifyFetch(
     cache: "no-store",
   });
 
-  const text = await res.text();
+  const json = await res.json();
 
-  let json: any;
-  try {
-    json = JSON.parse(text);
-  } catch {
-    throw new Error(`Shopify returned invalid JSON (${res.status})`);
-  }
-
-  if (!res.ok) {
-    throw new Error(`Shopify HTTP error ${res.status}`);
-  }
+  if (!res.ok) throw new Error(`Shopify HTTP error ${res.status}`);
 
   if (json.errors?.length) {
     throw new Error(
-      json.errors.map((error: any) => error?.message).filter(Boolean).join(" | ") ||
+      json.errors.map((e: any) => e?.message).filter(Boolean).join(" | ") ||
         "Shopify GraphQL error"
     );
   }
 
   return json;
+}
+
+function normalizeVariantId(value?: string | null) {
+  if (!value || typeof value !== "string") return null;
+  const trimmed = value.trim();
+  if (trimmed.startsWith("gid://shopify/ProductVariant/")) return trimmed;
+  const numeric = trimmed.replace(/[^\d]/g, "");
+  return numeric ? `gid://shopify/ProductVariant/${numeric}` : null;
 }
 
 function mapCart(cart: any) {
@@ -102,20 +92,42 @@ function mapCart(cart: any) {
   };
 }
 
-function normalizeVariantId(value?: string | null) {
-  if (!value || typeof value !== "string") return null;
+async function findCurrentVariantByHandle(productHandle?: string | null) {
+  if (!productHandle) return null;
 
-  const trimmed = value.trim();
-  if (!trimmed) return null;
+  const query = `
+    query ProductByHandle($handle: String!) {
+      product(handle: $handle) {
+        id
+        handle
+        title
+        availableForSale
+        variants(first: 20) {
+          edges {
+            node {
+              id
+              availableForSale
+              quantityAvailable
+            }
+          }
+        }
+      }
+    }
+  `;
 
-  if (trimmed.startsWith("gid://shopify/ProductVariant/")) {
-    return trimmed;
-  }
+  const json = await shopifyFetch(query, { handle: productHandle });
 
-  const numeric = trimmed.replace(/[^\d]/g, "");
-  if (!numeric) return null;
+  const variants =
+    json?.data?.product?.variants?.edges
+      ?.map((edge: any) => edge?.node)
+      ?.filter(Boolean) ?? [];
 
-  return `gid://shopify/ProductVariant/${numeric}`;
+  const available =
+    variants.find((v: any) => v.availableForSale && v.id) ??
+    variants.find((v: any) => v.id) ??
+    null;
+
+  return available?.id ?? null;
 }
 
 async function tryCartLinesAdd(
@@ -132,80 +144,62 @@ async function tryCartLinesAdd(
           checkoutUrl
           totalQuantity
           cost {
-            subtotalAmount {
-              amount
-              currencyCode
-            }
-            totalAmount {
-              amount
-              currencyCode
-            }
+            subtotalAmount { amount currencyCode }
+            totalAmount { amount currencyCode }
           }
           lines(first: 100) {
             edges {
               node {
                 id
                 quantity
-                attributes {
-                  key
-                  value
-                }
+                attributes { key value }
                 cost {
-                  amountPerQuantity {
-                    amount
-                    currencyCode
-                  }
-                  totalAmount {
-                    amount
-                    currencyCode
-                  }
+                  amountPerQuantity { amount currencyCode }
+                  totalAmount { amount currencyCode }
                 }
                 merchandise {
                   ... on ProductVariant {
                     id
                     title
-                    image {
-                      url
-                      altText
-                    }
-                    product {
-                      handle
-                      title
-                    }
+                    image { url altText }
+                    product { handle title }
                   }
                 }
               }
             }
           }
         }
-        userErrors {
-          field
-          message
-        }
+        userErrors { field message }
       }
     }
   `;
 
-  const variables = {
+  const json = await shopifyFetch(mutation, {
     cartId,
     lines: [
       {
         merchandiseId,
         quantity,
-        attributes: imageUrl
-          ? [
-              {
-                key: "_imageUrl",
-                value: imageUrl,
-              },
-            ]
-          : [],
+        attributes: imageUrl ? [{ key: "_imageUrl", value: imageUrl }] : [],
       },
     ],
-  };
+  });
 
-  const json = await shopifyFetch(mutation, variables);
   return json?.data?.cartLinesAdd;
+}
+
+function isDeadVariantError(payload: any) {
+  const message = payload?.userErrors
+    ?.map((item: any) => item?.message || "")
+    ?.join(" ")
+    ?.toLowerCase();
+
+  return (
+    message?.includes("does not exist") ||
+    message?.includes("não existe") ||
+    message?.includes("not exist") ||
+    message?.includes("invalid")
+  );
 }
 
 export async function POST(req: NextRequest) {
@@ -214,39 +208,51 @@ export async function POST(req: NextRequest) {
 
     const cartId = String(body.cartId || "").trim();
     const quantity = Math.max(1, Number(body.quantity || 1));
-    const incomingMerchandiseId = normalizeVariantId(body.merchandiseId);
+    const productHandle =
+      typeof body.productHandle === "string" ? body.productHandle.trim() : null;
 
     const imageUrl =
       typeof body.imageUrl === "string" && body.imageUrl.trim()
         ? body.imageUrl.trim()
         : null;
 
+    let merchandiseId = normalizeVariantId(body.merchandiseId);
+
     if (!cartId) {
+      return NextResponse.json({ ok: false, error: "Missing cartId" }, { status: 400 });
+    }
+
+    if (!merchandiseId && productHandle) {
+      merchandiseId = await findCurrentVariantByHandle(productHandle);
+    }
+
+    if (!merchandiseId) {
       return NextResponse.json(
-        { ok: false, error: "Missing cartId" },
+        {
+          ok: false,
+          error:
+            "Dieses Produkt ist aktuell nicht bestellbar. Die Shopify-Variante wurde nicht gefunden.",
+        },
         { status: 400 }
       );
     }
 
-    if (!incomingMerchandiseId) {
-      return NextResponse.json(
-        { ok: false, error: "Missing valid merchandiseId" },
-        { status: 400 }
-      );
-    }
+    let payload = await tryCartLinesAdd(cartId, merchandiseId, quantity, imageUrl);
 
-    const payload = await tryCartLinesAdd(
-      cartId,
-      incomingMerchandiseId,
-      quantity,
-      imageUrl
-    );
+    if (payload?.userErrors?.length && isDeadVariantError(payload) && productHandle) {
+      const freshVariantId = await findCurrentVariantByHandle(productHandle);
+
+      if (freshVariantId && freshVariantId !== merchandiseId) {
+        payload = await tryCartLinesAdd(cartId, freshVariantId, quantity, imageUrl);
+      }
+    }
 
     if (payload?.userErrors?.length) {
       return NextResponse.json(
         {
           ok: false,
-          error: payload.userErrors.map((item: any) => item.message).join(" | "),
+          error:
+            "Dieses Produkt ist aktuell nicht bestellbar. Bitte wähle ein anderes Produkt.",
           userErrors: payload.userErrors,
         },
         { status: 400 }
@@ -255,7 +261,7 @@ export async function POST(req: NextRequest) {
 
     if (!payload?.cart) {
       return NextResponse.json(
-        { ok: false, error: "Add to cart failed." },
+        { ok: false, error: "Produkt konnte nicht zum Warenkorb hinzugefügt werden." },
         { status: 400 }
       );
     }
@@ -270,7 +276,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         ok: false,
-        error: error instanceof Error ? error.message : "Unknown error",
+        error:
+          error instanceof Error
+            ? error.message
+            : "Produkt konnte nicht zum Warenkorb hinzugefügt werden.",
       },
       { status: 500 }
     );

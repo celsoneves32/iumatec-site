@@ -12,200 +12,11 @@ type CategoryGroup = {
   subcategories: string[];
 };
 
-function NavLink({
-  href,
-  children,
-}: {
-  href: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <Link
-      href={href}
-      className="relative text-sm font-medium text-neutral-700 transition hover:text-neutral-900
-                 after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-full
-                 after:origin-left after:scale-x-0 after:bg-brand after:transition-transform after:duration-200
-                 hover:after:scale-x-100"
-    >
-      {children}
-    </Link>
-  );
-}
-
-function SearchBarDesktop() {
-  return (
-    <form action="/produkte" method="GET" className="mx-6 hidden flex-1 lg:flex xl:mx-8">
-      <div className="relative w-full">
-        <input
-          type="text"
-          name="q"
-          placeholder="Suche nach Produkt, Marke oder SKU"
-          className="w-full rounded-2xl border border-neutral-300 bg-neutral-50 px-5 py-3 pr-28 text-sm text-neutral-900 outline-none transition focus:border-brand focus:bg-white"
-        />
-        <button
-          type="submit"
-          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-xl bg-neutral-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand"
-        >
-          Suchen
-        </button>
-      </div>
-    </form>
-  );
-}
-
-function MegaMenuDesktop({ categories }: { categories: CategoryGroup[] }) {
-  return (
-    <div className="hidden items-center gap-6 xl:flex">
-      <div className="group relative">
-        <button
-          type="button"
-          className="relative text-sm font-medium text-neutral-700 transition hover:text-neutral-900"
-        >
-          Kategorien
-        </button>
-
-        <div className="pointer-events-none absolute left-1/2 top-full z-50 w-[1080px] -translate-x-1/2 translate-y-2 pt-3 opacity-0 transition group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100">
-          <div className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-2xl">
-            <div className="grid grid-cols-4 gap-x-8 gap-y-8">
-              {categories.map((group) => (
-                <div key={group.name}>
-                  <Link
-                    href={`/produkte?category=${encodeURIComponent(group.name)}`}
-                    className="mb-3 inline-block text-sm font-semibold text-neutral-900 hover:text-brand"
-                  >
-                    {group.name}
-                  </Link>
-
-                  <ul className="space-y-2">
-                    {group.subcategories.slice(0, 8).map((item) => (
-                      <li key={item}>
-                        <Link
-                          href={`/produkte?category=${encodeURIComponent(group.name)}&subcategory=${encodeURIComponent(item)}`}
-                          className="text-sm text-neutral-600 transition hover:text-brand"
-                        >
-                          {item}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <NavLink href="/produkte">Alle Produkte</NavLink>
-
-      {ACCOUNT_URL ? (
-        <a
-          href={ACCOUNT_URL}
-          className="text-sm font-medium text-neutral-700 hover:text-neutral-900"
-        >
-          Mein Konto
-        </a>
-      ) : (
-        <NavLink href="/konto">Mein Konto</NavLink>
-      )}
-    </div>
-  );
-}
-
-function MobileMenu({
-  open,
-  onClose,
-  categories,
-}: {
-  open: boolean;
-  onClose: () => void;
-  categories: CategoryGroup[];
-}) {
-  if (!open) return null;
-
-  return (
-    <div className="border-t border-neutral-200 bg-white xl:hidden">
-      <div className="mx-auto max-w-7xl px-4 py-4">
-        <form action="/produkte" method="GET" className="mb-4">
-          <input
-            type="text"
-            name="q"
-            placeholder="Suche nach Produkt, Marke oder SKU"
-            className="w-full rounded-xl border border-neutral-300 px-4 py-3 text-sm outline-none focus:border-brand"
-          />
-        </form>
-
-        <div className="space-y-6">
-          <Link
-            href="/produkte"
-            onClick={onClose}
-            className="block text-sm font-semibold text-neutral-900"
-          >
-            Alle Produkte
-          </Link>
-
-          {ACCOUNT_URL ? (
-            <a
-              href={ACCOUNT_URL}
-              onClick={onClose}
-              className="block text-sm font-semibold text-neutral-900"
-            >
-              Mein Konto
-            </a>
-          ) : (
-            <Link
-              href="/konto"
-              onClick={onClose}
-              className="block text-sm font-semibold text-neutral-900"
-            >
-              Mein Konto
-            </Link>
-          )}
-
-          <Link
-            href="/merken"
-            onClick={onClose}
-            className="block text-sm font-semibold text-neutral-900"
-          >
-            Merken
-          </Link>
-
-          <Link
-            href="/compare"
-            onClick={onClose}
-            className="block text-sm font-semibold text-neutral-900"
-          >
-            Vergleichen
-          </Link>
-
-          {categories.map((group) => (
-            <div key={group.name}>
-              <Link
-                href={`/produkte?category=${encodeURIComponent(group.name)}`}
-                onClick={onClose}
-                className="mb-2 block text-sm font-semibold text-neutral-900"
-              >
-                {group.name}
-              </Link>
-
-              <ul className="space-y-2 pl-3">
-                {group.subcategories.slice(0, 8).map((sub) => (
-                  <li key={sub}>
-                    <Link
-                      href={`/produkte?category=${encodeURIComponent(group.name)}&subcategory=${encodeURIComponent(sub)}`}
-                      onClick={onClose}
-                      className="text-sm text-neutral-600 hover:text-brand"
-                    >
-                      {sub}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+function categoryHref(category: string, subcategory?: string) {
+  const params = new URLSearchParams();
+  params.set("category", category);
+  if (subcategory) params.set("subcategory", subcategory);
+  return `/produkte?${params.toString()}`;
 }
 
 function CartIcon() {
@@ -252,25 +63,59 @@ function TopBar() {
 
 export default function SiteHeader() {
   const { totalQuantity, openDrawer } = useCart();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [megaOpen, setMegaOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const categories = useMemo<CategoryGroup[]>(
     () => [
       {
         name: "Computer",
-        subcategories: ["Laptops", "Desktop-PCs", "Mini PCs", "Workstations"],
+        subcategories: ["Laptops", "Desktop-PCs", "Mini PCs"],
+      },
+      {
+        name: "PC-Komponenten",
+        subcategories: [
+          "Grafikkarten",
+          "Arbeitsspeicher",
+          "Mainboards",
+          "Netzteile",
+        ],
       },
       {
         name: "Peripherie",
-        subcategories: ["Monitors", "Tastaturen", "Mäuse", "Dockingstationen"],
-      },
-      {
-        name: "Netzwerk",
-        subcategories: ["Router", "Switches", "WLAN Mesh"],
+        subcategories: [
+          "Monitors",
+          "Tastaturen",
+          "Mäuse",
+          "Headsets",
+          "Webcams",
+          "Mikrofone",
+          "Dockingstationen",
+        ],
       },
       {
         name: "Mobile",
         subcategories: ["Smartphones", "Tablets", "Zubehör"],
+      },
+      {
+        name: "Netzwerk",
+        subcategories: ["Router", "Netzwerk-Switches", "WLAN Mesh"],
+      },
+      {
+        name: "Büro & Drucker",
+        subcategories: ["Drucker", "Tinte & Toner", "Papier & Etiketten"],
+      },
+      {
+        name: "Datenspeicher",
+        subcategories: ["SSD & Festplatten", "NAS"],
+      },
+      {
+        name: "Smart Home",
+        subcategories: ["Kameras", "Haushalt"],
+      },
+      {
+        name: "Zubehör",
+        subcategories: ["Notebook-Zubehör", "Sonstiges Zubehör"],
       },
     ],
     []
@@ -282,81 +127,165 @@ export default function SiteHeader() {
 
       <div className="border-b border-neutral-200 bg-white">
         <div className="mx-auto max-w-7xl px-4">
-          <div className="flex h-20 items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setMobileMenuOpen((v) => !v)}
-                className="inline-flex items-center justify-center rounded-xl border border-neutral-300 px-2 py-2 text-neutral-700 xl:hidden"
-                aria-label="Menü öffnen"
-              >
-                <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5">
-                  <path
-                    d="M4 7h16M4 12h16M4 17h16"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </button>
+          <div className="flex h-20 items-center gap-4">
+            <button
+              type="button"
+              onClick={() => setMobileOpen((v) => !v)}
+              className="inline-flex rounded-xl border border-neutral-300 p-2 xl:hidden"
+              aria-label="Menü öffnen"
+            >
+              ☰
+            </button>
 
-              <Link href="/" className="flex items-center">
-                <Image
-                  src="/logo-iumatec.svg"
-                  alt="IUMATEC"
-                  width={170}
-                  height={42}
-                  className="h-10 w-auto"
-                  priority
+            <Link href="/" className="flex shrink-0 items-center">
+              <Image
+                src="/logo-iumatec.svg"
+                alt="IUMATEC"
+                width={150}
+                height={38}
+                className="h-9 w-auto"
+                priority
+              />
+            </Link>
+
+            <form action="/produkte" method="GET" className="hidden flex-1 lg:block">
+              <div className="relative">
+                <input
+                  type="text"
+                  name="q"
+                  placeholder="Suche nach Produkt, Marke oder SKU"
+                  className="w-full rounded-2xl border border-neutral-300 bg-white px-5 py-3 pr-28 text-sm outline-none focus:border-neutral-900"
                 />
-              </Link>
-            </div>
+                <button
+                  type="submit"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-xl bg-neutral-950 px-5 py-2 text-sm font-bold text-white"
+                >
+                  Suchen
+                </button>
+              </div>
+            </form>
 
-            <SearchBarDesktop />
-
-            <MegaMenuDesktop categories={categories} />
-
-            <div className="flex items-center gap-3">
-              <Link
-                href="/merken"
-                className="hidden rounded-full border border-neutral-300 px-5 py-3 text-sm font-medium text-neutral-800 transition hover:bg-neutral-50 xl:inline-flex"
+            <nav className="ml-auto hidden items-center gap-6 xl:flex">
+              <div
+                className="relative"
+                onMouseEnter={() => setMegaOpen(true)}
+                onMouseLeave={() => setMegaOpen(false)}
               >
-                Merken
-              </Link>
+                <button
+                  type="button"
+                  className="text-sm font-bold text-neutral-800 hover:text-red-600"
+                >
+                  Kategorien
+                </button>
 
-              <Link
-                href="/compare"
-                className="hidden rounded-full border border-neutral-300 px-5 py-3 text-sm font-medium text-neutral-800 transition hover:bg-neutral-50 xl:inline-flex"
-              >
-                Vergleichen
-              </Link>
+                {megaOpen ? (
+                  <div className="absolute right-[-260px] top-full z-50 w-[1120px] pt-5">
+                    <div className="rounded-3xl border border-neutral-200 bg-white p-7 shadow-2xl">
+                      <div className="grid grid-cols-5 gap-8">
+                        {categories.map((group) => (
+                          <div key={group.name}>
+                            <Link
+                              href={categoryHref(group.name)}
+                              className="mb-3 block text-sm font-extrabold text-neutral-950 hover:text-red-600"
+                            >
+                              {group.name}
+                            </Link>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  openDrawer();
-                }}
-                className="relative inline-flex h-12 w-12 items-center justify-center rounded-full border border-neutral-300 text-neutral-700 transition hover:border-brand hover:text-brand"
-                aria-label="Warenkorb öffnen"
-              >
-                <CartIcon />
-                {totalQuantity > 0 ? (
-                  <span className="absolute -right-1 -top-1 rounded-full bg-brand px-1.5 py-0.5 text-[10px] font-semibold text-white">
-                    {totalQuantity}
-                  </span>
+                            <ul className="space-y-2">
+                              {group.subcategories.map((sub) => (
+                                <li key={sub}>
+                                  <Link
+                                    href={categoryHref(group.name, sub)}
+                                    className="text-sm text-neutral-600 hover:text-red-600"
+                                  >
+                                    {sub}
+                                  </Link>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                 ) : null}
-              </button>
-            </div>
+              </div>
+
+              {ACCOUNT_URL ? (
+                <a
+                  href={ACCOUNT_URL}
+                  className="text-sm font-bold text-neutral-800 hover:text-red-600"
+                >
+                  Mein Konto
+                </a>
+              ) : (
+                <Link
+                  href="/konto"
+                  className="text-sm font-bold text-neutral-800 hover:text-red-600"
+                >
+                  Mein Konto
+                </Link>
+              )}
+            </nav>
+
+            <button
+              type="button"
+              onClick={openDrawer}
+              className="relative inline-flex h-12 w-12 items-center justify-center rounded-full border border-neutral-300 text-neutral-800 hover:border-red-600 hover:text-red-600"
+              aria-label="Warenkorb öffnen"
+            >
+              <CartIcon />
+              {totalQuantity > 0 ? (
+                <span className="absolute -right-1 -top-1 rounded-full bg-red-600 px-1.5 py-0.5 text-xs font-bold text-white">
+                  {totalQuantity}
+                </span>
+              ) : null}
+            </button>
           </div>
         </div>
       </div>
 
-      <MobileMenu
-        open={mobileMenuOpen}
-        onClose={() => setMobileMenuOpen(false)}
-        categories={categories}
-      />
+      {mobileOpen ? (
+        <div className="border-b border-neutral-200 bg-white xl:hidden">
+          <div className="mx-auto max-w-7xl px-4 py-5">
+            <form action="/produkte" method="GET" className="mb-5">
+              <input
+                type="text"
+                name="q"
+                placeholder="Suche nach Produkt, Marke oder SKU"
+                className="w-full rounded-2xl border border-neutral-300 px-4 py-3 text-sm outline-none"
+              />
+            </form>
+
+            <div className="grid gap-6 sm:grid-cols-2">
+              {categories.map((group) => (
+                <div key={group.name}>
+                  <Link
+                    href={categoryHref(group.name)}
+                    onClick={() => setMobileOpen(false)}
+                    className="mb-2 block font-extrabold text-neutral-950"
+                  >
+                    {group.name}
+                  </Link>
+
+                  <div className="space-y-1">
+                    {group.subcategories.map((sub) => (
+                      <Link
+                        key={sub}
+                        href={categoryHref(group.name, sub)}
+                        onClick={() => setMobileOpen(false)}
+                        className="block text-sm text-neutral-600"
+                      >
+                        {sub}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </header>
   );
 }

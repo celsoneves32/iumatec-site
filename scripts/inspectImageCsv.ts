@@ -1,8 +1,5 @@
-// scripts/inspectImageCsv.ts
 import fs from "fs";
 import path from "path";
-import iconv from "iconv-lite";
-import { parse } from "csv-parse/sync";
 
 const file = path.join(
   process.cwd(),
@@ -12,23 +9,13 @@ const file = path.join(
   "alltron-bilder-urls.csv"
 );
 
-const raw = fs.readFileSync(file);
-const text = iconv.decode(raw, "windows-1252");
+const raw = fs.readFileSync(file, "utf8");
+const lines = raw.split(/\r?\n/).filter(Boolean);
 
-const rows = parse(text, {
-  columns: true,
-  skip_empty_lines: true,
-  relax_column_count: true,
-  bom: true,
-  delimiter: ","
-}) as Record<string, any>[];
-
-console.log("Total rows:", rows.length);
-
-if (rows.length > 0) {
-  console.log("Headers:");
-  console.log(Object.keys(rows[0]));
-
-  console.log("\nFirst row:");
-  console.log(rows[0]);
-}
+console.log("Total lines:", lines.length);
+console.log("Line 1:");
+console.log(lines[0]);
+console.log("Line 2:");
+console.log(lines[1]);
+console.log("Line 3:");
+console.log(lines[2]);

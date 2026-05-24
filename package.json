@@ -18,14 +18,17 @@
     "shopify:enrich-ids": "node scripts/enrich-catalog-with-shopify-ids.mjs",
     "shopify:create-products": "node scripts/create-products-shopify.mjs",
     "shopify:get-location": "node scripts/get-shopify-location-id.mjs",
-    "shopify:variantids": "node scripts/get-shopify-variant-ids.mjs"
+    "shopify:variantids": "node scripts/get-shopify-variant-ids.mjs",
+    "shopify:assign-collections": "node scripts/assign-products-to-collections.mjs",
+    "shopify:clean-catalog": "node scripts/clean-shopify-catalog.mjs",
+    "shopify:clean-catalog:apply": "node scripts/clean-shopify-catalog.mjs --apply"
   },
   "dependencies": {
     "@react-pdf/renderer": "^4.3.2",
     "@supabase/supabase-js": "^2.100.0",
     "basic-ftp": "^5.0.5",
     "csv-parse": "^6.1.0",
-    "dotenv": "^17.3.1",
+    "dotenv": "^17.4.2",
     "fast-xml-parser": "^4.5.4",
     "form-data": "^4.0.4",
     "iconv-lite": "^0.7.2",

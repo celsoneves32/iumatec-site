@@ -7,6 +7,8 @@ export type NormalizedProduct = {
   description: string;
   vendor: string;
   productType?: string;
+  category?: string;
+  subcategory?: string;
   tags: string[];
   price: number;
   stock: number;
@@ -32,6 +34,18 @@ function cleanNumber(value: unknown, fallback = 0): number {
   return Number.isFinite(n) ? n : fallback;
 }
 
+function normalize(value: unknown): string {
+  return String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/ä/g, "a")
+    .replace(/ö/g, "o")
+    .replace(/ü/g, "u")
+    .replace(/ß/g, "ss")
+    .trim();
+}
+
 function uniqueStrings(values: string[]): string[] {
   return [...new Set(values.map((v) => v.trim()).filter(Boolean))];
 }
@@ -41,10 +55,227 @@ export function buildHandle(title: string, sku: string) {
   return base || slugify(sku, { lower: true, strict: true, trim: true });
 }
 
-/**
- * Este mapper é genérico e tolerante.
- * Depois que vires o XML real da Alltron, ajustamos os nomes exatos.
- */
+function mapToIumatecCategory(input: {
+  title: string;
+  description: string;
+  productType: string;
+}) {
+  const text = normalize(
+    [input.title, input.description, input.productType].join(" ")
+  );
+
+  if (
+    text.includes("notebook") ||
+    text.includes("laptop") ||
+    text.includes("mobile workstation")
+  ) {
+    return {
+      category: "Computer",
+      subcategory: "Laptops",
+      productType: "Computer > Laptops",
+    };
+  }
+
+  if (
+    text.includes("desktop") ||
+    text.includes("pc system") ||
+    text.includes("computer")
+  ) {
+    return {
+      category: "Computer",
+      subcategory: "Desktop-PCs",
+      productType: "Computer > Desktop-PCs",
+    };
+  }
+
+  if (text.includes("mini pc") || text.includes("minipc")) {
+    return {
+      category: "Computer",
+      subcategory: "Mini PCs",
+      productType: "Computer > Mini PCs",
+    };
+  }
+
+  if (text.includes("monitor") || text.includes("display")) {
+    return {
+      category: "Peripherie",
+      subcategory: "Monitors",
+      productType: "Peripherie > Monitors",
+    };
+  }
+
+  if (text.includes("grafikkarte") || text.includes("graphics card") || text.includes("gpu")) {
+    return {
+      category: "PC-Komponenten",
+      subcategory: "Grafikkarten",
+      productType: "PC-Komponenten > Grafikkarten",
+    };
+  }
+
+  if (text.includes("arbeitsspeicher") || text.includes("ram") || text.includes("memory")) {
+    return {
+      category: "PC-Komponenten",
+      subcategory: "Arbeitsspeicher",
+      productType: "PC-Komponenten > Arbeitsspeicher",
+    };
+  }
+
+  if (text.includes("mainboard") || text.includes("motherboard")) {
+    return {
+      category: "PC-Komponenten",
+      subcategory: "Mainboards",
+      productType: "PC-Komponenten > Mainboards",
+    };
+  }
+
+  if (text.includes("netzteil") || text.includes("power supply") || text.includes("psu")) {
+    return {
+      category: "PC-Komponenten",
+      subcategory: "Netzteile",
+      productType: "PC-Komponenten > Netzteile",
+    };
+  }
+
+  if (text.includes("ssd") || text.includes("festplatte") || text.includes("hard disk")) {
+    return {
+      category: "Datenspeicher",
+      subcategory: "SSD & Festplatten",
+      productType: "Datenspeicher > SSD & Festplatten",
+    };
+  }
+
+  if (text.includes("nas")) {
+    return {
+      category: "Datenspeicher",
+      subcategory: "NAS",
+      productType: "Datenspeicher > NAS",
+    };
+  }
+
+  if (text.includes("smartphone") || text.includes("mobile phone")) {
+    return {
+      category: "Mobile",
+      subcategory: "Smartphones",
+      productType: "Mobile > Smartphones",
+    };
+  }
+
+  if (text.includes("tablet") || text.includes("ipad")) {
+    return {
+      category: "Mobile",
+      subcategory: "Tablets",
+      productType: "Mobile > Tablets",
+    };
+  }
+
+  if (text.includes("tastatur") || text.includes("keyboard")) {
+    return {
+      category: "Peripherie",
+      subcategory: "Tastaturen",
+      productType: "Peripherie > Tastaturen",
+    };
+  }
+
+  if (text.includes("maus") || text.includes("mouse")) {
+    return {
+      category: "Peripherie",
+      subcategory: "Mäuse",
+      productType: "Peripherie > Mäuse",
+    };
+  }
+
+  if (text.includes("headset") || text.includes("kopfhörer") || text.includes("headphone")) {
+    return {
+      category: "Peripherie",
+      subcategory: "Headsets",
+      productType: "Peripherie > Headsets",
+    };
+  }
+
+  if (text.includes("webcam")) {
+    return {
+      category: "Peripherie",
+      subcategory: "Webcams",
+      productType: "Peripherie > Webcams",
+    };
+  }
+
+  if (text.includes("docking") || text.includes("dock")) {
+    return {
+      category: "Peripherie",
+      subcategory: "Dockingstationen",
+      productType: "Peripherie > Dockingstationen",
+    };
+  }
+
+  if (text.includes("router")) {
+    return {
+      category: "Netzwerk",
+      subcategory: "Router",
+      productType: "Netzwerk > Router",
+    };
+  }
+
+  if (text.includes("switch") || text.includes("switchbox")) {
+    return {
+      category: "Netzwerk",
+      subcategory: "Netzwerk-Switches",
+      productType: "Netzwerk > Netzwerk-Switches",
+    };
+  }
+
+  if (text.includes("wlan") || text.includes("wifi") || text.includes("mesh")) {
+    return {
+      category: "Netzwerk",
+      subcategory: "WLAN Mesh",
+      productType: "Netzwerk > WLAN Mesh",
+    };
+  }
+
+  if (text.includes("drucker") || text.includes("printer")) {
+    return {
+      category: "Büro & Drucker",
+      subcategory: "Drucker",
+      productType: "Büro & Drucker > Drucker",
+    };
+  }
+
+  if (
+    text.includes("toner") ||
+    text.includes("tinte") ||
+    text.includes("patrone") ||
+    text.includes("cartridge")
+  ) {
+    return {
+      category: "Büro & Drucker",
+      subcategory: "Tinte & Toner",
+      productType: "Büro & Drucker > Tinte & Toner",
+    };
+  }
+
+  if (text.includes("papier") || text.includes("etikett") || text.includes("label")) {
+    return {
+      category: "Büro & Drucker",
+      subcategory: "Papier & Etiketten",
+      productType: "Büro & Drucker > Papier & Etiketten",
+    };
+  }
+
+  if (text.includes("kamera") || text.includes("camera")) {
+    return {
+      category: "Smart Home",
+      subcategory: "Kameras",
+      productType: "Smart Home > Kameras",
+    };
+  }
+
+  return {
+    category: "Zubehör",
+    subcategory: "Sonstiges Zubehör",
+    productType: "Zubehör > Sonstiges Zubehör",
+  };
+}
+
 export function mapAlltronProductNodeToNormalized(node: any): NormalizedProduct | null {
   const externalId =
     cleanText(node.Artikelnummer) ||
@@ -75,10 +306,13 @@ export function mapAlltronProductNodeToNormalized(node: any): NormalizedProduct 
     cleanText(node.Marke) ||
     "Alltron";
 
-  const productType =
+  const rawProductType =
     cleanText(node.Kategorie) ||
     cleanText(node.Category) ||
     cleanText(node.Warengruppe) ||
+    cleanText(node.CAT1) ||
+    cleanText(node.CAT2) ||
+    cleanText(node.CAT3) ||
     "Alltron";
 
   const price =
@@ -110,10 +344,19 @@ export function mapAlltronProductNodeToNormalized(node: any): NormalizedProduct 
     return null;
   }
 
+  const mapped = mapToIumatecCategory({
+    title,
+    description,
+    productType: rawProductType,
+  });
+
   const tags = uniqueStrings([
     "alltron",
     vendor,
-    productType,
+    mapped.category,
+    mapped.subcategory,
+    `category:${mapped.category}`,
+    `subcategory:${mapped.subcategory}`,
     `external_id:${externalId}`,
   ]);
 
@@ -123,7 +366,9 @@ export function mapAlltronProductNodeToNormalized(node: any): NormalizedProduct 
     title,
     description,
     vendor,
-    productType,
+    productType: mapped.productType,
+    category: mapped.category,
+    subcategory: mapped.subcategory,
     tags,
     price,
     stock: Math.max(0, stock),
@@ -134,9 +379,6 @@ export function mapAlltronProductNodeToNormalized(node: any): NormalizedProduct 
   };
 }
 
-/**
- * Tenta encontrar uma lista de produtos em várias estruturas possíveis.
- */
 export function extractProductNodes(parsedXml: any): any[] {
   const candidates = [
     parsedXml?.Artikel?.Artikel,

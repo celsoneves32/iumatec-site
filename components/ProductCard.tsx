@@ -1,181 +1,96 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
-import { useMemo } from "react";
+import { useState } from "react";
 import { useCart } from "@/context/CartContext";
 
-type ProductCardProps = {
+type Props = {
   product: {
-    slug?: string | null;
+    slug: string;
     title: string;
-    brand?: string | null;
-    price?: number | null;
+    brand?: string;
+    price: number;
     image?: string | null;
-    inStock?: boolean | null;
-    stockQty?: number | null;
+    inStock?: boolean;
+    stockQty?: number;
     merchandiseId?: string | null;
-    productHandle?: string | null;
-    rating?: number | null;
-    reviewsCount?: number | null;
+    productHandle: string;
+    energyLabel?: any;
   };
 };
 
-function formatPrice(price?: number | null) {
+function formatPrice(price: number) {
   return new Intl.NumberFormat("de-CH", {
     style: "currency",
     currency: "CHF",
-  }).format(typeof price === "number" ? price : 0);
+  }).format(price || 0);
 }
 
-function getBadge(product: ProductCardProps["product"]) {
-  const stockQty = product.stockQty ?? 0;
-  const price = product.price ?? 0;
-
-  if (!product.inStock || stockQty <= 0) {
-    return {
-      label: "Nicht verfügbar",
-      className: "bg-neutral-200 text-neutral-600",
-    };
-  }
-
-  if (stockQty <= 5) {
-    return {
-      label: "Nur wenige",
-      className: "bg-amber-500 text-white",
-    };
-  }
-
-  if (price > 0 && price < 200) {
-    return {
-      label: "Top Preis",
-      className: "bg-red-600 text-white",
-    };
-  }
-
-  return {
-    label: "Auf Lager",
-    className: "bg-green-50 text-green-700",
-  };
-}
-
-function getStockText(product: ProductCardProps["product"]) {
-  const stockQty = product.stockQty ?? 0;
-
-  if (!product.inStock || stockQty <= 0) {
-    return {
-      label: "Aktuell nicht verfügbar",
-      detail: "Derzeit nicht bestellbar",
-      className: "text-neutral-400",
-      dot: "bg-neutral-300",
-    };
-  }
-
-  if (stockQty <= 5) {
-    return {
-      label: `Nur noch ${stockQty} Stück verfügbar`,
-      detail: "Lieferung in 3–5 Werktagen",
-      className: "text-amber-700",
-      dot: "bg-amber-500",
-    };
-  }
-
-  return {
-    label: "Sofort lieferbar",
-    detail: "Lieferung morgen / 1–2 Werktage",
-    className: "text-green-700",
-    dot: "bg-green-500",
-  };
-}
-
-export default function ProductCard({ product }: ProductCardProps) {
+export default function ProductCard({ product }: Props) {
   const { addItem, loading } = useCart();
+  const [imageFailed, setImageFailed] = useState(false);
 
-  const href = useMemo(() => {
-    if (product.slug && product.slug.trim()) return `/produkte/${product.slug}`;
-    return "/produkte";
-  }, [product.slug]);
+  const stockQty = product.stockQty ?? 0;
+  const inStock = stockQty > 0 || Boolean(product.inStock);
+  const canBuy = Boolean(inStock && product.merchandiseId);
 
-  const canBuy = Boolean(
-    product.inStock &&
-      (product.stockQty ?? 0) > 0 &&
-      product.merchandiseId?.trim()
-  );
+  const stockLabel =
+    !inStock
+      ? "Nicht verfügbar"
+      : stockQty <= 3
+        ? `Nur noch ${Math.max(stockQty, 1)} Stück`
+        : "Sofort lieferbar";
 
-  const badge = getBadge(product);
-  const stock = getStockText(product);
+  const stockColor =
+    !inStock
+      ? "text-neutral-400"
+      : stockQty <= 3
+        ? "text-orange-600"
+        : "text-green-600";
 
-  const hasRating =
-    typeof product.rating === "number" &&
-    product.rating > 0 &&
-    typeof product.reviewsCount === "number" &&
-    product.reviewsCount > 0;
+  const imageSrc =
+    product.image && product.image.trim() && !imageFailed
+      ? product.image.trim()
+      : null;
 
   return (
-    <article className="group relative overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
-      <div className="absolute left-4 top-4 z-10">
-        <span
-          className={`rounded-full px-3 py-1 text-xs font-bold ${badge.className}`}
-        >
-          {badge.label}
-        </span>
-      </div>
-
-      <Link href={href} className="block">
-        <div className="relative flex h-64 items-center justify-center overflow-hidden bg-neutral-50 p-6">
-          {product.image ? (
-            <Image
-              src={product.image}
+    <article className="group overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+      <Link href={`/produkte/${product.slug}`} className="block">
+        <div className="relative flex aspect-square items-center justify-center overflow-hidden bg-neutral-50 p-6">
+          {imageSrc ? (
+            // img é intencional aqui para evitar bloqueios de domínio do Next/Image
+            <img
+              src={imageSrc}
               alt={product.title}
-              fill
-              className="object-contain p-6 transition duration-300 group-hover:scale-110"
-              unoptimized
+              onError={() => setImageFailed(true)}
+              className="max-h-full max-w-full object-contain transition duration-300 group-hover:scale-105"
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center text-sm text-neutral-400">
-              Kein Bild verfügbar
+            <div className="flex h-full w-full items-center justify-center rounded-2xl border border-dashed border-neutral-300 bg-white text-center">
+              <div>
+                <div className="text-3xl">📦</div>
+                <div className="mt-2 text-xs font-semibold text-neutral-400">
+                  Bild folgt
+                </div>
+              </div>
             </div>
           )}
         </div>
       </Link>
 
       <div className="p-5">
-        {product.brand ? (
-          <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
-            {product.brand}
-          </p>
-        ) : null}
+        <div className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+          {product.brand || "IUMATEC"}
+        </div>
 
-        <Link href={href}>
-          <h3 className="mt-1 line-clamp-2 text-base font-bold text-neutral-950 transition group-hover:text-red-600">
+        <Link href={`/produkte/${product.slug}`}>
+          <h3 className="mt-1 line-clamp-2 min-h-[42px] text-base font-extrabold leading-snug text-neutral-950 transition hover:text-red-600">
             {product.title}
           </h3>
         </Link>
 
-        {hasRating ? (
-          <div className="mt-2 flex items-center gap-2 text-sm">
-            <span className="text-amber-500">
-              {"★".repeat(Math.round(product.rating || 0))}
-            </span>
-            <span className="font-bold text-neutral-900">
-              {product.rating?.toFixed(1)}
-            </span>
-            <span className="text-neutral-500">({product.reviewsCount})</span>
-          </div>
-        ) : (
-          <div className="mt-2 text-xs text-neutral-400">
-            Noch keine Bewertungen
-          </div>
-        )}
-
-        <div className="mt-3 rounded-2xl bg-neutral-50 p-3">
-          <div
-            className={`flex items-center gap-2 text-sm font-bold ${stock.className}`}
-          >
-            <span className={`h-2.5 w-2.5 rounded-full ${stock.dot}`} />
-            {stock.label}
-          </div>
-          <div className="mt-1 text-xs text-neutral-500">{stock.detail}</div>
+        <div className={`mt-3 text-sm font-extrabold ${stockColor}`}>
+          {stockLabel}
         </div>
 
         <div className="mt-4 text-2xl font-extrabold text-neutral-950">
@@ -188,8 +103,8 @@ export default function ProductCard({ product }: ProductCardProps) {
 
         <div className="mt-5 flex gap-3">
           <Link
-            href={href}
-            className="flex-1 rounded-2xl border border-neutral-300 px-4 py-3 text-center text-sm font-semibold transition hover:bg-neutral-50"
+            href={`/produkte/${product.slug}`}
+            className="flex-1 rounded-2xl border border-neutral-300 px-4 py-3 text-center text-sm font-bold transition hover:bg-neutral-50"
           >
             Details
           </Link>
@@ -203,10 +118,11 @@ export default function ProductCard({ product }: ProductCardProps) {
                     merchandiseId: product.merchandiseId,
                     productHandle: product.productHandle,
                     quantity: 1,
+                    imageUrl: product.image ?? null,
                   })
                 : undefined
             }
-            className={`flex-1 rounded-2xl px-4 py-3 text-sm font-bold transition ${
+            className={`flex-1 rounded-2xl px-4 py-3 text-sm font-extrabold transition ${
               canBuy
                 ? "bg-red-600 text-white hover:bg-red-700"
                 : "cursor-not-allowed bg-neutral-200 text-neutral-500"

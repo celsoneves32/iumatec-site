@@ -1,42 +1,19 @@
 import fs from "fs";
 import path from "path";
-
-type AnyObj = Record<string, any>;
-
-type TechCatalogItem = {
-  sku?: string;
-  internalNumber?: string;
-  ean?: string;
-  title?: string;
-  title2?: string;
-  fullTitle?: string;
-  brand?: string;
-  stock?: number;
-  price?: number | null;
-  images?: string[];
-  image?: string | null;
-  description?: string;
-  description2?: string;
-  rawCategory?: {
-    cat1?: string;
-    cat2?: string;
-    cat3?: string;
-    cat4?: string;
-  };
-  iumatecCategory?: {
-    main?: string;
-    sub?: string;
-  };
-};
+import iconv from "iconv-lite";
+import { XMLParser } from "fast-xml-parser";
 
 function readJsonFile<T>(filePath: string, fallback: T): T {
   try {
     if (!fs.existsSync(filePath)) return fallback;
     return JSON.parse(fs.readFileSync(filePath, "utf8")) as T;
-  } catch (error) {
-    console.error(`Failed to read ${filePath}`, error);
+  } catch {
     return fallback;
   }
+}
+
+function clean(value: unknown): string {
+  return String(value ?? "").trim();
 }
 
 function slugify(value: string) {
@@ -50,21 +27,41 @@ function slugify(value: string) {
     .replace(/-{2,}/g, "-");
 }
 
-function clean(value: unknown): string {
-  return String(value ?? "").trim();
-}
+function flattenXmlItems(value: any): any[] {
+  const items: any[] = [];
 
-function normalizeImageArray(value: unknown): string[] {
-  if (!Array.isArray(value)) return [];
+  function walk(node: any) {
+    if (!node) return;
 
-  return value
-    .map((item) => String(item ?? "").trim())
-    .filter(Boolean)
-    .filter((url) => url.startsWith("http://") || url.startsWith("https://"));
-}
+    if (Array.isArray(node)) {
+      for (const item of node) walk(item);
+      return;
+    }
 
-function uniqueStrings(values: string[]) {
-  return [...new Set(values.filter(Boolean))];
+    if (typeof node !== "object") return;
+
+    if (
+      node.SKU !== undefined &&
+      (
+        node.EnergyLabel !== undefined ||
+        node.Energyclass !== undefined ||
+        node.EnergyclassAbisG !== undefined ||
+        node.EnergyclassAPPbisG !== undefined ||
+        node.EnergieeffizienzklasseEnEV2020 !== undefined
+      )
+    ) {
+      items.push(node);
+      return;
+    }
+
+    for (const child of Object.values(node)) {
+      walk(child);
+    }
+  }
+
+  walk(value);
+
+  return items;
 }
 
 const inFile = path.join(
@@ -75,6 +72,22 @@ const inFile = path.join(
   "iumatec-tech-catalog.json"
 );
 
+const imageCsv = path.join(
+  process.cwd(),
+  "integrations",
+  "alltron",
+  "downloads",
+  "alltron-bilder-urls.csv"
+);
+
+const energyXml = path.join(
+  process.cwd(),
+  "integrations",
+  "alltron",
+  "downloads",
+  "alltron-energielabels.xml"
+);
+
 const outFile = path.join(
   process.cwd(),
   "integrations",
@@ -83,61 +96,184 @@ const outFile = path.join(
   "iumatec-products.json"
 );
 
-const source = readJsonFile<TechCatalogItem[]>(inFile, []);
+const source = readJsonFile<any[]>(inFile, []);
+
+/* IMAGES */
+const imageMap = new Map<string, string[]>();
+
+if (fs.existsSync(imageCsv)) {
+  const rawCsv = fs.readFileSync(imageCsv, "utf8");
+
+  const lines = rawCsv.split(/\r?\n/).filter(Boolean);
+
+  for (const line of lines) {
+    const cols = line.split(";");
+
+    if (cols.length < 2) continue;
+
+    const key = clean(cols[0]);
+    const imageUrl = clean(cols[1]);
+
+    if (
+      !key ||
+      key.toLowerCase() === "sku" ||
+      !imageUrl.startsWith("http")
+    ) {
+      continue;
+    }
+
+    if (!imageMap.has(key)) {
+      imageMap.set(key, []);
+    }
+
+    imageMap.get(key)?.push(imageUrl);
+  }
+}
+
+console.log("Images loaded:", imageMap.size);
+
+/* ENERGY LABELS */
+const energyMap = new Map<string, any>();
+
+if (fs.existsSync(energyXml)) {
+  const parser = new XMLParser({
+    ignoreAttributes: false,
+    attributeNamePrefix: "@_",
+    parseTagValue: true,
+    trimValues: true,
+  });
+
+  const buffer = fs.readFileSync(energyXml);
+
+  const xml = iconv.decode(buffer, "windows-1252");
+
+  const data = parser.parse(xml);
+
+  const items = flattenXmlItems(data);
+
+  for (const item of items) {
+    const energySku = clean(item.SKU);
+
+    if (!energySku) continue;
+
+    const energyClass =
+      clean(item.EnergieeffizienzklasseEnEV2020) ||
+      clean(item.EnergyclassAbisG) ||
+      clean(item.EnergyclassAPPbisG) ||
+      clean(item.Energyclass);
+
+    const energyLabelUrl = clean(item.EnergyLabel);
+
+    energyMap.set(energySku, {
+      class:
+        energyClass &&
+        energyClass !== "Keine"
+          ? energyClass
+          : null,
+
+      labelUrl:
+        energyLabelUrl &&
+        energyLabelUrl.startsWith("http")
+          ? energyLabelUrl
+          : null,
+
+      productDataSheetUrl: null,
+    });
+  }
+}
+
+console.log("Energy labels loaded:", energyMap.size);
 
 const products = source.map((item, index) => {
   const title = clean(item.title);
-  const title2 = clean(item.title2);
-  const fullTitle = clean(item.fullTitle) || [title, title2].filter(Boolean).join(" - ");
-  const brand = clean(item.brand);
 
-  const slugBase =
+  const title2 = clean(item.title2);
+
+  const fullTitle =
+    clean(item.fullTitle) ||
+    [title, title2].filter(Boolean).join(" - ");
+
+  const sku = clean(item.sku);
+
+  const internalNumber = clean(item.internalNumber);
+
+  const ean = clean(item.ean);
+
+  const litm = clean(item.litm);
+
+  const slug =
     slugify(fullTitle) ||
     slugify(title) ||
-    slugify(item.sku || "") ||
+    slugify(sku) ||
     `product-${index + 1}`;
 
-  const images = uniqueStrings([
-    ...normalizeImageArray(item.images),
-    clean(item.image),
-  ]);
+  const csvImages =
+    imageMap.get(sku) ||
+    imageMap.get(internalNumber) ||
+    imageMap.get(ean) ||
+    imageMap.get(litm) ||
+    [];
 
-  const firstImage = images[0] || null;
+  const images = [...new Set(csvImages.filter(Boolean))];
 
-  const rawCat1 = clean(item.rawCategory?.cat1);
-  const rawCat2 = clean(item.rawCategory?.cat2);
-  const rawCat3 = clean(item.rawCategory?.cat3);
-  const rawCat4 = clean(item.rawCategory?.cat4);
+  let energyLabel =
+    energyMap.get(sku) ||
+    energyMap.get(internalNumber) ||
+    null;
 
-  const mainCategory = clean(item.iumatecCategory?.main) || "Sonstiges";
-  const subCategory = clean(item.iumatecCategory?.sub) || "Andere";
+  if (!energyLabel && internalNumber) {
+    const digitsOnly = internalNumber.replace(/\D/g, "");
+
+    energyLabel = energyMap.get(digitsOnly) || null;
+  }
+
+  const mainCategory =
+    clean(item.iumatecCategory?.main) || "Sonstiges";
+
+  const subCategory =
+    clean(item.iumatecCategory?.sub) || "Andere";
 
   return {
-    id: item.sku || item.internalNumber || item.ean || `item-${index + 1}`,
-    sku: clean(item.sku),
-    internalNumber: clean(item.internalNumber),
-    ean: clean(item.ean),
-    slug: slugBase,
+    id:
+      sku ||
+      internalNumber ||
+      ean ||
+      `item-${index + 1}`,
+
+    litm,
+    sku,
+    internalNumber,
+    ean,
+    slug,
 
     title,
+
     title2: title2 || null,
+
     fullTitle,
 
-    brand: brand || null,
-    stock: Number(item.stock ?? 0),
-    price: item.price === null || item.price === undefined ? null : Number(item.price),
+    brand: clean(item.brand) || null,
 
-    image: firstImage,
+    stock: Number(item.stock ?? 0),
+
+    price:
+      item.price === null || item.price === undefined
+        ? null
+        : Number(item.price),
+
+    image: images[0] || null,
+
     images,
 
     description: clean(item.description) || null,
+
     description2: clean(item.description2) || null,
 
     rawCategory: {
-      cat1: rawCat1 || null,
-      cat2: rawCat2 || null,
-      cat3: rawCat3 || null,
-      cat4: rawCat4 || null,
+      cat1: clean(item.rawCategory?.cat1) || null,
+      cat2: clean(item.rawCategory?.cat2) || null,
+      cat3: clean(item.rawCategory?.cat3) || null,
+      cat4: clean(item.rawCategory?.cat4) || null,
     },
 
     iumatecCategory: {
@@ -149,13 +285,31 @@ const products = source.map((item, index) => {
       subCategory && subCategory !== "Andere"
         ? `${mainCategory} / ${subCategory}`
         : mainCategory,
+
+    energyLabel,
   };
 });
 
-fs.writeFileSync(outFile, JSON.stringify(products, null, 2), "utf8");
+fs.writeFileSync(
+  outFile,
+  JSON.stringify(products, null, 2),
+  "utf8"
+);
 
 console.log(`Products created: ${products.length}`);
-console.log(`Saved: integrations/alltron/out/iumatec-products.json`);
 
-const withImages = products.filter((p) => Array.isArray(p.images) && p.images.length > 0).length;
-console.log(`Products with images: ${withImages}`);
+console.log(
+  `Saved: integrations/alltron/out/iumatec-products.json`
+);
+
+console.log(
+  `Products with images: ${
+    products.filter((p) => p.images?.length > 0).length
+  }`
+);
+
+console.log(
+  `Products with energy label: ${
+    products.filter((p) => p.energyLabel).length
+  }`
+);
