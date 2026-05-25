@@ -17,7 +17,10 @@ export default function AddToCartButton({ variantId, className }: Props) {
     try {
       setAdding(true);
       setAdded(false);
-      await addItem(variantId, 1);
+      await addItem({
+  merchandiseId: variantId,
+  quantity: 1,
+});
       setAdded(true);
 
       setTimeout(() => {

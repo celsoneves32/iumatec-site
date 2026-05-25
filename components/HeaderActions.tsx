@@ -99,7 +99,7 @@ export default function HeaderActions({ accountUrl }: { accountUrl?: string }) {
       )}
 
       {/* Cart Drawer */}
-      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
+      <CartDrawer />
     </>
   );
 }

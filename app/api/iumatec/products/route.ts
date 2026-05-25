@@ -1,134 +1,65 @@
-import Link from "next/link"
-import { getIumatecCategories, searchIumatecProducts } from "@/lib/iumatec"
+import { NextRequest, NextResponse } from "next/server";
+import {
+  getPurchasableProducts,
+  searchProducts,
+  type Product,
+} from "@/lib/productData";
 
-type ProduktePageProps = {
-  searchParams?: {
-    q?: string
-    category?: string
-    subcategory?: string
-  }
+function normalize(value?: string | null) {
+  return String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
 }
 
-export default function ProduktePage({ searchParams }: ProduktePageProps) {
-  const q = searchParams?.q || ""
-  const category = searchParams?.category || ""
-  const subcategory = searchParams?.subcategory || ""
+function serializeProduct(product: Product) {
+  return {
+    sku: product.sku,
+    slug: product.slug,
+    title: product.title,
+    brand: product.brand ?? null,
+    price: product.price,
+    image: product.image ?? null,
+    images: product.images ?? [],
+    category: product.category ?? null,
+    subcategory: product.subcategory ?? null,
+    inStock: Boolean((product.stockQty ?? 0) > 0 || product.inStock),
+    stockQty: product.stockQty ?? 0,
+    merchandiseId: product.merchandiseId ?? null,
+    shopifyProductHandle: product.shopifyProductHandle ?? product.slug,
+    energyLabel: product.energyLabel ?? null,
+  };
+}
 
-  const products = searchIumatecProducts({
-    q,
-    category,
-    subcategory,
-    limit: 120
-  })
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
 
-  const categories = getIumatecCategories()
+  const q = searchParams.get("q") || "";
+  const category = normalize(searchParams.get("category"));
+  const subcategory = normalize(searchParams.get("subcategory"));
+  const brand = normalize(searchParams.get("brand"));
+  const limit = Math.min(Number(searchParams.get("limit") || 100), 500);
 
-  const activeCategory = categories.find((c) => c.name === category)
+  let products = q ? searchProducts(q) : getPurchasableProducts();
 
-  return (
-    <main className="mx-auto max-w-7xl px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-neutral-900">Produkte</h1>
-        <p className="mt-2 text-neutral-600">
-          {products.length} Produkte gefunden
-        </p>
-      </div>
+  products = products.filter((product) => {
+    const matchesCategory = category
+      ? normalize(product.category) === category
+      : true;
 
-      <form className="mb-8 grid gap-3 md:grid-cols-4">
-        <input
-          type="text"
-          name="q"
-          defaultValue={q}
-          placeholder="Suche nach Produkt, Marke oder SKU"
-          className="rounded-xl border border-neutral-300 px-4 py-3 text-sm outline-none focus:border-brand"
-        />
+    const matchesSubcategory = subcategory
+      ? normalize(product.subcategory) === subcategory
+      : true;
 
-        <select
-          name="category"
-          defaultValue={category}
-          className="rounded-xl border border-neutral-300 px-4 py-3 text-sm outline-none focus:border-brand"
-        >
-          <option value="">Alle Kategorien</option>
-          {categories.map((cat) => (
-            <option key={cat.name} value={cat.name}>
-              {cat.name}
-            </option>
-          ))}
-        </select>
+    const matchesBrand = brand ? normalize(product.brand) === brand : true;
 
-        <select
-          name="subcategory"
-          defaultValue={subcategory}
-          className="rounded-xl border border-neutral-300 px-4 py-3 text-sm outline-none focus:border-brand"
-        >
-          <option value="">Alle Unterkategorien</option>
-          {(activeCategory?.subcategories || []).map((sub) => (
-            <option key={sub} value={sub}>
-              {sub}
-            </option>
-          ))}
-        </select>
+    return matchesCategory && matchesSubcategory && matchesBrand;
+  });
 
-        <button
-          type="submit"
-          className="rounded-xl bg-brand px-5 py-3 text-sm font-semibold text-white hover:opacity-90"
-        >
-          Suchen
-        </button>
-      </form>
-
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {products.map((product) => (
-          <Link
-            key={product.sku}
-            href={`/produkte/${product.slug}`}
-            className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-          >
-            <div className="aspect-square overflow-hidden rounded-xl bg-neutral-100">
-              {product.image ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={product.image}
-                  alt={product.title}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="flex h-full items-center justify-center text-sm text-neutral-400">
-                  Kein Bild
-                </div>
-              )}
-            </div>
-
-            <div className="mt-4">
-              <p className="text-xs font-medium uppercase tracking-wide text-brand">
-                {product.brand}
-              </p>
-
-              <h2 className="mt-1 line-clamp-2 min-h-[3rem] text-sm font-semibold text-neutral-900">
-                {product.title}
-              </h2>
-
-              <p className="mt-2 text-xs text-neutral-500">
-                {product.category} / {product.subcategory}
-              </p>
-
-              <div className="mt-3 flex items-center justify-between">
-                <span className="text-lg font-bold text-neutral-900">
-                  CHF {product.price.toFixed(2)}
-                </span>
-
-                <span
-                  className={`text-xs font-medium ${
-                    product.stock > 0 ? "text-green-600" : "text-red-500"
-                  }`}
-                >
-                  {product.stock > 0 ? `Lager: ${product.stock}` : "Ausverkauft"}
-                </span>
-              </div>
-            </div>
-          </Link>
-        ))}
-      </div>
-    </main>
-  )
+  return NextResponse.json({
+    ok: true,
+    total: products.length,
+    products: products.slice(0, limit).map(serializeProduct),
+  });
 }

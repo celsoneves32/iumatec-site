@@ -1,3 +1,4 @@
+import React from "react";
 import { NextResponse } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 import ProductDatasheetDocument from "@/components/pdf/ProductDatasheetDocument";
@@ -32,14 +33,14 @@ export async function GET(
   });
 
   const pdfBuffer = await renderToBuffer(
-    <ProductDatasheetDocument
-      product={product}
-      stock={stock}
-      delivery={delivery || "Lieferdatum folgt"}
-    />
-  );
+  React.createElement(ProductDatasheetDocument as any, {
+    product,
+    stock,
+    delivery: delivery || "Lieferdatum folgt",
+  }) as any
+);
 
-  return new NextResponse(pdfBuffer, {
+  return new NextResponse(new Uint8Array(pdfBuffer), {
     status: 200,
     headers: {
       "Content-Type": "application/pdf",

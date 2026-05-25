@@ -49,9 +49,9 @@ export default function CartPage() {
       ) : (
         <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
           <section className="space-y-4">
-            {items.map((item) => {
+            {(items as any[]).map((item) => {
               const qty = item.quantity ?? 1;
-              const linePrice = (item.price || 0) * qty;
+              const linePrice = Number(item.totalPrice || item.unitPrice || 0);
 
               return (
                 <div

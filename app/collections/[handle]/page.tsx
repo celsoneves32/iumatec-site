@@ -12,7 +12,9 @@ type PageProps = {
 };
 
 export default async function CollectionDetailPage({ params }: PageProps) {
-  const { collection, products } = await getCollectionByHandle(params.handle);
+  const result: any = await getCollectionByHandle(params.handle);
+const collection = result;
+const products = result?.products || [];
 
   if (!collection) {
     notFound();

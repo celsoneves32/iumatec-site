@@ -1,4 +1,3 @@
-// lib/shopify-search.ts
 import { shopifyFetch } from "@/lib/shopify";
 
 export type SearchProduct = {
@@ -76,7 +75,6 @@ export async function searchProducts({
       first,
       query: q || null,
     },
-    tags: ["search-products"],
   });
 
   return {
@@ -97,21 +95,10 @@ export function filterProductsLocally(
   return products.filter((product) => {
     const price = Number(product.priceRange.minVariantPrice.amount);
 
-    if (filters.vendor && product.vendor !== filters.vendor) {
-      return false;
-    }
-
-    if (filters.productType && product.productType !== filters.productType) {
-      return false;
-    }
-
-    if (typeof filters.minPrice === "number" && price < filters.minPrice) {
-      return false;
-    }
-
-    if (typeof filters.maxPrice === "number" && price > filters.maxPrice) {
-      return false;
-    }
+    if (filters.vendor && product.vendor !== filters.vendor) return false;
+    if (filters.productType && product.productType !== filters.productType) return false;
+    if (typeof filters.minPrice === "number" && price < filters.minPrice) return false;
+    if (typeof filters.maxPrice === "number" && price > filters.maxPrice) return false;
 
     return true;
   });

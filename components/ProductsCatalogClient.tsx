@@ -15,6 +15,10 @@ export type CatalogProduct = {
   subcategory?: string;
   stockQty?: number;
   inStock?: boolean;
+  merchandiseId?: string | null;
+  shopifyProductHandle?: string | null;
+  productHandle?: string | null;
+  energyLabel?: any;
 };
 
 type Props = {
@@ -109,10 +113,10 @@ export default function ProductsCatalogClient({ products }: Props) {
           ? true
           : selectedBrands.includes(product.brand || "");
 
-      const matchStock = onlyInStock ? !!product.inStock || (product.stockQty ?? 0) > 0 : true;
+      const matchStock =
+        onlyInStock ? Boolean(product.inStock || (product.stockQty ?? 0) > 0) : true;
 
-      const matchPrice =
-        productPrice >= priceMin && productPrice <= priceMax;
+      const matchPrice = productPrice >= priceMin && productPrice <= priceMax;
 
       const haystack = [
         product.title,
@@ -127,13 +131,7 @@ export default function ProductsCatalogClient({ products }: Props) {
 
       const matchQuery = q ? haystack.includes(q) : true;
 
-      return (
-        matchCategory &&
-        matchBrand &&
-        matchStock &&
-        matchPrice &&
-        matchQuery
-      );
+      return matchCategory && matchBrand && matchStock && matchPrice && matchQuery;
     });
 
     list = [...list].sort((a, b) => {
@@ -273,48 +271,19 @@ export default function ProductsCatalogClient({ products }: Props) {
                   className="w-full rounded-2xl border border-neutral-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-neutral-900"
                 />
               </div>
-
-              <div className="mt-3 px-1">
-                <input
-                  type="range"
-                  min={absoluteMinPrice}
-                  max={absoluteMaxPrice}
-                  value={priceMin}
-                  onChange={(e) =>
-                    setPriceMin(
-                      Math.min(Number(e.target.value), priceMax)
-                    )
-                  }
-                  className="w-full"
-                />
-                <input
-                  type="range"
-                  min={absoluteMinPrice}
-                  max={absoluteMaxPrice}
-                  value={priceMax}
-                  onChange={(e) =>
-                    setPriceMax(
-                      Math.max(Number(e.target.value), priceMin)
-                    )
-                  }
-                  className="mt-2 w-full"
-                />
-              </div>
             </div>
 
-            <div>
-              <label className="flex cursor-pointer items-center gap-3">
-                <input
-                  type="checkbox"
-                  checked={onlyInStock}
-                  onChange={(e) => setOnlyInStock(e.target.checked)}
-                  className="h-4 w-4 rounded border-neutral-300"
-                />
-                <span className="text-sm font-medium text-neutral-900">
-                  Nur verfügbare Produkte
-                </span>
-              </label>
-            </div>
+            <label className="flex cursor-pointer items-center gap-3">
+              <input
+                type="checkbox"
+                checked={onlyInStock}
+                onChange={(e) => setOnlyInStock(e.target.checked)}
+                className="h-4 w-4 rounded border-neutral-300"
+              />
+              <span className="text-sm font-medium text-neutral-900">
+                Nur verfügbare Produkte
+              </span>
+            </label>
 
             <div>
               <p className="mb-3 text-sm font-semibold text-neutral-900">Marke</p>
@@ -350,12 +319,28 @@ export default function ProductsCatalogClient({ products }: Props) {
             </div>
           ) : (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
-              {filteredProducts.map((product) => (
-                <ProductCard
-                  key={`${product.sku}-${product.slug}`}
-                  product={product}
-                />
-              ))}
+              {filteredProducts.map((product) => {
+                const p: any = product;
+
+                return (
+                  <ProductCard
+                    key={`${p.sku}-${p.slug}`}
+                    product={{
+                      slug: p.slug,
+                      title: p.title,
+                      brand: p.brand,
+                      price: getSafePrice(p.price),
+                      image: p.image ?? null,
+                      inStock: p.inStock,
+                      stockQty: p.stockQty,
+                      merchandiseId: p.merchandiseId,
+                      productHandle:
+                        p.shopifyProductHandle ?? p.productHandle ?? p.slug,
+                      energyLabel: p.energyLabel,
+                    }}
+                  />
+                );
+              })}
             </div>
           )}
         </section>

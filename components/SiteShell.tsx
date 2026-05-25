@@ -14,7 +14,7 @@ export default function SiteShell({
   return (
     <>
       <Header onOpenCart={() => setCartOpen(true)} />
-      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
+      <CartDrawer />
       {children}
     </>
   );

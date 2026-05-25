@@ -1,4 +1,3 @@
-// lib/cart.ts
 import { shopifyFetch } from "@/lib/shopify";
 
 export type Money = {
@@ -115,13 +114,11 @@ export async function cartCreate(): Promise<Cart> {
     };
   }>({
     query,
-    tags: ["cart"],
+    variables: {},
   });
 
   const errors = data.cartCreate.userErrors;
-  if (errors?.length) {
-    throw new Error(errors[0].message);
-  }
+  if (errors?.length) throw new Error(errors[0].message);
 
   if (!data.cartCreate.cart) {
     throw new Error("cartCreate: no cart returned");
@@ -145,7 +142,6 @@ export async function cartGet(cartId: string): Promise<Cart | null> {
   }>({
     query,
     variables: { id: cartId },
-    tags: ["cart"],
   });
 
   return data.cart;
@@ -180,20 +176,12 @@ export async function cartLinesAdd(
     query,
     variables: {
       cartId,
-      lines: [
-        {
-          merchandiseId: variantId,
-          quantity,
-        },
-      ],
+      lines: [{ merchandiseId: variantId, quantity }],
     },
-    tags: ["cart"],
   });
 
   const errors = data.cartLinesAdd.userErrors;
-  if (errors?.length) {
-    throw new Error(errors[0].message);
-  }
+  if (errors?.length) throw new Error(errors[0].message);
 
   if (!data.cartLinesAdd.cart) {
     throw new Error("cartLinesAdd: no cart returned");
@@ -231,20 +219,12 @@ export async function cartLinesUpdate(
     query,
     variables: {
       cartId,
-      lines: [
-        {
-          id: lineId,
-          quantity,
-        },
-      ],
+      lines: [{ id: lineId, quantity }],
     },
-    tags: ["cart"],
   });
 
   const errors = data.cartLinesUpdate.userErrors;
-  if (errors?.length) {
-    throw new Error(errors[0].message);
-  }
+  if (errors?.length) throw new Error(errors[0].message);
 
   if (!data.cartLinesUpdate.cart) {
     throw new Error("cartLinesUpdate: no cart returned");
@@ -283,13 +263,10 @@ export async function cartLinesRemove(
       cartId,
       lineIds: [lineId],
     },
-    tags: ["cart"],
   });
 
   const errors = data.cartLinesRemove.userErrors;
-  if (errors?.length) {
-    throw new Error(errors[0].message);
-  }
+  if (errors?.length) throw new Error(errors[0].message);
 
   if (!data.cartLinesRemove.cart) {
     throw new Error("cartLinesRemove: no cart returned");
