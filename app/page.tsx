@@ -69,11 +69,20 @@ function filterProducts(products: Product[], words: string[], limit = 4) {
       const text = productText(product);
       return words.some((word) => text.includes(word.toLowerCase()));
     })
+    .filter(isBuyable)
     .slice(0, limit);
 }
 
-function ProductGrid({ products, compact = false }: { products: Product[]; compact?: boolean }) {
-  if (!products.length) return null;
+function ProductGrid({
+  products,
+  compact = false,
+}: {
+  products: Product[];
+  compact?: boolean;
+}) {
+  const buyableProducts = products.filter(isBuyable);
+
+  if (!buyableProducts.length) return null;
 
   return (
     <div
@@ -83,7 +92,7 @@ function ProductGrid({ products, compact = false }: { products: Product[]; compa
           : "grid gap-6 sm:grid-cols-2 xl:grid-cols-4"
       }
     >
-      {products.map((product) => (
+      {buyableProducts.map((product) => (
         <ProductCard
           key={`${product.sku}-${product.slug}`}
           product={{
@@ -107,7 +116,10 @@ function ProductGrid({ products, compact = false }: { products: Product[]; compa
 export default function HomePage() {
   const winners = readWinningProducts();
 
-  const products = (winners.length > 0 ? winners : getTopProducts(200)).filter(isBuyable);
+  const products = (winners.length > 0 ? winners : getTopProducts(200)).filter(
+    isBuyable
+  );
+
   const fallbackTop = products.slice(0, 4);
 
   const smartphones = filterProducts(
