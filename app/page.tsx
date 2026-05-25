@@ -50,6 +50,15 @@ function readWinningProducts(): Product[] {
   }
 }
 
+function isBuyable(product: Product) {
+  return (
+    Boolean(product.merchandiseId) &&
+    Boolean((product.stockQty ?? 0) > 0 || product.inStock) &&
+    Number(product.price || 0) > 0 &&
+    Boolean(product.image)
+  );
+}
+
 function productText(product: Product) {
   return `${product.title} ${product.brand} ${product.category} ${product.subcategory}`.toLowerCase();
 }
@@ -63,9 +72,17 @@ function filterProducts(products: Product[], words: string[], limit = 4) {
     .slice(0, limit);
 }
 
-function ProductGrid({ products }: { products: Product[] }) {
+function ProductGrid({ products, compact = false }: { products: Product[]; compact?: boolean }) {
+  if (!products.length) return null;
+
   return (
-    <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+    <div
+      className={
+        compact
+          ? "grid gap-4 sm:grid-cols-2"
+          : "grid gap-6 sm:grid-cols-2 xl:grid-cols-4"
+      }
+    >
       {products.map((product) => (
         <ProductCard
           key={`${product.sku}-${product.slug}`}
@@ -89,7 +106,9 @@ function ProductGrid({ products }: { products: Product[] }) {
 
 export default function HomePage() {
   const winners = readWinningProducts();
-  const products = winners.length > 0 ? winners : getTopProducts(200);
+
+  const products = (winners.length > 0 ? winners : getTopProducts(200)).filter(isBuyable);
+  const fallbackTop = products.slice(0, 4);
 
   const smartphones = filterProducts(
     products,
@@ -108,10 +127,8 @@ export default function HomePage() {
   const business = filterProducts(
     products,
     ["hp", "lenovo", "dell", "probook", "thinkpad", "latitude"],
-    4
+    2
   );
-
-  const fallbackTop = products.slice(0, 4);
 
   return (
     <main className="bg-white">
@@ -261,13 +278,13 @@ export default function HomePage() {
       </section>
 
       <section className="bg-neutral-950 text-white">
-        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-14 lg:grid-cols-[1fr_1.5fr]">
+        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 lg:grid-cols-[1fr_1fr] lg:items-center">
           <div>
             <div className="inline-flex rounded-full bg-white/10 px-4 py-2 text-sm font-bold text-white">
               Für Unternehmen & Profis
             </div>
 
-            <h2 className="mt-5 text-4xl font-black">
+            <h2 className="mt-5 max-w-xl text-4xl font-black">
               Business-Technik für die Schweiz.
             </h2>
 
@@ -284,7 +301,10 @@ export default function HomePage() {
             </Link>
           </div>
 
-          <ProductGrid products={business.length ? business : fallbackTop} />
+          <ProductGrid
+            products={(business.length ? business : fallbackTop).slice(0, 2)}
+            compact
+          />
         </div>
       </section>
     </main>
