@@ -50,10 +50,25 @@ function readWinningProducts(): Product[] {
   }
 }
 
+function getMerchandiseId(product: Product) {
+  return (
+    product.merchandiseId ||
+    product.shopifyVariantId ||
+    null
+  );
+}
+
+function getMerchandiseId(product: Product) {
+  return (
+    product.merchandiseId ||
+    product.shopifyVariantId ||
+    null
+  );
+}
+
 function isBuyable(product: Product) {
   return (
-    Boolean(product.merchandiseId) &&
-    Boolean((product.stockQty ?? 0) > 0 || product.inStock) &&
+    Boolean(getMerchandiseId(product)) &&
     Number(product.price || 0) > 0 &&
     Boolean(product.image)
   );
@@ -103,7 +118,7 @@ function ProductGrid({
             image: product.image ?? null,
             inStock: product.inStock,
             stockQty: product.stockQty,
-            merchandiseId: product.merchandiseId,
+            merchandiseId: getMerchandiseId(product),
             productHandle: product.shopifyProductHandle ?? product.slug,
             energyLabel: product.energyLabel,
           }}
