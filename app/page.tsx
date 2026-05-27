@@ -54,8 +54,18 @@ function getMerchandiseId(product: Product) {
   return product.merchandiseId || product.shopifyVariantId || null;
 }
 
+function getProductSlug(product: Product) {
+  return (
+    product.slug ||
+    product.shopifyProductHandle ||
+    product.productHandle ||
+    ""
+  );
+}
+
 function isBuyable(product: Product) {
   return (
+    Boolean(getProductSlug(product)) &&
     Boolean(getMerchandiseId(product)) &&
     Number(product.price || 0) > 0 &&
     Boolean(product.image)
@@ -95,23 +105,27 @@ function ProductGrid({
           : "grid gap-6 sm:grid-cols-2 xl:grid-cols-4"
       }
     >
-      {buyableProducts.map((product) => (
-        <ProductCard
-          key={`${product.sku}-${product.slug}`}
-          product={{
-            slug: product.slug,
-            title: product.title,
-            brand: product.brand,
-            price: Number(product.price || 0),
-            image: product.image ?? null,
-            inStock: product.inStock,
-            stockQty: product.stockQty,
-            merchandiseId: getMerchandiseId(product),
-            productHandle: product.shopifyProductHandle ?? product.slug,
-            energyLabel: product.energyLabel,
-          }}
-        />
-      ))}
+      {buyableProducts.map((product) => {
+        const slug = getProductSlug(product);
+
+        return (
+          <ProductCard
+            key={`${product.sku}-${slug}`}
+            product={{
+              slug,
+              title: product.title,
+              brand: product.brand,
+              price: Number(product.price || 0),
+              image: product.image ?? null,
+              inStock: product.inStock,
+              stockQty: product.stockQty,
+              merchandiseId: getMerchandiseId(product),
+              productHandle: product.shopifyProductHandle ?? slug,
+              energyLabel: product.energyLabel,
+            }}
+          />
+        );
+      })}
     </div>
   );
 }
@@ -133,7 +147,15 @@ export default function HomePage() {
 
   const laptops = filterProducts(
     products,
-    ["laptop", "notebook", "probook", "thinkpad", "latitude", "macbook", "elitebook"],
+    [
+      "laptop",
+      "notebook",
+      "probook",
+      "thinkpad",
+      "latitude",
+      "macbook",
+      "elitebook",
+    ],
     4
   );
 
