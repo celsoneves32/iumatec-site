@@ -50,7 +50,6 @@ function readWinningProducts(): Product[] {
   }
 }
 
-/* 🔥 IMPORTANTE — apenas 1 função */
 function getMerchandiseId(product: Product) {
   return product.merchandiseId || product.shopifyVariantId || null;
 }
@@ -103,7 +102,7 @@ function ProductGrid({
             slug: product.slug,
             title: product.title,
             brand: product.brand,
-            price: product.price,
+            price: Number(product.price || 0),
             image: product.image ?? null,
             inStock: product.inStock,
             stockQty: product.stockQty,
@@ -128,13 +127,13 @@ export default function HomePage() {
 
   const smartphones = filterProducts(
     products,
-    ["iphone", "galaxy", "xiaomi", "redmi", "smartphone"],
+    ["iphone", "galaxy", "xiaomi", "redmi", "smartphone", "tab"],
     4
   );
 
   const laptops = filterProducts(
     products,
-    ["laptop", "notebook", "probook", "thinkpad", "latitude", "macbook"],
+    ["laptop", "notebook", "probook", "thinkpad", "latitude", "macbook", "elitebook"],
     4
   );
 
@@ -142,95 +141,179 @@ export default function HomePage() {
 
   const business = filterProducts(
     products,
-    ["hp", "lenovo", "dell", "probook", "thinkpad", "latitude"],
+    ["hp", "lenovo", "dell", "probook", "thinkpad", "latitude", "elitebook"],
     2
   );
 
   return (
     <main className="bg-white">
-      {/* HERO */}
       <section className="border-b border-neutral-200 bg-neutral-50">
         <div className="mx-auto max-w-7xl px-4 py-16 text-center">
           <div className="inline-flex rounded-full bg-white px-4 py-2 text-sm font-extrabold text-red-700 shadow-sm">
             🇨🇭 IUMATEC Schweiz · geprüfte Produkte · sicherer Checkout
           </div>
 
-          <h1 className="mt-6 text-5xl font-black md:text-6xl">
+          <h1 className="mx-auto mt-6 max-w-4xl text-5xl font-black leading-tight text-neutral-950 md:text-6xl">
             Technik zu starken Preisen.
           </h1>
 
-          <p className="mt-4 text-lg text-neutral-600">
+          <p className="mx-auto mt-4 max-w-2xl text-lg text-neutral-600">
             Verfügbare Technikprodukte mit Bild, Preis und Lagerbestand –
             schnell geliefert in der Schweiz.
           </p>
 
-          <div className="mt-8 flex justify-center gap-4">
+          <div className="mt-8 flex flex-wrap justify-center gap-4">
             <Link
               href="/produkte"
-              className="rounded-2xl bg-red-600 px-8 py-4 font-extrabold text-white"
+              className="rounded-2xl bg-red-600 px-8 py-4 text-base font-extrabold text-white shadow-sm hover:bg-red-700"
             >
               Jetzt einkaufen
             </Link>
 
             <Link
               href="/produkte?sort=price-asc"
-              className="rounded-2xl border px-8 py-4 font-extrabold"
+              className="rounded-2xl border border-neutral-300 bg-white px-8 py-4 text-base font-extrabold text-neutral-950 hover:bg-neutral-50"
             >
               Beste Preise ansehen
             </Link>
           </div>
+
+          <div className="mt-10 grid gap-4 text-sm font-bold text-neutral-700 md:grid-cols-3">
+            <div className="rounded-2xl bg-white px-5 py-4 shadow-sm">
+              ⚡ Lieferung 1–2 Werktage
+            </div>
+            <div className="rounded-2xl bg-white px-5 py-4 shadow-sm">
+              🔒 Sicherer Checkout
+            </div>
+            <div className="rounded-2xl bg-white px-5 py-4 shadow-sm">
+              🇨🇭 Preise inkl. MWST
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* CATEGORIES */}
       <section className="mx-auto max-w-7xl px-4 py-12">
-        <h2 className="mb-6 text-3xl font-black">Beliebte Kategorien</h2>
+        <h2 className="mb-6 text-3xl font-black text-neutral-950">
+          Beliebte Kategorien
+        </h2>
 
         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
           {categories.map((item) => (
             <Link
               key={item.title}
               href={item.href}
-              className="flex items-center gap-5 rounded-3xl border p-5"
+              className="group flex items-center gap-5 rounded-3xl border border-neutral-200 bg-white p-5 transition hover:-translate-y-1 hover:shadow-xl"
             >
-              <div className="relative h-20 w-24">
-                <Image src={item.image} alt={item.title} fill />
+              <div className="relative h-20 w-24 shrink-0 overflow-hidden rounded-2xl bg-neutral-50">
+                <Image
+                  src={item.image}
+                  alt={item.title}
+                  fill
+                  className="object-contain p-2 transition group-hover:scale-105"
+                />
               </div>
 
               <div>
-                <div className="font-extrabold">{item.title}</div>
-                <div className="text-sm text-neutral-500">{item.text}</div>
+                <div className="text-lg font-extrabold text-neutral-950">
+                  {item.title}
+                </div>
+                <div className="mt-1 text-sm text-neutral-500">{item.text}</div>
               </div>
             </Link>
           ))}
         </div>
       </section>
 
-      {/* PRODUCTS */}
       <section className="mx-auto max-w-7xl px-4 py-10">
-        <h2 className="text-3xl font-black mb-6">Top Smartphones</h2>
+        <div className="mb-6 flex items-end justify-between gap-4">
+          <div>
+            <h2 className="text-3xl font-black text-neutral-950">
+              Top Smartphones
+            </h2>
+            <p className="mt-1 text-neutral-500">
+              Gefragte Modelle mit direktem Checkout.
+            </p>
+          </div>
+
+          <Link
+            href="/produkte?category=Mobile&subcategory=Smartphones"
+            className="text-sm font-extrabold text-red-600"
+          >
+            Alle ansehen →
+          </Link>
+        </div>
+
         <ProductGrid products={smartphones.length ? smartphones : fallbackTop} />
       </section>
 
       <section className="bg-neutral-50">
         <div className="mx-auto max-w-7xl px-4 py-12">
-          <h2 className="text-3xl font-black mb-6">Business Laptops</h2>
+          <div className="mb-6 flex items-end justify-between gap-4">
+            <div>
+              <h2 className="text-3xl font-black text-neutral-950">
+                Business Laptops
+              </h2>
+              <p className="mt-1 text-neutral-500">
+                HP, Lenovo, Dell und starke Geräte für Arbeit & Office.
+              </p>
+            </div>
+
+            <Link
+              href="/produkte?category=Computer&subcategory=Laptops"
+              className="text-sm font-extrabold text-red-600"
+            >
+              Alle ansehen →
+            </Link>
+          </div>
+
           <ProductGrid products={laptops.length ? laptops : fallbackTop} />
         </div>
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-12">
-        <h2 className="text-3xl font-black mb-6">Monitor Deals</h2>
+        <div className="mb-6 flex items-end justify-between gap-4">
+          <div>
+            <h2 className="text-3xl font-black text-neutral-950">
+              Monitor Deals
+            </h2>
+            <p className="mt-1 text-neutral-500">
+              Monitore für Homeoffice, Gaming und produktive Setups.
+            </p>
+          </div>
+
+          <Link
+            href="/produkte?category=Peripherie&subcategory=Monitors"
+            className="text-sm font-extrabold text-red-600"
+          >
+            Alle ansehen →
+          </Link>
+        </div>
+
         <ProductGrid products={monitors.length ? monitors : fallbackTop} />
       </section>
 
-      {/* BUSINESS */}
       <section className="bg-neutral-950 text-white">
-        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 lg:grid-cols-2">
+        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 lg:grid-cols-[1fr_1fr] lg:items-center">
           <div>
-            <h2 className="text-4xl font-black">
+            <div className="inline-flex rounded-full bg-white/10 px-4 py-2 text-sm font-bold text-white">
+              Für Unternehmen & Profis
+            </div>
+
+            <h2 className="mt-5 max-w-xl text-4xl font-black">
               Business-Technik für die Schweiz.
             </h2>
+
+            <p className="mt-4 max-w-xl text-neutral-300">
+              Laptops, Monitore, Zubehör und Hardware mit transparentem Preis,
+              Schweizer Checkout und schneller Lieferung.
+            </p>
+
+            <Link
+              href="/produkte?category=Computer"
+              className="mt-8 inline-flex rounded-2xl bg-red-600 px-7 py-4 font-extrabold text-white hover:bg-red-700"
+            >
+              Business Produkte ansehen
+            </Link>
           </div>
 
           <ProductGrid
