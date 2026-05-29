@@ -1,9 +1,9 @@
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import {
-  getAllProductSlugs,
-  getProductBySlug,
-} from "@/lib/productData";
+import { getProductBySlug } from "@/lib/productData";
 import { formatPriceCH } from "@/lib/formatPrice";
 import { getStockStatus } from "@/lib/stock";
 import { getDeliveryText } from "@/lib/delivery";
@@ -14,10 +14,6 @@ type PageProps = {
     slug: string;
   };
 };
-
-export function generateStaticParams() {
-  return getAllProductSlugs().slice(0, 12000).map((slug) => ({ slug }));
-}
 
 export default function ProductDatasheetPage({ params }: PageProps) {
   const product = getProductBySlug(params.slug);
@@ -68,11 +64,15 @@ export default function ProductDatasheetPage({ params }: PageProps) {
           <p className="text-sm font-semibold uppercase tracking-wide text-brand">
             {product.brand || "IUMATEC"}
           </p>
+
           <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-neutral-950">
             {product.title}
           </h1>
+
           <p className="mt-3 text-sm text-neutral-500">
-            {[product.category, product.subcategory].filter(Boolean).join(" / ")}
+            {[product.category, product.subcategory]
+              .filter(Boolean)
+              .join(" / ")}
           </p>
         </div>
 
@@ -85,6 +85,7 @@ export default function ProductDatasheetPage({ params }: PageProps) {
               <div className="text-sm font-semibold text-neutral-500">
                 {row.label}
               </div>
+
               <div className="whitespace-pre-wrap text-sm text-neutral-900">
                 {row.value}
               </div>

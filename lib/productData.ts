@@ -33,6 +33,14 @@ export type Product = {
 
 type CatalogRecord = Record<string, any>;
 
+const WINNING_PRODUCTS_PATH = path.join(
+  process.cwd(),
+  "integrations",
+  "alltron",
+  "out",
+  "winning-products.json"
+);
+
 const LIVE_CATALOG_PATH = path.join(
   process.cwd(),
   "integrations",
@@ -42,6 +50,7 @@ const LIVE_CATALOG_PATH = path.join(
 );
 
 const CATALOG_PATHS = [
+  WINNING_PRODUCTS_PATH,
   LIVE_CATALOG_PATH,
   path.join(process.cwd(), "integrations", "alltron", "out", "iumatec-catalog-sellable.json"),
   path.join(process.cwd(), "integrations", "alltron", "out", "iumatec-catalog-enriched.json"),
@@ -828,12 +837,7 @@ export function scoreProduct(product: Product): number {
 }
 
 const loadAllProducts = cache((): Product[] => {
-const liveRecords = readJsonArray(LIVE_CATALOG_PATH);
-
-const allRecords =
-  liveRecords.length > 0
-    ? liveRecords
-    : CATALOG_PATHS.flatMap(readJsonArray);
+const allRecords = CATALOG_PATHS.flatMap(readJsonArray);
   const energySource = readJsonArray(
     path.join(process.cwd(), "integrations", "alltron", "out", "iumatec-products.json")
   );
