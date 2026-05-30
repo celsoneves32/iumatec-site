@@ -83,13 +83,43 @@ function productText(product: Product) {
   } ${p.description || ""} ${p.description2 || ""}`.toLowerCase();
 }
 
-function filterProducts(products: Product[], words: string[], limit = 4) {
-  return products
-    .filter((product) =>
-      words.some((word) => productText(product).includes(word.toLowerCase()))
+function getFamilyKey(product: Product) {
+  const p = product as any;
+
+  return String(p.title || "")
+    .toLowerCase()
+    .replace(
+      /\b(schwarz|black|midnight|sky blue|sky-blue|silber|silver|grau|gray|grey|blau|blue|weiss|white|gold|rose|rot|red|grün|green)\b/g,
+      ""
     )
-    .filter(isBuyable)
-    .slice(0, limit);
+    .replace(/\b(64gb|128gb|256gb|512gb|1tb|2tb|4tb|8gb|16gb|24gb|32gb|64gb|128gb)\b/g, "")
+    .replace(/\b(wifi|wi-fi|5g|cellular|lte)\b/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function uniqueProductFamilies(products: Product[]) {
+  const seen = new Set<string>();
+
+  return products.filter((product) => {
+    const key = getFamilyKey(product);
+
+    if (!key) return true;
+    if (seen.has(key)) return false;
+
+    seen.add(key);
+    return true;
+  });
+}
+
+function filterProducts(products: Product[], words: string[], limit = 4) {
+  return uniqueProductFamilies(
+    products
+      .filter((product) =>
+        words.some((word) => productText(product).includes(word.toLowerCase()))
+      )
+      .filter(isBuyable)
+  ).slice(0, limit);
 }
 
 function ProductGrid({
@@ -99,7 +129,7 @@ function ProductGrid({
   products: Product[];
   compact?: boolean;
 }) {
-  const buyableProducts = products.filter(isBuyable);
+  const buyableProducts = uniqueProductFamilies(products.filter(isBuyable));
 
   if (!buyableProducts.length) return null;
 
@@ -140,8 +170,9 @@ function ProductGrid({
 
 export default function HomePage() {
   const winners = readWinningProducts();
-  const products = (winners.length > 0 ? winners : getTopProducts(200)).filter(
-    isBuyable
+
+  const products = uniqueProductFamilies(
+    (winners.length > 0 ? winners : getTopProducts(200)).filter(isBuyable)
   );
 
   const fallbackTop = products.slice(0, 4);
