@@ -1,4 +1,4 @@
-import "server-only";
+﻿import "server-only";
 import fs from "node:fs";
 import path from "node:path";
 import { cache } from "react";
@@ -63,10 +63,10 @@ function normalize(value?: string | null) {
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
-    .replace(/ä/g, "a")
-    .replace(/ö/g, "o")
-    .replace(/ü/g, "u")
-    .replace(/ß/g, "ss")
+    .replace(/Ã¤/g, "a")
+    .replace(/Ã¶/g, "o")
+    .replace(/Ã¼/g, "u")
+    .replace(/ÃŸ/g, "ss")
     .trim();
 }
 
@@ -122,7 +122,7 @@ function mapCategoryFromRaw(record: CatalogRecord) {
     terms.some((term) => title.includes(normalize(term)));
 
   // =========================
-  // 1. BLOQUEIOS / CATEGORIAS ESPECÍFICAS PRIMEIRO
+  // 1. BLOQUEIOS / CATEGORIAS ESPECÃFICAS PRIMEIRO
   // =========================
 
   if (
@@ -136,7 +136,7 @@ function mapCategoryFromRaw(record: CatalogRecord) {
       "care pack",
     ])
   ) {
-    return { category: "Zubehör", subcategory: "Service & Garantie" };
+    return { category: "ZubehÃ¶r", subcategory: "Service & Garantie" };
   }
 
   if (
@@ -149,7 +149,7 @@ function mapCategoryFromRaw(record: CatalogRecord) {
       "ink cartridge",
     ])
   ) {
-    return { category: "Büro & Drucker", subcategory: "Tinte & Toner" };
+    return { category: "BÃ¼ro & Drucker", subcategory: "Tinte & Toner" };
   }
 
   if (
@@ -162,7 +162,7 @@ function mapCategoryFromRaw(record: CatalogRecord) {
       "fotopapier",
     ])
   ) {
-    return { category: "Büro & Drucker", subcategory: "Papier & Etiketten" };
+    return { category: "BÃ¼ro & Drucker", subcategory: "Papier & Etiketten" };
   }
 
   if (
@@ -176,7 +176,7 @@ function mapCategoryFromRaw(record: CatalogRecord) {
       "ecotank",
     ])
   ) {
-    return { category: "Büro & Drucker", subcategory: "Drucker" };
+    return { category: "BÃ¼ro & Drucker", subcategory: "Drucker" };
   }
 
   if (
@@ -191,7 +191,7 @@ function mapCategoryFromRaw(record: CatalogRecord) {
       "tablett ",
     ])
   ) {
-    return { category: "Zubehör", subcategory: "Sonstiges Zubehör" };
+    return { category: "ZubehÃ¶r", subcategory: "Sonstiges ZubehÃ¶r" };
   }
 
   if (
@@ -200,13 +200,13 @@ function mapCategoryFromRaw(record: CatalogRecord) {
       "toy",
       "lexibook",
       "padagogisch",
-      "pädagogisch",
+      "pÃ¤dagogisch",
       "kinder",
       "disney",
       "frozen",
     ])
   ) {
-    return { category: "Zubehör", subcategory: "Sonstiges Zubehör" };
+    return { category: "ZubehÃ¶r", subcategory: "Sonstiges ZubehÃ¶r" };
   }
 
   if (
@@ -222,7 +222,7 @@ function mapCategoryFromRaw(record: CatalogRecord) {
   }
 
   // =========================
-  // 2. ACESSÓRIOS MOBILE ANTES DE SMARTPHONE/TABLET
+  // 2. ACESSÃ“RIOS MOBILE ANTES DE SMARTPHONE/TABLET
   // =========================
 
   if (
@@ -256,11 +256,11 @@ function mapCategoryFromRaw(record: CatalogRecord) {
       "pencil",
     ])
   ) {
-    return { category: "Mobile", subcategory: "Zubehör" };
+    return { category: "Mobile", subcategory: "ZubehÃ¶r" };
   }
 
   // =========================
-  // 3. PERIPHERIE / ACESSÓRIOS ANTES DE COMPUTER
+  // 3. PERIPHERIE / ACESSÃ“RIOS ANTES DE COMPUTER
   // =========================
 
   if (
@@ -296,7 +296,7 @@ function mapCategoryFromRaw(record: CatalogRecord) {
       "cable",
     ])
   ) {
-    return { category: "Zubehör", subcategory: "Kabel & Adapter" };
+    return { category: "ZubehÃ¶r", subcategory: "Kabel & Adapter" };
   }
 
   if (
@@ -323,7 +323,7 @@ function mapCategoryFromRaw(record: CatalogRecord) {
       "laptop zubehor",
     ])
   ) {
-    return { category: "Zubehör", subcategory: "Notebook-Zubehör" };
+    return { category: "ZubehÃ¶r", subcategory: "Notebook-ZubehÃ¶r" };
   }
 
   if (
@@ -336,7 +336,7 @@ function mapCategoryFromRaw(record: CatalogRecord) {
       "mousepad",
     ])
   ) {
-    return { category: "Zubehör", subcategory: "Sonstiges Zubehör" };
+    return { category: "ZubehÃ¶r", subcategory: "Sonstiges ZubehÃ¶r" };
   }
 
   // =========================
@@ -441,7 +441,7 @@ function mapCategoryFromRaw(record: CatalogRecord) {
   if (
     cat3 === "monitore" ||
     cat4 === "monitore" ||
-    titleHas(["monitor", "display"]) ||
+    titleHas(["monitor"]) ||
     has(["gaming monitor", "business monitor"])
   ) {
     return { category: "Peripherie", subcategory: "Monitors" };
@@ -495,7 +495,7 @@ function mapCategoryFromRaw(record: CatalogRecord) {
     return { category: "Smart Home", subcategory: "Kameras" };
   }
 
-  return { category: "Zubehör", subcategory: "Sonstiges Zubehör" };
+  return { category: "ZubehÃ¶r", subcategory: "Sonstiges ZubehÃ¶r" };
 }
 
 function getNestedValue(record: CatalogRecord, key: string): any {
@@ -794,7 +794,7 @@ function isBlockedProduct(product: Product) {
   );
 
   const allowedOffice =
-    product.category === "Büro & Drucker" ||
+    product.category === "BÃ¼ro & Drucker" ||
     product.subcategory === "Tinte & Toner" ||
     product.subcategory === "Papier & Etiketten";
 
