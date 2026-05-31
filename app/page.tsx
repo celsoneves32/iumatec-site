@@ -93,7 +93,7 @@ function getFamilyKey(product: Product) {
   return String(p.title || "")
     .toLowerCase()
     .replace(
-      /\b(schwarz|black|midnight|sky blue|sky-blue|silber|silver|grau|gray|grey|blau|blue|weiss|white|gold|rose|rot|red|grün|green|starlight|space black|space schwarz)\b/g,
+      /\b(schwarz|black|midnight|sky blue|sky-blue|silber|silver|grau|gray|grey|blau|blue|weiss|white|gold|rose|rot|red|grün|green|starlight|space black|space schwarz|mitternacht)\b/g,
       ""
     )
     .replace(
@@ -118,56 +118,111 @@ function uniqueProductFamilies(products: Product[]) {
   });
 }
 
-function filterProducts(products: Product[], words: string[], limit = 4) {
-  return uniqueProductFamilies(
-    products.filter((product) =>
-      words.some((word) => productText(product).includes(word.toLowerCase()))
-    )
-  ).slice(0, limit);
-}
-
-function ProductGrid({
-  products,
-  compact = false,
-}: {
-  products: Product[];
-  compact?: boolean;
-}) {
-  const buyableProducts = uniqueProductFamilies(products.filter(isBuyable));
-
-  if (!buyableProducts.length) return null;
+function isLaptop(product: Product) {
+  const text = productText(product);
 
   return (
-    <div
-      className={
-        compact
-          ? "grid gap-5 sm:grid-cols-2"
-          : "grid gap-6 sm:grid-cols-2 xl:grid-cols-4"
-      }
-    >
-      {buyableProducts.map((product) => {
-        const p = product as any;
-        const slug = getProductSlug(product);
-        const stockQty = getStockQty(product);
+    text.includes("laptop") ||
+    text.includes("notebook") ||
+    text.includes("macbook") ||
+    text.includes("probook") ||
+    text.includes("elitebook") ||
+    text.includes("thinkpad") ||
+    text.includes("latitude") ||
+    text.includes("surface laptop")
+  );
+}
 
-        return (
-          <ProductCard
-            key={`${p.sku || slug}-${slug}`}
-            product={{
-              slug,
-              title: p.title,
-              brand: p.brand,
-              price: getPrice(product),
-              image: p.image ?? null,
-              inStock: true,
-              stockQty,
-              merchandiseId: getMerchandiseId(product),
-              productHandle: p.shopifyProductHandle ?? slug,
-              energyLabel: p.energyLabel,
-            }}
-          />
-        );
-      })}
+function isSmartphoneOrTablet(product: Product) {
+  const text = productText(product);
+
+  return (
+    text.includes("iphone") ||
+    text.includes("galaxy") ||
+    text.includes("xiaomi") ||
+    text.includes("redmi") ||
+    text.includes("smartphone") ||
+    text.includes("ipad") ||
+    text.includes("tablet") ||
+    text.includes("tab ")
+  );
+}
+
+function isMonitor(product: Product) {
+  const text = productText(product);
+
+  const monitorWords =
+    text.includes("monitor") ||
+    text.includes("display") ||
+    text.includes("bildschirm");
+
+  const blocked =
+    text.includes("macbook") ||
+    text.includes("laptop") ||
+    text.includes("notebook") ||
+    text.includes("ipad") ||
+    text.includes("tablet") ||
+    text.includes("smartphone") ||
+    text.includes("iphone") ||
+    text.includes("galaxy");
+
+  return monitorWords && !blocked;
+}
+
+function isAccessory(product: Product) {
+  const text = productText(product);
+
+  return (
+    text.includes("maus") ||
+    text.includes("mouse") ||
+    text.includes("tastatur") ||
+    text.includes("keyboard") ||
+    text.includes("headset") ||
+    text.includes("kamera") ||
+    text.includes("webcam") ||
+    text.includes("dock") ||
+    text.includes("adapter") ||
+    text.includes("kabel") ||
+    text.includes("charger") ||
+    text.includes("ladegerät") ||
+    text.includes("ssd") ||
+    text.includes("usb")
+  );
+}
+
+function ProductCarousel({ products }: { products: Product[] }) {
+  const items = uniqueProductFamilies(products.filter(isBuyable)).slice(0, 12);
+
+  if (!items.length) return null;
+
+  return (
+    <div className="-mx-4 overflow-x-auto px-4 pb-3">
+      <div className="flex gap-6">
+        {items.map((product) => {
+          const p = product as any;
+          const slug = getProductSlug(product);
+          const stockQty = getStockQty(product);
+
+          return (
+            <div key={`${p.sku || slug}-${slug}`} className="w-[310px] shrink-0">
+              <ProductCard
+                product={{
+                  slug,
+                  title: p.title,
+                  brand: p.brand,
+                  price: getPrice(product),
+                  image: p.image ?? null,
+                  inStock: true,
+                  stockQty,
+                  merchandiseId: getMerchandiseId(product),
+                  productHandle: p.shopifyProductHandle ?? slug,
+                  energyLabel: p.energyLabel,
+                }}
+              />
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -188,7 +243,7 @@ function SectionHeader({
         <p className="mt-1 text-neutral-500">{subtitle}</p>
       </div>
 
-      <Link href={href} className="text-sm font-extrabold text-red-600">
+      <Link href={href} className="shrink-0 text-sm font-extrabold text-red-600">
         Alle ansehen →
       </Link>
     </div>
@@ -199,55 +254,35 @@ export default function HomePage() {
   const winners = readWinningProducts();
 
   const products = uniqueProductFamilies(
-    (winners.length > 0 ? winners : getTopProducts(300)).filter(isBuyable)
+    (winners.length > 0 ? winners : getTopProducts(500)).filter(isBuyable)
   );
 
   const topDeals = products
     .filter((p) => getPrice(p) >= 50)
     .sort((a, b) => getPrice(a) - getPrice(b))
-    .slice(0, 4);
+    .slice(0, 12);
 
-  const affordable = products
+  const dealsUnder300 = products
     .filter((p) => getPrice(p) > 0 && getPrice(p) <= 300)
-    .slice(0, 4);
+    .sort((a, b) => getPrice(a) - getPrice(b))
+    .slice(0, 12);
 
-  const smartphones = filterProducts(
-    products,
-    ["iphone", "galaxy", "xiaomi", "redmi", "smartphone", "ipad", "tablet", "tab"],
-    4
-  );
+  const accessoriesUnder300 = products
+    .filter((p) => getPrice(p) > 0 && getPrice(p) <= 300 && isAccessory(p))
+    .sort((a, b) => getPrice(a) - getPrice(b))
+    .slice(0, 12);
 
-  const laptops = filterProducts(
-    products,
-    [
-      "laptop",
-      "notebook",
-      "macbook",
-      "probook",
-      "elitebook",
-      "thinkpad",
-      "latitude",
-      "surface laptop",
-    ],
-    4
-  );
+  const laptops = products.filter(isLaptop).slice(0, 12);
 
-  const monitors = filterProducts(
-    products.filter((p) => {
-      const text = productText(p);
-      return (
-        text.includes("monitor") ||
-        text.includes("display") ||
-        text.includes("bildschirm")
-      );
-    }),
-    ["monitor", "display", "bildschirm"],
-    4
-  );
+  const smartphonesAndTablets = products
+    .filter(isSmartphoneOrTablet)
+    .slice(0, 12);
 
-  const sofortLieferbar = products.filter((p) => getStockQty(p) >= 2).slice(0, 4);
+  const monitors = products.filter(isMonitor).slice(0, 12);
 
-  const fallbackTop = products.slice(0, 4);
+  const sofortLieferbar = products
+    .filter((p) => getStockQty(p) >= 2)
+    .slice(0, 12);
 
   return (
     <main className="bg-white">
@@ -324,17 +359,23 @@ export default function HomePage() {
           subtitle="Gute Preise, sofort kaufbar und direkt zum Checkout."
           href="/produkte?sort=price-asc"
         />
-        <ProductGrid products={topDeals.length ? topDeals : fallbackTop} />
+        <ProductCarousel products={topDeals} />
       </section>
 
       <section className="bg-neutral-50">
         <div className="mx-auto max-w-7xl px-4 py-12">
           <SectionHeader
             title="Deals unter CHF 300"
-            subtitle="Zubehör, Tablets, Geräte und Technik zu kleineren Preisen."
+            subtitle="Technik und Zubehör zu kleineren Preisen."
             href="/produkte?maxPrice=300"
           />
-          <ProductGrid products={affordable.length ? affordable : fallbackTop} />
+          <ProductCarousel
+            products={
+              dealsUnder300.length >= 4
+                ? dealsUnder300
+                : accessoriesUnder300
+            }
+          />
         </div>
       </section>
 
@@ -344,7 +385,7 @@ export default function HomePage() {
           subtitle="HP, Lenovo, Dell und Apple Geräte für Arbeit & Office."
           href="/produkte?category=Computer&subcategory=Laptops"
         />
-        <ProductGrid products={laptops.length ? laptops : fallbackTop} />
+        <ProductCarousel products={laptops} />
       </section>
 
       <section className="bg-neutral-50">
@@ -354,21 +395,23 @@ export default function HomePage() {
             subtitle="Apple, Samsung, Xiaomi und mobile Technik."
             href="/produkte?category=Mobile"
           />
-          <ProductGrid products={smartphones.length ? smartphones : fallbackTop} />
+          <ProductCarousel products={smartphonesAndTablets} />
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-12">
-        <SectionHeader
-          title="Monitore"
-          subtitle="Displays für Homeoffice, Gaming und produktive Setups."
-          href="/produkte?category=Peripherie&subcategory=Monitors"
-        />
-        <ProductGrid products={monitors.length ? monitors : fallbackTop} />
-      </section>
+      {monitors.length > 0 && (
+        <section className="mx-auto max-w-7xl px-4 py-12">
+          <SectionHeader
+            title="Monitore"
+            subtitle="Displays für Homeoffice, Gaming und produktive Setups."
+            href="/produkte?category=Peripherie&subcategory=Monitors"
+          />
+          <ProductCarousel products={monitors} />
+        </section>
+      )}
 
       <section className="bg-neutral-950 text-white">
-        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 lg:grid-cols-[1fr_1fr] lg:items-center">
+        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 lg:grid-cols-[1fr_1.4fr] lg:items-center">
           <div>
             <div className="inline-flex rounded-full bg-white/10 px-4 py-2 text-sm font-bold text-white">
               Sofort lieferbar
@@ -391,10 +434,7 @@ export default function HomePage() {
             </Link>
           </div>
 
-          <ProductGrid
-            products={(sofortLieferbar.length ? sofortLieferbar : fallbackTop).slice(0, 2)}
-            compact
-          />
+          <ProductCarousel products={sofortLieferbar} />
         </div>
       </section>
     </main>
