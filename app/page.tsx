@@ -3,6 +3,7 @@ import path from "node:path";
 import Image from "next/image";
 import Link from "next/link";
 import ProductCard from "@/components/ProductCard";
+import HomepageCarousel from "@/components/HomepageCarousel";
 import { getTopProducts, type Product } from "@/lib/productData";
 
 const WINNERS_PATH = path.join(
@@ -70,11 +71,13 @@ function getPrice(product: Product) {
 }
 
 function isBuyable(product: Product) {
+  const p = product as any;
+
   return (
     Boolean(getProductSlug(product)) &&
     Boolean(getMerchandiseId(product)) &&
     getPrice(product) > 0 &&
-    Boolean((product as any).image) &&
+    Boolean(p.image) &&
     getStockQty(product) > 0
   );
 }
@@ -93,7 +96,7 @@ function getFamilyKey(product: Product) {
   return String(p.title || "")
     .toLowerCase()
     .replace(
-      /\b(schwarz|black|midnight|sky blue|sky-blue|silber|silver|grau|gray|grey|blau|blue|weiss|white|gold|rose|rot|red|grün|green|starlight|space black|space schwarz|mitternacht)\b/g,
+      /\b(schwarz|black|midnight|mitternacht|sky blue|sky-blue|silber|silver|grau|gray|grey|blau|blue|weiss|white|gold|rose|rot|red|grün|green|starlight|space black|space schwarz)\b/g,
       ""
     )
     .replace(
@@ -112,7 +115,6 @@ function uniqueProductFamilies(products: Product[]) {
     const key = getFamilyKey(product);
     if (!key) return true;
     if (seen.has(key)) return false;
-
     seen.add(key);
     return true;
   });
@@ -148,25 +150,42 @@ function isSmartphoneOrTablet(product: Product) {
   );
 }
 
-function isMonitor(product: Product) {
+function isRealMonitor(product: Product) {
+  const p = product as any;
   const text = productText(product);
 
-  const monitorWords =
+  const category = String(p.category || "").toLowerCase();
+  const subcategory = String(p.subcategory || "").toLowerCase();
+
+  const categoryMatch =
+    category.includes("peripherie") &&
+    (subcategory.includes("monitor") || subcategory.includes("monitors"));
+
+  const titleMatch =
     text.includes("monitor") ||
-    text.includes("display") ||
-    text.includes("bildschirm");
+    text.includes("bildschirm") ||
+    text.includes("display");
 
   const blocked =
-    text.includes("macbook") ||
     text.includes("laptop") ||
     text.includes("notebook") ||
+    text.includes("macbook") ||
+    text.includes("elitebook") ||
+    text.includes("probook") ||
+    text.includes("thinkpad") ||
+    text.includes("latitude") ||
+    text.includes("surface") ||
     text.includes("ipad") ||
     text.includes("tablet") ||
-    text.includes("smartphone") ||
     text.includes("iphone") ||
-    text.includes("galaxy");
+    text.includes("smartphone") ||
+    text.includes("aio") ||
+    text.includes("all-in-one") ||
+    text.includes("all in one") ||
+    text.includes("desktop") ||
+    text.includes("pc ");
 
-  return monitorWords && !blocked;
+  return (categoryMatch || titleMatch) && !blocked;
 }
 
 function isAccessory(product: Product) {
@@ -191,39 +210,37 @@ function isAccessory(product: Product) {
 }
 
 function ProductCarousel({ products }: { products: Product[] }) {
-  const items = uniqueProductFamilies(products.filter(isBuyable)).slice(0, 12);
+  const items = uniqueProductFamilies(products.filter(isBuyable)).slice(0, 14);
 
   if (!items.length) return null;
 
   return (
-    <div className="-mx-4 overflow-x-auto px-4 pb-3">
-      <div className="flex gap-6">
-        {items.map((product) => {
-          const p = product as any;
-          const slug = getProductSlug(product);
-          const stockQty = getStockQty(product);
+    <HomepageCarousel>
+      {items.map((product) => {
+        const p = product as any;
+        const slug = getProductSlug(product);
+        const stockQty = getStockQty(product);
 
-          return (
-            <div key={`${p.sku || slug}-${slug}`} className="w-[310px] shrink-0">
-              <ProductCard
-                product={{
-                  slug,
-                  title: p.title,
-                  brand: p.brand,
-                  price: getPrice(product),
-                  image: p.image ?? null,
-                  inStock: true,
-                  stockQty,
-                  merchandiseId: getMerchandiseId(product),
-                  productHandle: p.shopifyProductHandle ?? slug,
-                  energyLabel: p.energyLabel,
-                }}
-              />
-            </div>
-          );
-        })}
-      </div>
-    </div>
+        return (
+          <div key={`${p.sku || slug}-${slug}`} className="w-[310px] shrink-0">
+            <ProductCard
+              product={{
+                slug,
+                title: p.title,
+                brand: p.brand,
+                price: getPrice(product),
+                image: p.image ?? null,
+                inStock: true,
+                stockQty,
+                merchandiseId: getMerchandiseId(product),
+                productHandle: p.shopifyProductHandle ?? slug,
+                energyLabel: p.energyLabel,
+              }}
+            />
+          </div>
+        );
+      })}
+    </HomepageCarousel>
   );
 }
 
@@ -260,29 +277,22 @@ export default function HomePage() {
   const topDeals = products
     .filter((p) => getPrice(p) >= 50)
     .sort((a, b) => getPrice(a) - getPrice(b))
-    .slice(0, 12);
+    .slice(0, 14);
 
   const dealsUnder300 = products
     .filter((p) => getPrice(p) > 0 && getPrice(p) <= 300)
     .sort((a, b) => getPrice(a) - getPrice(b))
-    .slice(0, 12);
+    .slice(0, 14);
 
   const accessoriesUnder300 = products
     .filter((p) => getPrice(p) > 0 && getPrice(p) <= 300 && isAccessory(p))
     .sort((a, b) => getPrice(a) - getPrice(b))
-    .slice(0, 12);
+    .slice(0, 14);
 
-  const laptops = products.filter(isLaptop).slice(0, 12);
-
-  const smartphonesAndTablets = products
-    .filter(isSmartphoneOrTablet)
-    .slice(0, 12);
-
-  const monitors = products.filter(isMonitor).slice(0, 12);
-
-  const sofortLieferbar = products
-    .filter((p) => getStockQty(p) >= 2)
-    .slice(0, 12);
+  const laptops = products.filter(isLaptop).slice(0, 14);
+  const smartphonesAndTablets = products.filter(isSmartphoneOrTablet).slice(0, 14);
+  const monitors = products.filter(isRealMonitor).slice(0, 14);
+  const sofortLieferbar = products.filter((p) => getStockQty(p) >= 2).slice(0, 14);
 
   return (
     <main className="bg-white">
@@ -344,9 +354,7 @@ export default function HomePage() {
                 <div className="text-lg font-extrabold text-neutral-950">
                   {item.title}
                 </div>
-                <div className="mt-1 text-sm text-neutral-500">
-                  {item.text}
-                </div>
+                <div className="mt-1 text-sm text-neutral-500">{item.text}</div>
               </div>
             </Link>
           ))}
@@ -362,22 +370,20 @@ export default function HomePage() {
         <ProductCarousel products={topDeals} />
       </section>
 
-      <section className="bg-neutral-50">
-        <div className="mx-auto max-w-7xl px-4 py-12">
-          <SectionHeader
-            title="Deals unter CHF 300"
-            subtitle="Technik und Zubehör zu kleineren Preisen."
-            href="/produkte?maxPrice=300"
-          />
-          <ProductCarousel
-            products={
-              dealsUnder300.length >= 4
-                ? dealsUnder300
-                : accessoriesUnder300
-            }
-          />
-        </div>
-      </section>
+      {dealsUnder300.length > 0 && (
+        <section className="bg-neutral-50">
+          <div className="mx-auto max-w-7xl px-4 py-12">
+            <SectionHeader
+              title="Deals unter CHF 300"
+              subtitle="Technik und Zubehör zu kleineren Preisen."
+              href="/produkte?maxPrice=300"
+            />
+            <ProductCarousel
+              products={dealsUnder300.length >= 4 ? dealsUnder300 : accessoriesUnder300}
+            />
+          </div>
+        </section>
+      )}
 
       <section className="mx-auto max-w-7xl px-4 py-12">
         <SectionHeader
