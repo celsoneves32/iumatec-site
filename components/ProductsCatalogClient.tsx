@@ -32,6 +32,18 @@ type SortOption =
   | "title-asc"
   | "brand-asc";
 
+function normalize(value?: string | null) {
+  return String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/ä/g, "a")
+    .replace(/ö/g, "o")
+    .replace(/ü/g, "u")
+    .replace(/ß/g, "ss")
+    .trim();
+}
+
 function getSafePrice(price: number | null | undefined) {
   return typeof price === "number" && !Number.isNaN(price) ? price : 0;
 }
@@ -40,6 +52,7 @@ export default function ProductsCatalogClient({ products }: Props) {
   const searchParams = useSearchParams();
 
   const initialCategory = searchParams.get("category") || "Alle";
+  const initialSubcategory = searchParams.get("subcategory") || "Alle";
   const initialQuery = searchParams.get("q") || "";
 
   const prices = useMemo(
@@ -55,6 +68,7 @@ export default function ProductsCatalogClient({ products }: Props) {
 
   const [query, setQuery] = useState(initialQuery);
   const [category, setCategory] = useState(initialCategory);
+  const [subcategory, setSubcategory] = useState(initialSubcategory);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [priceMin, setPriceMin] = useState<number>(absoluteMinPrice);
   const [priceMax, setPriceMax] = useState<number>(absoluteMaxPrice);
@@ -69,17 +83,37 @@ export default function ProductsCatalogClient({ products }: Props) {
     return ["Alle", ...values.sort((a, b) => a.localeCompare(b))];
   }, [products]);
 
-  const brands = useMemo(() => {
+  const subcategories = useMemo(() => {
     const base = products.filter((p) =>
-      category === "Alle" ? true : p.category === category
+      category === "Alle" ? true : normalize(p.category) === normalize(category)
     );
+
+    const values = Array.from(
+      new Set(base.map((p) => p.subcategory).filter(Boolean))
+    ) as string[];
+
+    return ["Alle", ...values.sort((a, b) => a.localeCompare(b))];
+  }, [products, category]);
+
+  const brands = useMemo(() => {
+    const base = products.filter((p) => {
+      const matchCategory =
+        category === "Alle" ? true : normalize(p.category) === normalize(category);
+
+      const matchSubcategory =
+        subcategory === "Alle"
+          ? true
+          : normalize(p.subcategory) === normalize(subcategory);
+
+      return matchCategory && matchSubcategory;
+    });
 
     const values = Array.from(
       new Set(base.map((p) => p.brand).filter(Boolean))
     ) as string[];
 
     return values.sort((a, b) => a.localeCompare(b)).slice(0, 40);
-  }, [products, category]);
+  }, [products, category, subcategory]);
 
   function toggleBrand(brand: string) {
     setSelectedBrands((prev) =>
@@ -92,6 +126,7 @@ export default function ProductsCatalogClient({ products }: Props) {
   function resetFilters() {
     setQuery("");
     setCategory("Alle");
+    setSubcategory("Alle");
     setSelectedBrands([]);
     setPriceMin(absoluteMinPrice);
     setPriceMax(absoluteMaxPrice);
@@ -106,15 +141,23 @@ export default function ProductsCatalogClient({ products }: Props) {
       const productPrice = getSafePrice(product.price);
 
       const matchCategory =
-        category === "Alle" ? true : product.category === category;
+        category === "Alle"
+          ? true
+          : normalize(product.category) === normalize(category);
+
+      const matchSubcategory =
+        subcategory === "Alle"
+          ? true
+          : normalize(product.subcategory) === normalize(subcategory);
 
       const matchBrand =
         selectedBrands.length === 0
           ? true
           : selectedBrands.includes(product.brand || "");
 
-      const matchStock =
-        onlyInStock ? Boolean(product.inStock || (product.stockQty ?? 0) > 0) : true;
+      const matchStock = onlyInStock
+        ? Boolean(product.inStock || (product.stockQty ?? 0) > 0)
+        : true;
 
       const matchPrice = productPrice >= priceMin && productPrice <= priceMax;
 
@@ -131,7 +174,14 @@ export default function ProductsCatalogClient({ products }: Props) {
 
       const matchQuery = q ? haystack.includes(q) : true;
 
-      return matchCategory && matchBrand && matchStock && matchPrice && matchQuery;
+      return (
+        matchCategory &&
+        matchSubcategory &&
+        matchBrand &&
+        matchStock &&
+        matchPrice &&
+        matchQuery
+      );
     });
 
     list = [...list].sort((a, b) => {
@@ -160,6 +210,7 @@ export default function ProductsCatalogClient({ products }: Props) {
     products,
     query,
     category,
+    subcategory,
     selectedBrands,
     priceMin,
     priceMax,
@@ -222,12 +273,38 @@ export default function ProductsCatalogClient({ products }: Props) {
               <label className="mb-2 block text-sm font-semibold text-neutral-900">
                 Kategorie
               </label>
+
               <select
                 value={category}
-                onChange={(e) => setCategory(e.target.value)}
+                onChange={(e) => {
+                  setCategory(e.target.value);
+                  setSubcategory("Alle");
+                  setSelectedBrands([]);
+                }}
                 className="w-full rounded-2xl border border-neutral-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-neutral-900"
               >
                 {categories.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-semibold text-neutral-900">
+                Subkategorie
+              </label>
+
+              <select
+                value={subcategory}
+                onChange={(e) => {
+                  setSubcategory(e.target.value);
+                  setSelectedBrands([]);
+                }}
+                className="w-full rounded-2xl border border-neutral-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-neutral-900"
+              >
+                {subcategories.map((item) => (
                   <option key={item} value={item}>
                     {item}
                   </option>
@@ -319,28 +396,26 @@ export default function ProductsCatalogClient({ products }: Props) {
             </div>
           ) : (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
-              {filteredProducts.map((product) => {
-                const p: any = product;
-
-                return (
-                  <ProductCard
-                    key={`${p.sku}-${p.slug}`}
-                    product={{
-                      slug: p.slug,
-                      title: p.title,
-                      brand: p.brand,
-                      price: getSafePrice(p.price),
-                      image: p.image ?? null,
-                      inStock: p.inStock,
-                      stockQty: p.stockQty,
-                      merchandiseId: p.merchandiseId,
-                      productHandle:
-                        p.shopifyProductHandle ?? p.productHandle ?? p.slug,
-                      energyLabel: p.energyLabel,
-                    }}
-                  />
-                );
-              })}
+              {filteredProducts.map((product) => (
+                <ProductCard
+                  key={`${product.sku}-${product.slug}`}
+                  product={{
+                    slug: product.slug,
+                    title: product.title,
+                    brand: product.brand,
+                    price: getSafePrice(product.price),
+                    image: product.image ?? null,
+                    inStock: product.inStock,
+                    stockQty: product.stockQty,
+                    merchandiseId: product.merchandiseId,
+                    productHandle:
+                      product.shopifyProductHandle ??
+                      product.productHandle ??
+                      product.slug,
+                    energyLabel: product.energyLabel,
+                  }}
+                />
+              ))}
             </div>
           )}
         </section>
