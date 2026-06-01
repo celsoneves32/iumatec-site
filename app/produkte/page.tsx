@@ -77,13 +77,11 @@ function productText(product: Product) {
 
 function priceMatches(productPrice: number, priceFilter: string) {
   if (!priceFilter) return true;
-
   if (priceFilter === "0-100") return productPrice <= 100;
   if (priceFilter === "100-300") return productPrice > 100 && productPrice <= 300;
   if (priceFilter === "300-700") return productPrice > 300 && productPrice <= 700;
   if (priceFilter === "700-1500") return productPrice > 700 && productPrice <= 1500;
   if (priceFilter === "1500+") return productPrice > 1500;
-
   return true;
 }
 
@@ -120,12 +118,9 @@ function sortBrands(items: { label: string; count: number }[]) {
       bBrand.includes(normalize(brand))
     );
 
-    const aPriority = aIndex >= 0;
-    const bPriority = bIndex >= 0;
-
-    if (aPriority && !bPriority) return -1;
-    if (!aPriority && bPriority) return 1;
-    if (aPriority && bPriority && aIndex !== bIndex) return aIndex - bIndex;
+    if (aIndex >= 0 && bIndex < 0) return -1;
+    if (aIndex < 0 && bIndex >= 0) return 1;
+    if (aIndex >= 0 && bIndex >= 0 && aIndex !== bIndex) return aIndex - bIndex;
 
     return b.count - a.count || a.label.localeCompare(b.label);
   });
@@ -133,17 +128,9 @@ function sortBrands(items: { label: string; count: number }[]) {
 
 function sortProducts(products: Product[], sort: string) {
   return [...products].sort((a, b) => {
-    if (sort === "price-asc") {
-      return Number(a.price || 0) - Number(b.price || 0);
-    }
-
-    if (sort === "price-desc") {
-      return Number(b.price || 0) - Number(a.price || 0);
-    }
-
-    if (sort === "stock-desc") {
-      return Number(b.stockQty || 0) - Number(a.stockQty || 0);
-    }
+    if (sort === "price-asc") return Number(a.price || 0) - Number(b.price || 0);
+    if (sort === "price-desc") return Number(b.price || 0) - Number(a.price || 0);
+    if (sort === "stock-desc") return Number(b.stockQty || 0) - Number(a.stockQty || 0);
 
     const scoreDiff = scoreProduct(b) - scoreProduct(a);
     if (scoreDiff !== 0) return scoreDiff;
@@ -156,56 +143,59 @@ export default async function ProduktePage({ searchParams }: ProduktePageProps) 
   const q = normalize(searchParams?.q || "");
   const collection = normalize(searchParams?.collection || "");
   const category = normalize(searchParams?.category || "");
-  const subcategoryFromUrl = normalize(searchParams?.subcategory || "");
+  const selectedSubcategory = normalize(
+    searchParams?.subcategory || searchParams?.sub || ""
+  );
   const brand = normalize(searchParams?.brand || "");
   const stock = normalize(searchParams?.stock || "");
   const price = normalize(searchParams?.price || "");
-  const sub = normalize(searchParams?.sub || subcategoryFromUrl || "");
   const energy = normalize(searchParams?.energy || "");
   const sort = normalize(searchParams?.sort || "recommended");
 
   const allProducts = getPurchasableProducts(6000);
 
-  const filteredProducts = sortProducts(
-    allProducts.filter((product) => {
-      const text = productText(product);
-      const productCategory = normalize(product.category);
-      const productSubcategory = normalize(product.subcategory);
+  const baseFilteredProducts = allProducts.filter((product) => {
+    const text = productText(product);
+    const productCategory = normalize(product.category);
+    const productSubcategory = normalize(product.subcategory);
 
-      const matchesSearch = q ? text.includes(q) : true;
-      const matchesCategory = category ? productCategory === category : true;
+    const matchesSearch = q ? text.includes(q) : true;
+    const matchesCategory = category ? productCategory === category : true;
 
-      const matchesCollection = collection
-        ? productSubcategory === collection || productCategory === collection
+    const matchesCollection = collection
+      ? productSubcategory === collection || productCategory === collection
+      : true;
+
+    const matchesSubcategory = selectedSubcategory
+      ? productSubcategory === selectedSubcategory
+      : true;
+
+    const matchesBrand = brand ? normalize(product.brand) === brand : true;
+
+    const matchesStock =
+      stock === "available"
+        ? Boolean((product.stockQty ?? 0) > 0 || product.inStock)
         : true;
 
-      const matchesSubcategory = sub ? productSubcategory === sub : true;
-      const matchesBrand = brand ? normalize(product.brand) === brand : true;
+    const matchesPrice = priceMatches(Number(product.price || 0), price);
 
-      const matchesStock =
-        stock === "available"
-          ? Boolean((product.stockQty ?? 0) > 0 || product.inStock)
-          : true;
+    const matchesEnergy = energy
+      ? normalize(product.energyLabel?.class) === energy
+      : true;
 
-      const matchesPrice = priceMatches(Number(product.price || 0), price);
+    return (
+      matchesSearch &&
+      matchesCategory &&
+      matchesCollection &&
+      matchesSubcategory &&
+      matchesBrand &&
+      matchesStock &&
+      matchesPrice &&
+      matchesEnergy
+    );
+  });
 
-      const matchesEnergy = energy
-        ? normalize(product.energyLabel?.class) === energy
-        : true;
-
-      return (
-        matchesSearch &&
-        matchesCategory &&
-        matchesCollection &&
-        matchesSubcategory &&
-        matchesBrand &&
-        matchesStock &&
-        matchesPrice &&
-        matchesEnergy
-      );
-    }),
-    sort
-  );
+  const filteredProducts = sortProducts(baseFilteredProducts, sort);
 
   const productsForCounters = allProducts.filter((product) => {
     const text = productText(product);
@@ -219,64 +209,33 @@ export default async function ProduktePage({ searchParams }: ProduktePageProps) 
       ? productSubcategory === collection || productCategory === collection
       : true;
 
-    return matchesSearch && matchesCategory && matchesCollection;
+    const matchesSubcategory = selectedSubcategory
+      ? productSubcategory === selectedSubcategory
+      : true;
+
+    return matchesSearch && matchesCategory && matchesCollection && matchesSubcategory;
   });
 
-  const brandCounts = sortBrands(
-    countBy(productsForCounters, (product) => product.brand)
-  );
-
-  const subcategoryCounts = countBy(
-    productsForCounters,
-    (product) => product.subcategory
-  );
-
-  const energyCounts = countBy(
-    productsForCounters,
-    (product) => product.energyLabel?.class
-  );
+  const brandCounts = sortBrands(countBy(productsForCounters, (product) => product.brand));
+  const subcategoryCounts = countBy(productsForCounters, (product) => product.subcategory);
+  const energyCounts = countBy(productsForCounters, (product) => product.energyLabel?.class);
 
   const availableCount = productsForCounters.filter((product) =>
     Boolean((product.stockQty ?? 0) > 0 || product.inStock)
   ).length;
 
   const priceBuckets = [
-    {
-      value: "0-100",
-      label: "Bis CHF 100",
-      count: productsForCounters.filter((p) =>
-        priceMatches(Number(p.price || 0), "0-100")
-      ).length,
-    },
-    {
-      value: "100-300",
-      label: "CHF 100 – 300",
-      count: productsForCounters.filter((p) =>
-        priceMatches(Number(p.price || 0), "100-300")
-      ).length,
-    },
-    {
-      value: "300-700",
-      label: "CHF 300 – 700",
-      count: productsForCounters.filter((p) =>
-        priceMatches(Number(p.price || 0), "300-700")
-      ).length,
-    },
-    {
-      value: "700-1500",
-      label: "CHF 700 – 1500",
-      count: productsForCounters.filter((p) =>
-        priceMatches(Number(p.price || 0), "700-1500")
-      ).length,
-    },
-    {
-      value: "1500+",
-      label: "Über CHF 1500",
-      count: productsForCounters.filter((p) =>
-        priceMatches(Number(p.price || 0), "1500+")
-      ).length,
-    },
-  ];
+    { value: "0-100", label: "Bis CHF 100" },
+    { value: "100-300", label: "CHF 100 – 300" },
+    { value: "300-700", label: "CHF 300 – 700" },
+    { value: "700-1500", label: "CHF 700 – 1500" },
+    { value: "1500+", label: "Über CHF 1500" },
+  ].map((item) => ({
+    ...item,
+    count: productsForCounters.filter((p) =>
+      priceMatches(Number(p.price || 0), item.value)
+    ).length,
+  }));
 
   const makeHref = (params: Record<string, string>) => {
     const next = new URLSearchParams();
@@ -287,7 +246,7 @@ export default async function ProduktePage({ searchParams }: ProduktePageProps) 
     if (brand) next.set("brand", brand);
     if (stock) next.set("stock", stock);
     if (price) next.set("price", price);
-    if (sub) next.set("sub", sub);
+    if (selectedSubcategory) next.set("subcategory", selectedSubcategory);
     if (energy) next.set("energy", energy);
     if (sort && sort !== "recommended") next.set("sort", sort);
 
@@ -307,7 +266,7 @@ export default async function ProduktePage({ searchParams }: ProduktePageProps) 
       brand ||
       stock ||
       price ||
-      sub ||
+      selectedSubcategory ||
       energy ||
       sort !== "recommended"
   );
@@ -333,21 +292,27 @@ export default async function ProduktePage({ searchParams }: ProduktePageProps) 
 
       <section className="mx-auto max-w-7xl px-4 py-6">
         <div className="flex flex-wrap gap-3">
-          {categoryLinks.map((item) => (
-            <Link
-              key={item.value}
-              href={`/produkte?category=${encodeURIComponent(
-                item.category
-              )}&subcategory=${encodeURIComponent(item.value)}`}
-              className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
-                sub === normalize(item.value)
-                  ? "border-red-600 bg-red-50 text-red-700"
-                  : "border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50"
-              }`}
-            >
-              {item.label}
-            </Link>
-          ))}
+          {categoryLinks.map((item) => {
+            const active =
+              category === normalize(item.category) &&
+              selectedSubcategory === normalize(item.value);
+
+            return (
+              <Link
+                key={`${item.category}-${item.value}`}
+                href={`/produkte?category=${encodeURIComponent(
+                  item.category
+                )}&subcategory=${encodeURIComponent(item.value)}`}
+                className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                  active
+                    ? "border-red-600 bg-red-50 text-red-700"
+                    : "border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50"
+                }`}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
 
           <Link
             href="/produkte"
@@ -376,7 +341,9 @@ export default async function ProduktePage({ searchParams }: ProduktePageProps) 
               {brand ? <input type="hidden" name="brand" value={brand} /> : null}
               {stock ? <input type="hidden" name="stock" value={stock} /> : null}
               {price ? <input type="hidden" name="price" value={price} /> : null}
-              {sub ? <input type="hidden" name="sub" value={sub} /> : null}
+              {selectedSubcategory ? (
+                <input type="hidden" name="subcategory" value={selectedSubcategory} />
+              ) : null}
               {energy ? <input type="hidden" name="energy" value={energy} /> : null}
               {sort !== "recommended" ? (
                 <input type="hidden" name="sort" value={sort} />
@@ -477,9 +444,9 @@ export default async function ProduktePage({ searchParams }: ProduktePageProps) 
             {subcategoryCounts.slice(0, 18).map((item) => (
               <Link
                 key={item.label}
-                href={makeHref({ sub: normalize(item.label) })}
+                href={makeHref({ subcategory: normalize(item.label) })}
                 className={`flex items-center justify-between rounded-xl px-3 py-2 text-sm ${
-                  sub === normalize(item.label)
+                  selectedSubcategory === normalize(item.label)
                     ? "bg-red-50 font-bold text-red-700"
                     : "text-neutral-700 hover:bg-neutral-50"
                 }`}
