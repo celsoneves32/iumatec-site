@@ -1,4 +1,4 @@
-﻿import "server-only";
+import "server-only";
 import fs from "node:fs";
 import path from "node:path";
 import { cache } from "react";
@@ -58,6 +58,7 @@ const CATALOG_PATHS = [
   path.join(process.cwd(), "integrations", "alltron", "out", "iumatec-products.json"),
   path.join(process.cwd(), "data", "catalog.json"),
 ];
+
 function normalize(value?: string | null) {
   return String(value || "")
     .toLowerCase()
@@ -121,10 +122,6 @@ function mapCategoryFromRaw(record: CatalogRecord) {
   const titleHas = (terms: string[]) =>
     terms.some((term) => title.includes(normalize(term)));
 
-  // =========================
-  // 1. BLOQUEIOS / CATEGORIAS ESPECÃFICAS PRIMEIRO
-  // =========================
-
   if (
     has([
       "garantieerweiterung",
@@ -136,7 +133,7 @@ function mapCategoryFromRaw(record: CatalogRecord) {
       "care pack",
     ])
   ) {
-    return { category: "ZubehÃ¶r", subcategory: "Service & Garantie" };
+    return { category: "Zubehör", subcategory: "Service & Garantie" };
   }
 
   if (
@@ -149,7 +146,7 @@ function mapCategoryFromRaw(record: CatalogRecord) {
       "ink cartridge",
     ])
   ) {
-    return { category: "BÃ¼ro & Drucker", subcategory: "Tinte & Toner" };
+    return { category: "Büro & Drucker", subcategory: "Tinte & Toner" };
   }
 
   if (
@@ -162,7 +159,7 @@ function mapCategoryFromRaw(record: CatalogRecord) {
       "fotopapier",
     ])
   ) {
-    return { category: "BÃ¼ro & Drucker", subcategory: "Papier & Etiketten" };
+    return { category: "Büro & Drucker", subcategory: "Papier & Etiketten" };
   }
 
   if (
@@ -176,7 +173,7 @@ function mapCategoryFromRaw(record: CatalogRecord) {
       "ecotank",
     ])
   ) {
-    return { category: "BÃ¼ro & Drucker", subcategory: "Drucker" };
+    return { category: "Büro & Drucker", subcategory: "Drucker" };
   }
 
   if (
@@ -191,7 +188,7 @@ function mapCategoryFromRaw(record: CatalogRecord) {
       "tablett ",
     ])
   ) {
-    return { category: "ZubehÃ¶r", subcategory: "Sonstiges ZubehÃ¶r" };
+    return { category: "Zubehör", subcategory: "Sonstiges Zubehör" };
   }
 
   if (
@@ -200,13 +197,13 @@ function mapCategoryFromRaw(record: CatalogRecord) {
       "toy",
       "lexibook",
       "padagogisch",
-      "pÃ¤dagogisch",
+      "pädagogisch",
       "kinder",
       "disney",
       "frozen",
     ])
   ) {
-    return { category: "ZubehÃ¶r", subcategory: "Sonstiges ZubehÃ¶r" };
+    return { category: "Zubehör", subcategory: "Sonstiges Zubehör" };
   }
 
   if (
@@ -220,10 +217,6 @@ function mapCategoryFromRaw(record: CatalogRecord) {
   ) {
     return { category: "Smart Home", subcategory: "Haushalt" };
   }
-
-  // =========================
-  // 2. ACESSÃ“RIOS MOBILE ANTES DE SMARTPHONE/TABLET
-  // =========================
 
   if (
     has([
@@ -256,12 +249,8 @@ function mapCategoryFromRaw(record: CatalogRecord) {
       "pencil",
     ])
   ) {
-    return { category: "Mobile", subcategory: "ZubehÃ¶r" };
+    return { category: "Mobile", subcategory: "Zubehör" };
   }
-
-  // =========================
-  // 3. PERIPHERIE / ACESSÃ“RIOS ANTES DE COMPUTER
-  // =========================
 
   if (
     has([
@@ -296,7 +285,7 @@ function mapCategoryFromRaw(record: CatalogRecord) {
       "cable",
     ])
   ) {
-    return { category: "ZubehÃ¶r", subcategory: "Kabel & Adapter" };
+    return { category: "Zubehör", subcategory: "Kabel & Adapter" };
   }
 
   if (
@@ -323,7 +312,7 @@ function mapCategoryFromRaw(record: CatalogRecord) {
       "laptop zubehor",
     ])
   ) {
-    return { category: "ZubehÃ¶r", subcategory: "Notebook-ZubehÃ¶r" };
+    return { category: "Zubehör", subcategory: "Notebook-Zubehör" };
   }
 
   if (
@@ -336,12 +325,8 @@ function mapCategoryFromRaw(record: CatalogRecord) {
       "mousepad",
     ])
   ) {
-    return { category: "ZubehÃ¶r", subcategory: "Sonstiges ZubehÃ¶r" };
+    return { category: "Zubehör", subcategory: "Sonstiges Zubehör" };
   }
-
-  // =========================
-  // 4. PRODUTOS REAIS
-  // =========================
 
   if (
     cat3 === "notebook" ||
@@ -438,11 +423,30 @@ function mapCategoryFromRaw(record: CatalogRecord) {
     return { category: "Computer", subcategory: "Desktop-PCs" };
   }
 
+  // ✅ MONITORES REAIS — sem apanhar cabos, suportes, tablets, adapters
   if (
     cat3 === "monitore" ||
     cat4 === "monitore" ||
-    titleHas(["monitor"]) ||
-    has(["gaming monitor", "business monitor"])
+    has([
+      "gaming monitor",
+      "business monitor",
+      "lcd monitor",
+      "led monitor",
+      "oled monitor",
+      "curved monitor",
+      "monitor 24",
+      "monitor 27",
+      "monitor 32",
+      "monitor 34",
+      "monitor 49",
+      "display 24",
+      "display 27",
+      "display 32",
+      "qhd monitor",
+      "uhd monitor",
+      "4k monitor",
+      "fhd monitor",
+    ])
   ) {
     return { category: "Peripherie", subcategory: "Monitors" };
   }
@@ -495,7 +499,7 @@ function mapCategoryFromRaw(record: CatalogRecord) {
     return { category: "Smart Home", subcategory: "Kameras" };
   }
 
-  return { category: "ZubehÃ¶r", subcategory: "Sonstiges ZubehÃ¶r" };
+  return { category: "Zubehör", subcategory: "Sonstiges Zubehör" };
 }
 
 function getNestedValue(record: CatalogRecord, key: string): any {
@@ -508,18 +512,15 @@ function getNestedValue(record: CatalogRecord, key: string): any {
 function pickString(record: CatalogRecord, keys: string[]): string | undefined {
   for (const key of keys) {
     const value = getNestedValue(record, key);
-
     if (typeof value === "string" && value.trim()) return value.trim();
     if (typeof value === "number" && Number.isFinite(value)) return String(value);
   }
-
   return undefined;
 }
 
 function pickNumber(record: CatalogRecord, keys: string[]): number | undefined {
   for (const key of keys) {
     const value = getNestedValue(record, key);
-
     if (typeof value === "number" && Number.isFinite(value)) return value;
 
     if (typeof value === "string") {
@@ -527,7 +528,6 @@ function pickNumber(record: CatalogRecord, keys: string[]): number | undefined {
       if (Number.isFinite(parsed)) return parsed;
     }
   }
-
   return undefined;
 }
 
@@ -794,7 +794,7 @@ function isBlockedProduct(product: Product) {
   );
 
   const allowedOffice =
-    product.category === "BÃ¼ro & Drucker" ||
+    product.category === "Büro & Drucker" ||
     product.subcategory === "Tinte & Toner" ||
     product.subcategory === "Papier & Etiketten";
 
@@ -837,7 +837,7 @@ export function scoreProduct(product: Product): number {
 }
 
 const loadAllProducts = cache((): Product[] => {
-const allRecords = CATALOG_PATHS.flatMap(readJsonArray);
+  const allRecords = CATALOG_PATHS.flatMap(readJsonArray);
   const energySource = readJsonArray(
     path.join(process.cwd(), "integrations", "alltron", "out", "iumatec-products.json")
   );
