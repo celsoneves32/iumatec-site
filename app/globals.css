@@ -26,3 +26,12 @@
     @apply text-brand hover:text-brand-dark underline underline-offset-2;
   }
 }
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+main {
+  overflow-x: hidden;
+}
