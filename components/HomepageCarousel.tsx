@@ -17,11 +17,11 @@ export default function HomepageCarousel({ children }: Props) {
   }
 
   return (
-    <div className="relative">
+    <div className="relative max-w-full overflow-hidden">
       <button
         type="button"
         onClick={() => scroll("left")}
-        className="absolute left-0 top-1/2 z-10 hidden h-12 w-12 -translate-x-5 -translate-y-1/2 rounded-full border border-neutral-200 bg-white text-2xl font-black shadow-xl transition hover:scale-105 hover:bg-neutral-50 xl:flex xl:items-center xl:justify-center"
+        className="absolute left-2 top-1/2 z-20 hidden h-12 w-12 -translate-y-1/2 rounded-full border border-neutral-200 bg-white text-2xl font-black shadow-xl transition hover:scale-105 hover:bg-neutral-50 xl:flex xl:items-center xl:justify-center"
         aria-label="Zurück"
       >
         ‹
@@ -29,7 +29,7 @@ export default function HomepageCarousel({ children }: Props) {
 
       <div
         ref={ref}
-        className="-mx-4 flex gap-6 overflow-x-auto px-4 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex max-w-full gap-6 overflow-x-auto scroll-smooth px-1 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {children}
       </div>
@@ -37,7 +37,7 @@ export default function HomepageCarousel({ children }: Props) {
       <button
         type="button"
         onClick={() => scroll("right")}
-        className="absolute right-0 top-1/2 z-10 hidden h-12 w-12 translate-x-5 -translate-y-1/2 rounded-full border border-neutral-200 bg-white text-2xl font-black shadow-xl transition hover:scale-105 hover:bg-neutral-50 xl:flex xl:items-center xl:justify-center"
+        className="absolute right-2 top-1/2 z-20 hidden h-12 w-12 -translate-y-1/2 rounded-full border border-neutral-200 bg-white text-2xl font-black shadow-xl transition hover:scale-105 hover:bg-neutral-50 xl:flex xl:items-center xl:justify-center"
         aria-label="Weiter"
       >
         ›
