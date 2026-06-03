@@ -99,10 +99,7 @@ function getFamilyKey(product: Product) {
       /\b(schwarz|black|midnight|mitternacht|sky blue|sky-blue|silber|silver|grau|gray|grey|blau|blue|weiss|white|gold|rose|rot|red|grün|green|starlight|space black|space schwarz)\b/g,
       ""
     )
-    .replace(
-      /\b(64gb|128gb|256gb|512gb|1tb|2tb|4tb|8gb|16gb|24gb|32gb|64gb|128gb)\b/g,
-      ""
-    )
+    .replace(/\b(64gb|128gb|256gb|512gb|1tb|2tb|4tb|8gb|16gb|24gb|32gb)\b/g, "")
     .replace(/\b(wifi|wi-fi|5g|cellular|lte)\b/g, "")
     .replace(/\s+/g, " ")
     .trim();
@@ -151,41 +148,19 @@ function isSmartphoneOrTablet(product: Product) {
 }
 
 function isRealMonitor(product: Product) {
-  const p = product as any;
   const text = productText(product);
 
-  const category = String(p.category || "").toLowerCase();
-  const subcategory = String(p.subcategory || "").toLowerCase();
-
-  const categoryMatch =
-    category.includes("peripherie") &&
-    (subcategory.includes("monitor") || subcategory.includes("monitors"));
-
-  const titleMatch =
-    text.includes("monitor") ||
-    text.includes("bildschirm") ||
-    text.includes("display");
-
   const blocked =
-    text.includes("laptop") ||
-    text.includes("notebook") ||
-    text.includes("macbook") ||
-    text.includes("elitebook") ||
-    text.includes("probook") ||
-    text.includes("thinkpad") ||
-    text.includes("latitude") ||
-    text.includes("surface") ||
-    text.includes("ipad") ||
     text.includes("tablet") ||
-    text.includes("iphone") ||
+    text.includes("ipad") ||
+    text.includes("galaxy tab") ||
     text.includes("smartphone") ||
-    text.includes("aio") ||
-    text.includes("all-in-one") ||
-    text.includes("all in one") ||
-    text.includes("desktop") ||
-    text.includes("pc ");
+    text.includes("iphone") ||
+    text.includes("macbook") ||
+    text.includes("notebook") ||
+    text.includes("laptop");
 
-  return (categoryMatch || titleMatch) && !blocked;
+  return !blocked && (text.includes("monitor") || text.includes("bildschirm"));
 }
 
 function isAccessory(product: Product) {
@@ -376,7 +351,7 @@ export default function HomePage() {
             <SectionHeader
               title="Deals unter CHF 300"
               subtitle="Technik und Zubehör zu kleineren Preisen."
-              href="/produkte?maxPrice=300"
+              href="/produkte?price=0-300"
             />
             <ProductCarousel
               products={dealsUnder300.length >= 4 ? dealsUnder300 : accessoriesUnder300}
@@ -433,7 +408,7 @@ export default function HomePage() {
             </p>
 
             <Link
-              href="/produkte?stock=in"
+              href="/produkte?stock=available"
               className="mt-8 inline-flex rounded-2xl bg-red-600 px-7 py-4 font-extrabold text-white hover:bg-red-700"
             >
               Sofort lieferbare Produkte ansehen
