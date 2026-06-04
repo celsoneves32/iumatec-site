@@ -51,6 +51,18 @@ function readWinningProducts(): Product[] {
   }
 }
 
+function normalize(value: unknown) {
+  return String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/ä/g, "a")
+    .replace(/ö/g, "o")
+    .replace(/ü/g, "u")
+    .replace(/ß/g, "ss")
+    .trim();
+}
+
 function getMerchandiseId(product: Product) {
   const p = product as any;
   return p.merchandiseId || p.shopifyVariantId || null;
@@ -85,33 +97,67 @@ function isBuyable(product: Product) {
 function productText(product: Product) {
   const p = product as any;
 
-  return `${p.title || ""} ${p.brand || ""} ${p.category || ""} ${
-    p.subcategory || ""
-  } ${p.description || ""} ${p.description2 || ""}`.toLowerCase();
+  return normalize(
+    [
+      p.title,
+      p.fullTitle,
+      p.name,
+      p.brand,
+      p.vendor,
+      p.category,
+      p.subcategory,
+      p.description,
+      p.description2,
+      p.shortDescription,
+      p.longDescription,
+      p.sku,
+      p.shopifyProductHandle,
+    ].join(" ")
+  );
 }
 
 function getFamilyKey(product: Product) {
   const p = product as any;
 
-  return String(p.title || "")
-    .toLowerCase()
+  return normalize(p.title || "")
     .replace(
-      /\b(schwarz|black|midnight|mitternacht|sky blue|sky-blue|silber|silver|grau|gray|grey|blau|blue|weiss|white|gold|rose|rot|red|grün|green|starlight|space black|space schwarz)\b/g,
+      /\b(schwarz|black|midnight|mitternacht|sky blue|sky-blue|silber|silver|grau|gray|grey|blau|blue|weiss|white|gold|rose|rot|red|grun|green|starlight|space black|space schwarz)\b/g,
       ""
     )
-    .replace(/\b(64gb|128gb|256gb|512gb|1tb|2tb|4tb|8gb|16gb|24gb|32gb)\b/g, "")
+    .replace(
+      /\b(64gb|128gb|256gb|512gb|1tb|2tb|4tb|8gb|16gb|24gb|32gb|64gb|128gb)\b/g,
+      ""
+    )
     .replace(/\b(wifi|wi-fi|5g|cellular|lte)\b/g, "")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function uniqueBySlug(products: Product[]) {
+  const seen = new Set<string>();
+
+  return products.filter((product) => {
+    const slug = getProductSlug(product);
+    const sku = String((product as any).sku || "");
+    const key = slug || sku;
+
+    if (!key) return false;
+    if (seen.has(key)) return false;
+
+    seen.add(key);
+    return true;
+  });
 }
 
 function uniqueProductFamilies(products: Product[]) {
   const seen = new Set<string>();
 
   return products.filter((product) => {
-    const key = getFamilyKey(product);
+    const key = getFamilyKey(product) || getProductSlug(product);
+
     if (!key) return true;
     if (seen.has(key)) return false;
+
     seen.add(key);
     return true;
   });
@@ -143,12 +189,17 @@ function isSmartphoneOrTablet(product: Product) {
     text.includes("smartphone") ||
     text.includes("ipad") ||
     text.includes("tablet") ||
-    text.includes("tab ")
+    text.includes(" tab ")
   );
 }
 
 function isRealMonitor(product: Product) {
+  const p = product as any;
+
   const text = productText(product);
+  const category = normalize(p.category);
+  const subcategory = normalize(p.subcategory);
+  const title = normalize(p.title);
 
   const blocked =
     text.includes("tablet") ||
@@ -163,10 +214,28 @@ function isRealMonitor(product: Product) {
     text.includes("probook") ||
     text.includes("thinkpad") ||
     text.includes("latitude") ||
-    text.includes("surface") ||
-    text.includes("chromebook");
+    text.includes("chromebook") ||
+    text.includes("surface laptop") ||
+    text.includes("all-in-one") ||
+    text.includes("all in one") ||
+    text.includes(" aio ") ||
+    title.includes("aio");
 
-  return !blocked && (text.includes("monitor") || text.includes("bildschirm"));
+  const categoryMatch =
+    category === "peripherie" &&
+    (subcategory === "monitors" ||
+      subcategory === "monitor" ||
+      subcategory.includes("monitor"));
+
+  const titleMatch =
+    title.includes("monitor") ||
+    title.includes("bildschirm") ||
+    title.includes("display") ||
+    title.includes("ultrasharp") ||
+    title.includes("proart display") ||
+    title.includes("curved");
+
+  return !blocked && (categoryMatch || titleMatch);
 }
 
 function isAccessory(product: Product) {
@@ -184,14 +253,18 @@ function isAccessory(product: Product) {
     text.includes("adapter") ||
     text.includes("kabel") ||
     text.includes("charger") ||
-    text.includes("ladegerät") ||
+    text.includes("ladegerat") ||
     text.includes("ssd") ||
     text.includes("usb")
   );
 }
 
+function isGoodHomepageProduct(product: Product) {
+  return isBuyable(product) && getPrice(product) >= 10;
+}
+
 function ProductCarousel({ products }: { products: Product[] }) {
-  const items = uniqueProductFamilies(products.filter(isBuyable)).slice(0, 14);
+  const items = uniqueProductFamilies(products.filter(isBuyable)).slice(0, 16);
 
   if (!items.length) return null;
 
@@ -203,7 +276,7 @@ function ProductCarousel({ products }: { products: Product[] }) {
         const stockQty = getStockQty(product);
 
         return (
-          <div key={`${p.sku || slug}-${slug}`} className="w-[310px] shrink-0">
+          <div key={`${p.sku || slug}-${slug}`} className="w-[320px] shrink-0">
             <ProductCard
               product={{
                 slug,
@@ -251,29 +324,46 @@ function SectionHeader({
 export default function HomePage() {
   const winners = readWinningProducts();
 
-  const products = uniqueProductFamilies(
-    (winners.length > 0 ? winners : getTopProducts(500)).filter(isBuyable)
+  const allProducts = uniqueBySlug(
+    [...winners, ...getTopProducts(3000)].filter(isGoodHomepageProduct)
   );
+
+  const products = uniqueProductFamilies(allProducts);
 
   const topDeals = products
     .filter((p) => getPrice(p) >= 50)
     .sort((a, b) => getPrice(a) - getPrice(b))
-    .slice(0, 14);
+    .slice(0, 16);
 
   const dealsUnder300 = products
     .filter((p) => getPrice(p) > 0 && getPrice(p) <= 300)
     .sort((a, b) => getPrice(a) - getPrice(b))
-    .slice(0, 14);
+    .slice(0, 16);
 
   const accessoriesUnder300 = products
     .filter((p) => getPrice(p) > 0 && getPrice(p) <= 300 && isAccessory(p))
     .sort((a, b) => getPrice(a) - getPrice(b))
-    .slice(0, 14);
+    .slice(0, 16);
 
-  const laptops = products.filter(isLaptop).slice(0, 14);
-  const smartphonesAndTablets = products.filter(isSmartphoneOrTablet).slice(0, 14);
-  const monitors = products.filter(isRealMonitor).slice(0, 14);
-  const sofortLieferbar = products.filter((p) => getStockQty(p) >= 2).slice(0, 14);
+  const laptops = products
+    .filter(isLaptop)
+    .sort((a, b) => getPrice(a) - getPrice(b))
+    .slice(0, 16);
+
+  const smartphonesAndTablets = products
+    .filter(isSmartphoneOrTablet)
+    .sort((a, b) => getPrice(a) - getPrice(b))
+    .slice(0, 16);
+
+  const monitors = allProducts
+    .filter(isRealMonitor)
+    .sort((a, b) => getPrice(a) - getPrice(b))
+    .slice(0, 16);
+
+  const sofortLieferbar = products
+    .filter((p) => getStockQty(p) >= 2)
+    .sort((a, b) => getPrice(a) - getPrice(b))
+    .slice(0, 16);
 
   return (
     <main className="bg-white">
@@ -360,7 +450,9 @@ export default function HomePage() {
               href="/produkte?price=0-300"
             />
             <ProductCarousel
-              products={dealsUnder300.length >= 4 ? dealsUnder300 : accessoriesUnder300}
+              products={
+                dealsUnder300.length >= 4 ? dealsUnder300 : accessoriesUnder300
+              }
             />
           </div>
         </section>
@@ -386,7 +478,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {monitors.length > 0 && (
+      {monitors.length > 0 ? (
         <section className="mx-auto max-w-7xl px-4 py-12">
           <SectionHeader
             title="Monitore"
@@ -395,7 +487,7 @@ export default function HomePage() {
           />
           <ProductCarousel products={monitors} />
         </section>
-      )}
+      ) : null}
 
       <section className="bg-neutral-950 text-white">
         <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 lg:grid-cols-[1fr_1.4fr] lg:items-center">
