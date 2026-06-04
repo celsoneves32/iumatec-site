@@ -26,6 +26,25 @@ function formatPrice(price: number) {
   }).format(price || 0);
 }
 
+function isTopDeal(product: Props["product"]) {
+  const price = Number(product.price || 0);
+  const title = product.title.toLowerCase();
+
+  return (
+    price > 0 &&
+    (
+      price <= 300 ||
+      title.includes("deal") ||
+      title.includes("mini pc") ||
+      title.includes("monitor") ||
+      title.includes("ssd") ||
+      title.includes("keyboard") ||
+      title.includes("maus") ||
+      title.includes("mouse")
+    )
+  );
+}
+
 export default function ProductCard({ product }: Props) {
   const { addItem, loading } = useCart();
   const [imageFailed, setImageFailed] = useState(false);
@@ -34,19 +53,20 @@ export default function ProductCard({ product }: Props) {
   const inStock = stockQty > 0 || Boolean(product.inStock);
   const canBuy = Boolean(inStock && product.merchandiseId);
 
-  const stockLabel =
-    !inStock
-      ? "Nicht verfügbar"
-      : stockQty <= 3
-        ? `Nur noch ${Math.max(stockQty, 1)} Stück`
-        : "Sofort lieferbar";
+  const lowStock = inStock && stockQty > 0 && stockQty <= 3;
+  const topDeal = isTopDeal(product);
 
-  const stockColor =
-    !inStock
-      ? "text-neutral-400"
-      : stockQty <= 3
-        ? "text-orange-600"
-        : "text-green-600";
+  const stockLabel = !inStock
+    ? "Nicht verfügbar"
+    : lowStock
+      ? `Nur noch ${Math.max(stockQty, 1)} Stück`
+      : "Sofort lieferbar";
+
+  const stockColor = !inStock
+    ? "text-neutral-400"
+    : lowStock
+      ? "text-orange-600"
+      : "text-green-600";
 
   const imageSrc =
     product.image && product.image.trim() && !imageFailed
@@ -54,11 +74,24 @@ export default function ProductCard({ product }: Props) {
       : null;
 
   return (
-    <article className="group overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+    <article className="group relative overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+      <div className="absolute left-4 top-4 z-10 flex flex-wrap gap-2">
+        {topDeal ? (
+          <span className="rounded-full bg-red-600 px-3 py-1 text-xs font-black text-white shadow-sm">
+            🔥 Top Deal
+          </span>
+        ) : null}
+
+        {inStock ? (
+          <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-black text-green-700 ring-1 ring-green-100">
+            🇨🇭 CH Lager
+          </span>
+        ) : null}
+      </div>
+
       <Link href={`/produkte/${product.slug}`} className="block">
-        <div className="relative flex aspect-square items-center justify-center overflow-hidden bg-neutral-50 p-6">
+        <div className="relative flex aspect-square items-center justify-center overflow-hidden bg-neutral-50 p-8">
           {imageSrc ? (
-            // img é intencional aqui para evitar bloqueios de domínio do Next/Image
             <img
               src={imageSrc}
               alt={product.title}
@@ -99,6 +132,15 @@ export default function ProductCard({ product }: Props) {
 
         <div className="text-xs text-neutral-500">
           inkl. MWST · Lieferung Schweiz
+        </div>
+
+        <div className="mt-3 flex flex-wrap gap-2 text-xs font-bold text-neutral-500">
+          <span className="rounded-full bg-neutral-100 px-3 py-1">
+            Sicherer Checkout
+          </span>
+          <span className="rounded-full bg-neutral-100 px-3 py-1">
+            Versand CH
+          </span>
         </div>
 
         <div className="mt-5 flex gap-3">
