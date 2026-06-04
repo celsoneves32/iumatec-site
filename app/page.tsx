@@ -158,7 +158,13 @@ function isRealMonitor(product: Product) {
     text.includes("iphone") ||
     text.includes("macbook") ||
     text.includes("notebook") ||
-    text.includes("laptop");
+    text.includes("laptop") ||
+    text.includes("elitebook") ||
+    text.includes("probook") ||
+    text.includes("thinkpad") ||
+    text.includes("latitude") ||
+    text.includes("surface") ||
+    text.includes("chromebook");
 
   return !blocked && (text.includes("monitor") || text.includes("bildschirm"));
 }
