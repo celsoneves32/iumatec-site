@@ -51,18 +51,6 @@ function readWinningProducts(): Product[] {
   }
 }
 
-function normalize(value: unknown) {
-  return String(value || "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .replace(/ä/g, "a")
-    .replace(/ö/g, "o")
-    .replace(/ü/g, "u")
-    .replace(/ß/g, "ss")
-    .trim();
-}
-
 function getMerchandiseId(product: Product) {
   const p = product as any;
   return p.merchandiseId || p.shopifyVariantId || null;
@@ -97,31 +85,18 @@ function isBuyable(product: Product) {
 function productText(product: Product) {
   const p = product as any;
 
-  return normalize(
-    [
-      p.title,
-      p.fullTitle,
-      p.name,
-      p.brand,
-      p.vendor,
-      p.category,
-      p.subcategory,
-      p.description,
-      p.description2,
-      p.shortDescription,
-      p.longDescription,
-      p.sku,
-      p.shopifyProductHandle,
-    ].join(" ")
-  );
+  return `${p.title || ""} ${p.brand || ""} ${p.category || ""} ${
+    p.subcategory || ""
+  } ${p.description || ""} ${p.description2 || ""}`.toLowerCase();
 }
 
 function getFamilyKey(product: Product) {
   const p = product as any;
 
-  return normalize(p.title || "")
+  return String(p.title || "")
+    .toLowerCase()
     .replace(
-      /\b(schwarz|black|midnight|mitternacht|sky blue|sky-blue|silber|silver|grau|gray|grey|blau|blue|weiss|white|gold|rose|rot|red|grun|green|starlight|space black|space schwarz)\b/g,
+      /\b(schwarz|black|midnight|mitternacht|sky blue|sky-blue|silber|silver|grau|gray|grey|blau|blue|weiss|white|gold|rose|rot|red|grün|green|starlight|space black|space schwarz)\b/g,
       ""
     )
     .replace(
@@ -133,40 +108,38 @@ function getFamilyKey(product: Product) {
     .trim();
 }
 
+function uniqueProductFamilies(products: Product[]) {
+  const seen = new Set<string>();
+
+  return products.filter((product) => {
+    const key = getFamilyKey(product);
+    if (!key) return true;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 function uniqueBySlug(products: Product[]) {
   const seen = new Set<string>();
 
   return products.filter((product) => {
     const slug = getProductSlug(product);
-    const sku = String((product as any).sku || "");
-    const key = slug || sku;
-
-    if (!key) return false;
-    if (seen.has(key)) return false;
-
-    seen.add(key);
-    return true;
-  });
-}
-
-function uniqueProductFamilies(products: Product[]) {
-  const seen = new Set<string>();
-
-  return products.filter((product) => {
-    const key = getFamilyKey(product) || getProductSlug(product);
-
-    if (!key) return true;
-    if (seen.has(key)) return false;
-
-    seen.add(key);
+    if (!slug) return false;
+    if (seen.has(slug)) return false;
+    seen.add(slug);
     return true;
   });
 }
 
 function isLaptop(product: Product) {
+  const p = product as any;
+  const category = String(p.category || "").toLowerCase().trim();
+  const subcategory = String(p.subcategory || "").toLowerCase().trim();
   const text = productText(product);
 
   return (
+    (category === "computer" && subcategory === "laptops") ||
     text.includes("laptop") ||
     text.includes("notebook") ||
     text.includes("macbook") ||
@@ -179,27 +152,26 @@ function isLaptop(product: Product) {
 }
 
 function isSmartphoneOrTablet(product: Product) {
-  const text = productText(product);
+  const p = product as any;
+  const category = String(p.category || "").toLowerCase().trim();
+  const subcategory = String(p.subcategory || "").toLowerCase().trim();
 
   return (
-    text.includes("iphone") ||
-    text.includes("galaxy") ||
-    text.includes("xiaomi") ||
-    text.includes("redmi") ||
-    text.includes("smartphone") ||
-    text.includes("ipad") ||
-    text.includes("tablet") ||
-    text.includes(" tab ")
+    category === "mobile" &&
+    (subcategory === "smartphones" || subcategory === "tablets")
   );
 }
 
 function isRealMonitor(product: Product) {
   const p = product as any;
 
+  const category = String(p.category || "").toLowerCase().trim();
+  const subcategory = String(p.subcategory || "").toLowerCase().trim();
   const text = productText(product);
-  const category = normalize(p.category);
-  const subcategory = normalize(p.subcategory);
-  const title = normalize(p.title);
+
+  const correctCategory =
+    category === "peripherie" &&
+    (subcategory === "monitors" || subcategory === "monitor");
 
   const blocked =
     text.includes("tablet") ||
@@ -207,39 +179,31 @@ function isRealMonitor(product: Product) {
     text.includes("galaxy tab") ||
     text.includes("smartphone") ||
     text.includes("iphone") ||
-    text.includes("macbook") ||
-    text.includes("notebook") ||
     text.includes("laptop") ||
+    text.includes("notebook") ||
+    text.includes("macbook") ||
     text.includes("elitebook") ||
-    text.includes("probook") ||
-    text.includes("thinkpad") ||
-    text.includes("latitude") ||
-    text.includes("chromebook") ||
-    text.includes("surface laptop") ||
-    text.includes("all-in-one") ||
-    text.includes("all in one") ||
-    text.includes(" aio ") ||
-    title.includes("aio");
+    text.includes("probook");
 
-  const categoryMatch =
-    category === "peripherie" &&
-    (subcategory === "monitors" ||
-      subcategory === "monitor" ||
-      subcategory.includes("monitor"));
-
-  const titleMatch =
-    title.includes("monitor") ||
-    title.includes("bildschirm") ||
-    title.includes("display") ||
-    title.includes("ultrasharp") ||
-    title.includes("proart display") ||
-    title.includes("curved");
-
-  return !blocked && (categoryMatch || titleMatch);
+  return correctCategory && !blocked;
 }
 
 function isAccessory(product: Product) {
+  const p = product as any;
+  const category = String(p.category || "").toLowerCase().trim();
+  const subcategory = String(p.subcategory || "").toLowerCase().trim();
   const text = productText(product);
+
+  if (
+    category === "computer" ||
+    category === "pc-komponenten" ||
+    subcategory === "laptops" ||
+    subcategory === "monitors" ||
+    subcategory === "smartphones" ||
+    subcategory === "tablets"
+  ) {
+    return false;
+  }
 
   return (
     text.includes("maus") ||
@@ -253,18 +217,27 @@ function isAccessory(product: Product) {
     text.includes("adapter") ||
     text.includes("kabel") ||
     text.includes("charger") ||
-    text.includes("ladegerat") ||
-    text.includes("ssd") ||
+    text.includes("ladegerät") ||
+    text.includes("halter") ||
+    text.includes("case") ||
+    text.includes("schutz") ||
+    text.includes("glas") ||
     text.includes("usb")
   );
 }
 
-function isGoodHomepageProduct(product: Product) {
-  return isBuyable(product) && getPrice(product) >= 10;
-}
-
-function ProductCarousel({ products }: { products: Product[] }) {
-  const items = uniqueProductFamilies(products.filter(isBuyable)).slice(0, 16);
+function ProductCarousel({
+  products,
+  uniqueFamilies = true,
+}: {
+  products: Product[];
+  uniqueFamilies?: boolean;
+}) {
+  const buyable = products.filter(isBuyable);
+  const items = (uniqueFamilies ? uniqueProductFamilies(buyable) : uniqueBySlug(buyable)).slice(
+    0,
+    16
+  );
 
   if (!items.length) return null;
 
@@ -321,81 +294,152 @@ function SectionHeader({
   );
 }
 
+function HeroProduct({
+  product,
+  className = "",
+}: {
+  product?: Product;
+  className?: string;
+}) {
+  if (!product) return null;
+
+  const p = product as any;
+  const slug = getProductSlug(product);
+
+  return (
+    <Link
+      href={`/produkte/${slug}`}
+      className={`group relative overflow-hidden rounded-[2rem] border border-white/70 bg-white p-5 shadow-xl transition hover:-translate-y-1 hover:shadow-2xl ${className}`}
+    >
+      <div className="absolute left-5 top-5 z-10 rounded-full bg-green-50 px-3 py-1 text-xs font-black text-green-700">
+        CH Lager
+      </div>
+
+      <div className="flex h-44 items-center justify-center rounded-3xl bg-neutral-50 p-4">
+        {p.image ? (
+          <img
+            src={p.image}
+            alt={p.title}
+            className="max-h-full max-w-full object-contain transition duration-300 group-hover:scale-105"
+          />
+        ) : null}
+      </div>
+
+      <div className="mt-4 text-xs font-bold uppercase tracking-wide text-neutral-500">
+        {p.brand || "IUMATEC"}
+      </div>
+
+      <div className="mt-1 line-clamp-2 text-base font-black leading-tight text-neutral-950">
+        {p.title}
+      </div>
+
+      <div className="mt-3 text-xl font-black text-neutral-950">
+        CHF{" "}
+        {getPrice(product).toLocaleString("de-CH", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })}
+      </div>
+    </Link>
+  );
+}
+
 export default function HomePage() {
   const winners = readWinningProducts();
 
-  const allProducts = uniqueBySlug(
-    [...winners, ...getTopProducts(3000)].filter(isGoodHomepageProduct)
+  const products = uniqueProductFamilies(
+    (winners.length > 0 ? winners : getTopProducts(800)).filter(isBuyable)
   );
 
-  const products = uniqueProductFamilies(allProducts);
+  const allBuyable = (winners.length > 0 ? winners : getTopProducts(1000)).filter(isBuyable);
+
+  const laptops = products
+    .filter((p) => isLaptop(p) && getPrice(p) >= 300)
+    .slice(0, 16);
+
+  const smartphonesAndTablets = products
+    .filter((p) => isSmartphoneOrTablet(p) && getPrice(p) >= 250)
+    .slice(0, 16);
+
+  const monitors = uniqueBySlug(allBuyable)
+    .filter((p) => isRealMonitor(p) && getPrice(p) >= 80)
+    .slice(0, 16);
 
   const topDeals = products
-    .filter((p) => getPrice(p) >= 50)
+    .filter((p) => getPrice(p) >= 300 && !isAccessory(p))
     .sort((a, b) => getPrice(a) - getPrice(b))
     .slice(0, 16);
 
   const dealsUnder300 = products
-    .filter((p) => getPrice(p) > 0 && getPrice(p) <= 300)
-    .sort((a, b) => getPrice(a) - getPrice(b))
-    .slice(0, 16);
-
-  const accessoriesUnder300 = products
     .filter((p) => getPrice(p) > 0 && getPrice(p) <= 300 && isAccessory(p))
     .sort((a, b) => getPrice(a) - getPrice(b))
     .slice(0, 16);
 
-  const laptops = products
-    .filter(isLaptop)
-    .sort((a, b) => getPrice(a) - getPrice(b))
-    .slice(0, 16);
-
-  const smartphonesAndTablets = products
-    .filter(isSmartphoneOrTablet)
-    .sort((a, b) => getPrice(a) - getPrice(b))
-    .slice(0, 16);
-
-  const monitors = allProducts
-    .filter(isRealMonitor)
-    .sort((a, b) => getPrice(a) - getPrice(b))
-    .slice(0, 16);
-
   const sofortLieferbar = products
-    .filter((p) => getStockQty(p) >= 2)
-    .sort((a, b) => getPrice(a) - getPrice(b))
+    .filter((p) => getStockQty(p) >= 2 && getPrice(p) >= 300 && !isAccessory(p))
     .slice(0, 16);
+
+  const heroProducts = [
+    laptops[0],
+    monitors[0],
+    smartphonesAndTablets[0],
+  ].filter(Boolean) as Product[];
 
   return (
     <main className="bg-white">
-      <section className="border-b border-neutral-200 bg-neutral-50">
-        <div className="mx-auto max-w-7xl px-4 py-16 text-center">
-          <div className="inline-flex rounded-full bg-white px-4 py-2 text-sm font-extrabold text-red-700 shadow-sm">
-            🇨🇭 IUMATEC Schweiz · geprüfte Produkte · sicherer Checkout
+      <section className="relative overflow-hidden border-b border-neutral-200 bg-gradient-to-br from-neutral-50 via-white to-red-50/40">
+        <div className="absolute -right-32 -top-32 h-96 w-96 rounded-full bg-red-100 blur-3xl" />
+        <div className="absolute -bottom-40 left-0 h-96 w-96 rounded-full bg-neutral-200/70 blur-3xl" />
+
+        <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-14 lg:grid-cols-[1fr_1.05fr] lg:items-center lg:py-20">
+          <div>
+            <div className="inline-flex rounded-full bg-white px-4 py-2 text-sm font-extrabold text-red-700 shadow-sm">
+              🇨🇭 IUMATEC Schweiz · geprüfte Technik · sicherer Checkout
+            </div>
+
+            <h1 className="mt-6 max-w-3xl text-5xl font-black leading-[0.98] tracking-tight text-neutral-950 md:text-7xl">
+              Business-Technik zu starken Preisen.
+            </h1>
+
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-neutral-600">
+              Computer, Monitore, Smartphones und Zubehör mit transparentem Preis,
+              Schweizer Lieferung und direktem Checkout.
+            </p>
+
+            <div className="mt-8 flex flex-wrap gap-4">
+              <Link
+                href="/produkte"
+                className="rounded-2xl bg-red-600 px-8 py-4 text-base font-extrabold text-white shadow-sm transition hover:bg-red-700"
+              >
+                Jetzt einkaufen
+              </Link>
+
+              <Link
+                href="/produkte?sort=price-asc"
+                className="rounded-2xl border border-neutral-300 bg-white px-8 py-4 text-base font-extrabold text-neutral-950 transition hover:bg-neutral-50"
+              >
+                Angebote entdecken
+              </Link>
+            </div>
+
+            <div className="mt-8 grid max-w-2xl gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {["CH Versand", "Schnelle Lieferung", "Sicherer Checkout", "MWST inkl."].map(
+                (item) => (
+                  <div
+                    key={item}
+                    className="rounded-2xl border border-neutral-200 bg-white/80 px-4 py-3 text-sm font-extrabold text-neutral-800 shadow-sm"
+                  >
+                    ✓ {item}
+                  </div>
+                )
+              )}
+            </div>
           </div>
 
-          <h1 className="mx-auto mt-6 max-w-4xl text-5xl font-black leading-tight text-neutral-950 md:text-6xl">
-            Technik zu starken Preisen.
-          </h1>
-
-          <p className="mx-auto mt-4 max-w-2xl text-lg text-neutral-600">
-            Verfügbare Technikprodukte mit Bild, Preis und Lagerbestand –
-            schnell geliefert in der Schweiz.
-          </p>
-
-          <div className="mt-8 flex flex-wrap justify-center gap-4">
-            <Link
-              href="/produkte"
-              className="rounded-2xl bg-red-600 px-8 py-4 text-base font-extrabold text-white shadow-sm hover:bg-red-700"
-            >
-              Jetzt einkaufen
-            </Link>
-
-            <Link
-              href="/produkte?sort=price-asc"
-              className="rounded-2xl border border-neutral-300 bg-white px-8 py-4 text-base font-extrabold text-neutral-950 hover:bg-neutral-50"
-            >
-              Deals entdecken
-            </Link>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <HeroProduct product={heroProducts[0]} className="sm:row-span-2" />
+            <HeroProduct product={heroProducts[1]} />
+            <HeroProduct product={heroProducts[2]} />
           </div>
         </div>
       </section>
@@ -446,14 +490,10 @@ export default function HomePage() {
           <div className="mx-auto max-w-7xl px-4 py-12">
             <SectionHeader
               title="Deals unter CHF 300"
-              subtitle="Technik und Zubehör zu kleineren Preisen."
+              subtitle="Zubehör und Technik zu kleineren Preisen."
               href="/produkte?price=0-300"
             />
-            <ProductCarousel
-              products={
-                dealsUnder300.length >= 4 ? dealsUnder300 : accessoriesUnder300
-              }
-            />
+            <ProductCarousel products={dealsUnder300} uniqueFamilies={false} />
           </div>
         </section>
       )}
@@ -478,16 +518,16 @@ export default function HomePage() {
         </div>
       </section>
 
-      {monitors.length > 0 ? (
+      {monitors.length > 0 && (
         <section className="mx-auto max-w-7xl px-4 py-12">
           <SectionHeader
             title="Monitore"
             subtitle="Displays für Homeoffice, Gaming und produktive Setups."
             href="/produkte?category=Peripherie&subcategory=Monitors"
           />
-          <ProductCarousel products={monitors} />
+          <ProductCarousel products={monitors} uniqueFamilies={false} />
         </section>
-      ) : null}
+      )}
 
       <section className="bg-neutral-950 text-white">
         <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 lg:grid-cols-[1fr_1.4fr] lg:items-center">
