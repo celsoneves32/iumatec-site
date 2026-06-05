@@ -32,16 +32,13 @@ function isTopDeal(product: Props["product"]) {
 
   return (
     price > 0 &&
-    (
-      price <= 300 ||
+    (price <= 300 ||
       title.includes("deal") ||
-      title.includes("mini pc") ||
       title.includes("monitor") ||
       title.includes("ssd") ||
       title.includes("keyboard") ||
       title.includes("maus") ||
-      title.includes("mouse")
-    )
+      title.includes("mouse"))
   );
 }
 
@@ -74,23 +71,23 @@ export default function ProductCard({ product }: Props) {
       : null;
 
   return (
-    <article className="group relative overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
-      <div className="absolute left-4 top-4 z-10 flex flex-wrap gap-2">
+    <article className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+      <div className="absolute left-4 top-4 z-10 flex max-w-[calc(100%-2rem)] flex-wrap gap-2">
         {topDeal ? (
           <span className="rounded-full bg-red-600 px-3 py-1 text-xs font-black text-white shadow-sm">
-            🔥 Top Deal
+            Top Deal
           </span>
         ) : null}
 
         {inStock ? (
           <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-black text-green-700 ring-1 ring-green-100">
-            🇨🇭 CH Lager
+            CH Lager
           </span>
         ) : null}
       </div>
 
       <Link href={`/produkte/${product.slug}`} className="block">
-        <div className="relative flex aspect-square items-center justify-center overflow-hidden bg-neutral-50 p-8">
+        <div className="flex h-72 items-center justify-center overflow-hidden bg-neutral-50 px-7 pb-7 pt-14">
           {imageSrc ? (
             <img
               src={imageSrc}
@@ -111,13 +108,13 @@ export default function ProductCard({ product }: Props) {
         </div>
       </Link>
 
-      <div className="p-5">
+      <div className="flex flex-1 flex-col p-5">
         <div className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
           {product.brand || "IUMATEC"}
         </div>
 
         <Link href={`/produkte/${product.slug}`}>
-          <h3 className="mt-1 line-clamp-2 min-h-[42px] text-base font-extrabold leading-snug text-neutral-950 transition hover:text-red-600">
+          <h3 className="mt-1 line-clamp-2 min-h-[44px] text-base font-extrabold leading-snug text-neutral-950 transition hover:text-red-600">
             {product.title}
           </h3>
         </Link>
@@ -126,7 +123,7 @@ export default function ProductCard({ product }: Props) {
           {stockLabel}
         </div>
 
-        <div className="mt-4 text-2xl font-extrabold text-neutral-950">
+        <div className="mt-4 text-2xl font-black text-neutral-950">
           {formatPrice(product.price)}
         </div>
 
@@ -143,7 +140,7 @@ export default function ProductCard({ product }: Props) {
           </span>
         </div>
 
-        <div className="mt-5 flex gap-3">
+        <div className="mt-auto flex gap-3 pt-5">
           <Link
             href={`/produkte/${product.slug}`}
             className="flex-1 rounded-2xl border border-neutral-300 px-4 py-3 text-center text-sm font-bold transition hover:bg-neutral-50"
