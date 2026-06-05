@@ -27,56 +27,101 @@ function getStockQty(product: Product) {
   return Number(p.stockQty ?? p.stock ?? 0);
 }
 
-function getFamilyKey(product: Product) {
+function normalize(value: unknown) {
+  return String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/ä/g, "a")
+    .replace(/ö/g, "o")
+    .replace(/ü/g, "u")
+    .replace(/ß/g, "ss")
+    .trim();
+}
+
+function getText(product: Product) {
   const p = product as any;
 
-  return String(p.title || "")
-    .toLowerCase()
-    .replace(
-      /\b(schwarz|black|midnight|sky blue|sky-blue|silber|silver|grau|gray|grey|blau|blue|weiss|white|gold|rose|rot|red|grün|green|starlight|space schwarz|space black)\b/g,
-      ""
-    )
+  return normalize(
+    [
+      p.title,
+      p.brand,
+      p.sku,
+      p.category,
+      p.subcategory,
+      p.description,
+      p.description2,
+    ].join(" ")
+  );
+}
+
+function getFamilyKey(product: Product) {
+  const p = product as any;
+  let title = normalize(p.title);
+
+  title = title
+    .replace(/\b(midnight|mitternacht|sky blue|sky-blue|silber|silver|schwarz|black|grau|gray|grey|blau|blue|weiss|white|gold|rose|rot|red|grun|green|starlight|space schwarz|space black)\b/g, "")
     .replace(/\b(64gb|128gb|256gb|512gb|1tb|2tb|4tb|8gb|16gb|24gb|32gb|64gb|128gb)\b/g, "")
+    .replace(/\b(8 gb|16 gb|24 gb|32 gb|64 gb|128 gb)\b/g, "")
     .replace(/\b(wifi|wi-fi|5g|cellular|lte)\b/g, "")
+    .replace(/[,/()-]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+
+  return `${normalize(p.brand)}-${title}`;
 }
 
 function getVariantLabel(product: Product) {
   const p = product as any;
-  const title = String(p.title || "");
-
-  const parts = [];
+  const text = `${p.title || ""} ${p.description || ""} ${p.description2 || ""}`;
 
   const color =
-    title.match(
-      /(Midnight|Sky Blue|Silber|Silver|Schwarz|Black|Grau|Gray|Blue|Blau|Gold|Starlight|Space Schwarz|Space Black)/i
-    )?.[0] || null;
+    text.match(/(Midnight|Mitternacht|Sky Blue|Silber|Silver|Schwarz|Black|Grau|Gray|Grey|Blue|Blau|Gold|Starlight|Space Schwarz|Space Black)/i)?.[0] || null;
 
-  const storage = title.match(/(128GB|256GB|512GB|1TB|2TB|4TB)/i)?.[0] || null;
-  const ram = String(p.description || "").match(/(8 GB|16 GB|24 GB|32 GB|64 GB|128 GB)/i)?.[0] || null;
+  const storage =
+    text.match(/(128GB|256GB|512GB|1TB|2TB|4TB)/i)?.[0] || null;
 
-  if (color) parts.push(color);
-  if (storage) parts.push(storage);
-  if (ram) parts.push(ram);
+  const ram =
+    text.match(/(8 GB|16 GB|24 GB|32 GB|64 GB|128 GB|8GB|16GB|24GB|32GB|64GB|128GB)/i)?.[0] || null;
 
-  return parts.length ? parts.join(" · ") : title;
+  const parts = [color, storage, ram]
+    .filter(Boolean)
+    .map((v) => String(v).replace(/(\d+)(GB)/i, "$1 GB"));
+
+  return parts.length ? parts.join(" · ") : p.title;
 }
 
 function getVariantProducts(product: Product) {
   const currentKey = getFamilyKey(product);
+  const currentSlug = getProductSlug(product);
   const allProducts = getAllProducts();
 
-  return allProducts
+  const variants = allProducts
     .filter((item) => {
       const slug = getProductSlug(item);
       if (!slug) return false;
-      if (slug === getProductSlug(product)) return true;
+
+      const price = Number((item as any).price || 0);
+      if (price <= 0) return false;
 
       return getFamilyKey(item) === currentKey;
     })
-    .filter((item) => Number((item as any).price || 0) > 0)
-    .slice(0, 12);
+    .sort((a, b) => {
+      const activeA = getProductSlug(a) === currentSlug ? -1 : 0;
+      const activeB = getProductSlug(b) === currentSlug ? -1 : 0;
+      if (activeA !== activeB) return activeA - activeB;
+
+      return Number((a as any).price || 0) - Number((b as any).price || 0);
+    });
+
+  const seen = new Set<string>();
+
+  return variants.filter((item) => {
+    const slug = getProductSlug(item);
+    if (seen.has(slug)) return false;
+    seen.add(slug);
+    return true;
+  });
 }
 
 export default function ProductPage({ params }: Props) {
@@ -96,19 +141,19 @@ export default function ProductPage({ params }: Props) {
   const inStock = stockQty > 0 || product.inStock;
   const price = Number((product as any).price || 0);
 
-  let stockLabel = "";
-  let stockColor = "";
+  const stockLabel =
+    stockQty > 0 && stockQty <= 3
+      ? `Nur noch ${stockQty} Stück`
+      : inStock
+        ? "Sofort lieferbar"
+        : "Nicht verfügbar";
 
-  if (stockQty > 0 && stockQty <= 3) {
-    stockLabel = `Nur noch ${stockQty} Stück`;
-    stockColor = "text-orange-600";
-  } else if (inStock) {
-    stockLabel = "Sofort lieferbar";
-    stockColor = "text-green-600";
-  } else {
-    stockLabel = "Nicht verfügbar";
-    stockColor = "text-neutral-400";
-  }
+  const stockColor =
+    stockQty > 0 && stockQty <= 3
+      ? "text-orange-600"
+      : inStock
+        ? "text-green-600"
+        : "text-neutral-400";
 
   return (
     <main className="bg-white">
@@ -119,7 +164,7 @@ export default function ProductPage({ params }: Props) {
               <img
                 src={product.image}
                 alt={product.title}
-                className="max-h-[400px] object-contain"
+                className="max-h-[480px] max-w-full object-contain"
               />
             ) : (
               <div className="text-neutral-400">Kein Bild</div>
@@ -197,7 +242,7 @@ export default function ProductPage({ params }: Props) {
 
             <div className="mt-6 space-y-2 text-sm text-neutral-600">
               <div>⚡ Lieferung 1–2 Werktage</div>
-              <div>🛡️ Sicherer Checkout (Shopify)</div>
+              <div>🛡️ Sicherer Checkout Shopify</div>
               <div>🇨🇭 Versand aus der Schweiz</div>
             </div>
 
@@ -215,9 +260,7 @@ export default function ProductPage({ params }: Props) {
 
       {related.length > 0 && (
         <section className="mx-auto max-w-7xl px-4 pb-16">
-          <h2 className="mb-6 text-2xl font-extrabold">
-            Ähnliche Produkte
-          </h2>
+          <h2 className="mb-6 text-2xl font-extrabold">Ähnliche Produkte</h2>
 
           <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
             {related.map((item) => (
