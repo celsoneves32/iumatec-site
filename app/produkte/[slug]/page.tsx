@@ -40,22 +40,6 @@ function normalize(value: unknown) {
     .trim();
 }
 
-function getText(product: Product) {
-  const p = product as any;
-
-  return normalize(
-    [
-      p.title,
-      p.brand,
-      p.sku,
-      p.category,
-      p.subcategory,
-      p.description,
-      p.description2,
-    ].join(" ")
-  );
-}
-
 function getFamilyKey(product: Product) {
   const p = product as any;
   let title = normalize(p.title);
@@ -79,8 +63,7 @@ function getVariantLabel(product: Product) {
   const color =
     text.match(/(Midnight|Mitternacht|Sky Blue|Silber|Silver|Schwarz|Black|Grau|Gray|Grey|Blue|Blau|Gold|Starlight|Space Schwarz|Space Black)/i)?.[0] || null;
 
-  const storage =
-    text.match(/(128GB|256GB|512GB|1TB|2TB|4TB)/i)?.[0] || null;
+  const storage = text.match(/(128GB|256GB|512GB|1TB|2TB|4TB)/i)?.[0] || null;
 
   const ram =
     text.match(/(8 GB|16 GB|24 GB|32 GB|64 GB|128 GB|8GB|16GB|24GB|32GB|64GB|128GB)/i)?.[0] || null;
@@ -224,11 +207,11 @@ export default function ProductPage({ params }: Props) {
 
             <div className="mt-6 flex gap-3">
               <ProductBuyButton
-  merchandiseId={getMerchandiseId(product)}
-  productHandle={(product as any).shopifyProductHandle ?? product.slug}
-  imageUrl={product.image ?? null}
-  disabled={!inStock}
-/>
+                merchandiseId={getMerchandiseId(product)}
+                productHandle={(product as any).shopifyProductHandle ?? product.slug}
+                imageUrl={product.image ?? null}
+                disabled={!inStock}
+              />
 
               <button className="rounded-2xl border px-6 py-4 font-bold hover:bg-neutral-100">
                 ♥
@@ -239,6 +222,55 @@ export default function ProductPage({ params }: Props) {
               <div>⚡ Lieferung 1–2 Werktage</div>
               <div>🛡️ Sicherer Checkout Shopify</div>
               <div>🇨🇭 Versand aus der Schweiz</div>
+            </div>
+
+            <div className="mt-8 border-t pt-6">
+              <h2 className="mb-4 text-lg font-bold">Technische Daten</h2>
+
+              <div className="overflow-hidden rounded-2xl border border-neutral-200">
+                <table className="w-full text-sm">
+                  <tbody>
+                    <tr className="border-b">
+                      <td className="bg-neutral-50 px-4 py-3 font-semibold">
+                        Hersteller
+                      </td>
+                      <td className="px-4 py-3">{product.brand || "-"}</td>
+                    </tr>
+
+                    <tr className="border-b">
+                      <td className="bg-neutral-50 px-4 py-3 font-semibold">
+                        Artikelnummer
+                      </td>
+                      <td className="px-4 py-3">
+                        {(product as any).internalNumber || product.sku || "-"}
+                      </td>
+                    </tr>
+
+                    <tr className="border-b">
+                      <td className="bg-neutral-50 px-4 py-3 font-semibold">
+                        EAN
+                      </td>
+                      <td className="px-4 py-3">{(product as any).ean || "-"}</td>
+                    </tr>
+
+                    <tr className="border-b">
+                      <td className="bg-neutral-50 px-4 py-3 font-semibold">
+                        Lagerbestand
+                      </td>
+                      <td className="px-4 py-3">{stockQty > 0 ? stockQty : "-"}</td>
+                    </tr>
+
+                    <tr>
+                      <td className="bg-neutral-50 px-4 py-3 font-semibold">
+                        Lieferung
+                      </td>
+                      <td className="px-4 py-3">
+                        {(product as any).deliveryDate || "1–3 Werktage"}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             {(product.description || product.description2) && (
