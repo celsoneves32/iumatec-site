@@ -1,3 +1,4 @@
+import ProductBuyButton from "@/components/ProductBuyButton";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import ProductCard from "@/components/ProductCard";
@@ -222,18 +223,12 @@ export default function ProductPage({ params }: Props) {
             )}
 
             <div className="mt-6 flex gap-3">
-              {getMerchandiseId(product) && inStock ? (
-                <button className="flex-1 rounded-2xl bg-red-600 py-4 text-lg font-extrabold text-white hover:bg-red-700">
-                  In den Warenkorb
-                </button>
-              ) : (
-                <button
-                  disabled
-                  className="flex-1 rounded-2xl bg-neutral-200 py-4 text-lg font-bold text-neutral-500"
-                >
-                  Nicht verfügbar
-                </button>
-              )}
+              <ProductBuyButton
+  merchandiseId={getMerchandiseId(product)}
+  productHandle={(product as any).shopifyProductHandle ?? product.slug}
+  imageUrl={product.image ?? null}
+  disabled={!inStock}
+/>
 
               <button className="rounded-2xl border px-6 py-4 font-bold hover:bg-neutral-100">
                 ♥
