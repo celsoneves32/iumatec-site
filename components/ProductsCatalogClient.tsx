@@ -32,12 +32,18 @@ type SortOption =
   | "title-asc"
   | "brand-asc";
 
+const PRODUCTS_PER_PAGE = 24;
+
 const quickCategories = [
   { label: "Laptops", category: "Computer", subcategory: "Laptops" },
   { label: "Monitore", category: "Peripherie", subcategory: "Monitors" },
   { label: "Smartphones", category: "Mobile", subcategory: "Smartphones" },
   { label: "Tablets", category: "Mobile", subcategory: "Tablets" },
-  { label: "Grafikkarten", category: "PC-Komponenten", subcategory: "Grafikkarten" },
+  {
+    label: "Grafikkarten",
+    category: "PC-Komponenten",
+    subcategory: "Grafikkarten",
+  },
   { label: "Zubehör", category: "Mobile", subcategory: "Zubehör" },
 ];
 
@@ -78,9 +84,9 @@ function isAvailable(product: CatalogProduct) {
   return Boolean(product.inStock || (product.stockQty ?? 0) > 0);
 }
 
-function countItems<T extends string>(
+function countItems(
   products: CatalogProduct[],
-  getter: (product: CatalogProduct) => T | undefined | null
+  getter: (product: CatalogProduct) => string | undefined | null
 ) {
   const map = new Map<string, number>();
 
@@ -165,6 +171,7 @@ export default function ProductsCatalogClient({ products }: Props) {
   const [priceMax, setPriceMax] = useState<number>(absoluteMaxPrice);
   const [onlyInStock, setOnlyInStock] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>("featured");
+  const [visibleProducts, setVisibleProducts] = useState(PRODUCTS_PER_PAGE);
 
   const baseForCategory = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -210,7 +217,10 @@ export default function ProductsCatalogClient({ products }: Props) {
   }, [baseForSubcategory, subcategory]);
 
   const brandCounts = useMemo(() => {
-    return sortBrandCounts(countItems(baseForBrands, (p) => p.brand)).slice(0, 40);
+    return sortBrandCounts(countItems(baseForBrands, (p) => p.brand)).slice(
+      0,
+      40
+    );
   }, [baseForBrands]);
 
   const availableCount = useMemo(
@@ -231,10 +241,19 @@ export default function ProductsCatalogClient({ products }: Props) {
       ...bucket,
       count: baseForBrands.filter((product) => {
         const price = getSafePrice(product.price);
+
+        if (bucket.max === Infinity) {
+          return price > bucket.min;
+        }
+
         return price > bucket.min && price <= bucket.max;
       }).length,
     }));
   }, [baseForBrands]);
+
+  function resetVisibleProducts() {
+    setVisibleProducts(PRODUCTS_PER_PAGE);
+  }
 
   function toggleBrand(brand: string) {
     setSelectedBrands((prev) =>
@@ -242,6 +261,8 @@ export default function ProductsCatalogClient({ products }: Props) {
         ? prev.filter((b) => b !== brand)
         : [...prev, brand]
     );
+
+    resetVisibleProducts();
   }
 
   function resetFilters() {
@@ -253,6 +274,7 @@ export default function ProductsCatalogClient({ products }: Props) {
     setPriceMax(absoluteMaxPrice);
     setOnlyInStock(false);
     setSortBy("featured");
+    setVisibleProducts(PRODUCTS_PER_PAGE);
   }
 
   function applyQuickCategory(item: {
@@ -262,11 +284,13 @@ export default function ProductsCatalogClient({ products }: Props) {
     setCategory(item.category);
     setSubcategory(item.subcategory);
     setSelectedBrands([]);
+    resetVisibleProducts();
   }
 
   function applyPriceBucket(min: number, max: number) {
     setPriceMin(min);
     setPriceMax(max === Infinity ? absoluteMaxPrice : max);
+    resetVisibleProducts();
   }
 
   const filteredProducts = useMemo(() => {
@@ -321,12 +345,16 @@ export default function ProductsCatalogClient({ products }: Props) {
       switch (sortBy) {
         case "price-desc":
           return getSafePrice(b.price) - getSafePrice(a.price);
+
         case "price-asc":
           return getSafePrice(a.price) - getSafePrice(b.price);
+
         case "title-asc":
           return a.title.localeCompare(b.title);
+
         case "brand-asc":
           return (a.brand || "").localeCompare(b.brand || "");
+
         case "featured":
         default: {
           const aStock = isAvailable(a) ? 1 : 0;
@@ -357,6 +385,8 @@ export default function ProductsCatalogClient({ products }: Props) {
     sortBy,
   ]);
 
+  const shownProducts = filteredProducts.slice(0, visibleProducts);
+
   const hasActiveFilters =
     query ||
     category !== "Alle" ||
@@ -374,17 +404,24 @@ export default function ProductsCatalogClient({ products }: Props) {
           <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
             <div>
               <div className="inline-flex rounded-full bg-red-50 px-4 py-2 text-sm font-extrabold text-red-700">
-                {products.length.toLocaleString("de-CH")} Produkte verfügbar
+                {products.length.toLocaleString("de-CH")} Produkte im Katalog
               </div>
 
               <h1 className="mt-4 text-4xl font-black tracking-tight text-neutral-950 md:text-5xl">
                 Produkte
               </h1>
 
-              <p className="mt-2 max-w-2xl text-base text-neutral-600">
-                Technikprodukte mit transparentem Preis, Lagerbestand und
-                sicherem Checkout.
-              </p>
+              <div className="mt-2 flex flex-wrap gap-4 text-sm text-neutral-600">
+                <span>
+                  {filteredProducts.length.toLocaleString("de-CH")} Produkte
+                  gefunden
+                </span>
+
+                <span>
+                  {shownProducts.length.toLocaleString("de-CH")} aktuell
+                  angezeigt
+                </span>
+              </div>
             </div>
 
             <div className="flex w-full max-w-3xl flex-col gap-3 md:flex-row">
@@ -392,13 +429,19 @@ export default function ProductsCatalogClient({ products }: Props) {
                 type="text"
                 placeholder="Suche nach Produkt, Marke oder SKU"
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  resetVisibleProducts();
+                }}
                 className="w-full rounded-2xl border border-neutral-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-neutral-900"
               />
 
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as SortOption)}
+                onChange={(e) => {
+                  setSortBy(e.target.value as SortOption);
+                  resetVisibleProducts();
+                }}
                 className="rounded-2xl border border-neutral-300 bg-white px-4 py-3 text-sm font-semibold outline-none transition focus:border-neutral-900"
               >
                 <option value="featured">Empfohlen</option>
@@ -487,6 +530,13 @@ export default function ProductsCatalogClient({ products }: Props) {
                   </span>
                 ) : null}
 
+                {priceMin !== absoluteMinPrice ||
+                priceMax !== absoluteMaxPrice ? (
+                  <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-red-700">
+                    CHF {priceMin} – {priceMax}
+                  </span>
+                ) : null}
+
                 {selectedBrands.map((brand) => (
                   <span
                     key={brand}
@@ -506,7 +556,10 @@ export default function ProductsCatalogClient({ products }: Props) {
                   <input
                     type="checkbox"
                     checked={onlyInStock}
-                    onChange={(e) => setOnlyInStock(e.target.checked)}
+                    onChange={(e) => {
+                      setOnlyInStock(e.target.checked);
+                      resetVisibleProducts();
+                    }}
                     className="h-4 w-4 rounded border-neutral-300"
                   />
                   <span className="text-sm font-bold text-neutral-900">
@@ -530,6 +583,7 @@ export default function ProductsCatalogClient({ products }: Props) {
                       setCategory(item.label);
                       setSubcategory("Alle");
                       setSelectedBrands([]);
+                      resetVisibleProducts();
                     }}
                     className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm transition ${
                       category === item.label
@@ -555,6 +609,7 @@ export default function ProductsCatalogClient({ products }: Props) {
                     onClick={() => {
                       setSubcategory(item.label);
                       setSelectedBrands([]);
+                      resetVisibleProducts();
                     }}
                     className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm transition ${
                       subcategory === item.label
@@ -578,14 +633,15 @@ export default function ProductsCatalogClient({ products }: Props) {
                   value={priceMin}
                   min={absoluteMinPrice}
                   max={priceMax}
-                  onChange={(e) =>
+                  onChange={(e) => {
                     setPriceMin(
                       Math.max(
                         absoluteMinPrice,
                         Math.min(Number(e.target.value || 0), priceMax)
                       )
-                    )
-                  }
+                    );
+                    resetVisibleProducts();
+                  }}
                   className="w-full rounded-2xl border border-neutral-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-neutral-900"
                 />
 
@@ -594,14 +650,15 @@ export default function ProductsCatalogClient({ products }: Props) {
                   value={priceMax}
                   min={priceMin}
                   max={absoluteMaxPrice}
-                  onChange={(e) =>
+                  onChange={(e) => {
                     setPriceMax(
                       Math.min(
                         absoluteMaxPrice,
                         Math.max(Number(e.target.value || 0), priceMin)
                       )
-                    )
-                  }
+                    );
+                    resetVisibleProducts();
+                  }}
                   className="w-full rounded-2xl border border-neutral-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-neutral-900"
                 />
               </div>
@@ -640,6 +697,7 @@ export default function ProductsCatalogClient({ products }: Props) {
                           onChange={() => toggleBrand(item.label)}
                           className="h-4 w-4 rounded border-neutral-300"
                         />
+
                         <span className="truncate text-sm font-semibold text-neutral-800">
                           {item.label}
                         </span>
@@ -660,10 +718,14 @@ export default function ProductsCatalogClient({ products }: Props) {
           <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 className="text-2xl font-black text-neutral-950">
-                {filteredProducts.length.toLocaleString("de-CH")} Produkte gefunden
+                {filteredProducts.length.toLocaleString("de-CH")} Produkte
+                gefunden
               </h2>
+
               <p className="mt-1 text-sm text-neutral-500">
-                Produkte mit Bild, Preis, Lagerbestand und Shopify-Variante.
+                {shownProducts.length.toLocaleString("de-CH")} von{" "}
+                {filteredProducts.length.toLocaleString("de-CH")} Produkten
+                angezeigt.
               </p>
             </div>
 
@@ -697,28 +759,49 @@ export default function ProductsCatalogClient({ products }: Props) {
               </button>
             </div>
           ) : (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
-              {filteredProducts.map((product) => (
-                <ProductCard
-                  key={`${product.sku}-${product.slug}`}
-                  product={{
-                    slug: product.slug,
-                    title: product.title,
-                    brand: product.brand,
-                    price: getSafePrice(product.price),
-                    image: product.image ?? null,
-                    inStock: product.inStock,
-                    stockQty: product.stockQty,
-                    merchandiseId: product.merchandiseId,
-                    productHandle:
-                      product.shopifyProductHandle ??
-                      product.productHandle ??
-                      product.slug,
-                    energyLabel: product.energyLabel,
-                  }}
-                />
-              ))}
-            </div>
+            <>
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+                {shownProducts.map((product) => (
+                  <ProductCard
+                    key={`${product.sku}-${product.slug}`}
+                    product={{
+                      slug: product.slug,
+                      title: product.title,
+                      brand: product.brand,
+                      price: getSafePrice(product.price),
+                      image: product.image ?? null,
+                      inStock: product.inStock,
+                      stockQty: product.stockQty,
+                      merchandiseId: product.merchandiseId,
+                      productHandle:
+                        product.shopifyProductHandle ??
+                        product.productHandle ??
+                        product.slug,
+                      energyLabel: product.energyLabel,
+                    }}
+                  />
+                ))}
+              </div>
+
+              {filteredProducts.length > visibleProducts ? (
+                <div className="mt-10 flex flex-col items-center justify-center gap-3">
+                  <p className="text-sm font-semibold text-neutral-500">
+                    {shownProducts.length.toLocaleString("de-CH")} von{" "}
+                    {filteredProducts.length.toLocaleString("de-CH")} geladen
+                  </p>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setVisibleProducts((current) => current + PRODUCTS_PER_PAGE)
+                    }
+                    className="rounded-2xl bg-red-600 px-8 py-4 text-sm font-extrabold text-white shadow-sm transition hover:bg-red-700"
+                  >
+                    Mehr Produkte laden
+                  </button>
+                </div>
+              ) : null}
+            </>
           )}
         </section>
       </section>
