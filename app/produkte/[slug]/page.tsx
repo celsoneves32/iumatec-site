@@ -224,6 +224,52 @@ export default function ProductPage({ params }: Props) {
               <div>🇨🇭 Versand aus der Schweiz</div>
             </div>
 
+            <div className="mt-6 rounded-3xl border border-neutral-200 bg-neutral-50 p-5">
+              <h3 className="mb-4 text-base font-extrabold text-neutral-950">
+                Warum bei IUMATEC kaufen?
+              </h3>
+
+              <div className="grid gap-3 text-sm text-neutral-700">
+                <div className="flex items-center gap-3">
+                  <span>🇨🇭</span>
+                  <span>Versand aus der Schweiz</span>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <span>🔒</span>
+                  <span>Sicherer Shopify Checkout</span>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <span>⚡</span>
+                  <span>Schnelle Lieferung bei Lagerbestand</span>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <span>✅</span>
+                  <span>Originalprodukte von offiziellen Distributoren</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 flex flex-wrap gap-2">
+              <span className="rounded-full bg-green-50 px-4 py-2 text-xs font-extrabold text-green-700">
+                ✓ Sichere Zahlung
+              </span>
+
+              <span className="rounded-full bg-blue-50 px-4 py-2 text-xs font-extrabold text-blue-700">
+                ✓ Originalware
+              </span>
+
+              <span className="rounded-full bg-orange-50 px-4 py-2 text-xs font-extrabold text-orange-700">
+                ✓ CH Versand
+              </span>
+
+              <span className="rounded-full bg-neutral-100 px-4 py-2 text-xs font-extrabold text-neutral-700">
+                ✓ MWST inklusive
+              </span>
+            </div>
+
             <div className="mt-8 border-t pt-6">
               <h2 className="mb-4 text-lg font-bold">Technische Daten</h2>
 
