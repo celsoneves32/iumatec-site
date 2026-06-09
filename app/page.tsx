@@ -164,14 +164,9 @@ function isSmartphoneOrTablet(product: Product) {
 
 function isRealMonitor(product: Product) {
   const p = product as any;
-
   const category = String(p.category || "").toLowerCase().trim();
   const subcategory = String(p.subcategory || "").toLowerCase().trim();
   const text = productText(product);
-
-  const correctCategory =
-    category === "peripherie" &&
-    (subcategory === "monitors" || subcategory === "monitor");
 
   const blocked =
     text.includes("tablet") ||
@@ -185,7 +180,11 @@ function isRealMonitor(product: Product) {
     text.includes("elitebook") ||
     text.includes("probook");
 
-  return correctCategory && !blocked;
+  return (
+    category === "peripherie" &&
+    (subcategory === "monitors" || subcategory === "monitor") &&
+    !blocked
+  );
 }
 
 function isAccessory(product: Product) {
@@ -234,10 +233,9 @@ function ProductCarousel({
   uniqueFamilies?: boolean;
 }) {
   const buyable = products.filter(isBuyable);
-  const items = (uniqueFamilies ? uniqueProductFamilies(buyable) : uniqueBySlug(buyable)).slice(
-    0,
-    16
-  );
+  const items = (
+    uniqueFamilies ? uniqueProductFamilies(buyable) : uniqueBySlug(buyable)
+  ).slice(0, 16);
 
   if (!items.length) return null;
 
@@ -311,7 +309,7 @@ function HeroProduct({
       href={`/produkte/${slug}`}
       className={`group relative overflow-hidden rounded-[2rem] border border-white/70 bg-white p-5 shadow-xl transition hover:-translate-y-1 hover:shadow-2xl ${className}`}
     >
-      <div className="absolute left-5 top-5 z-10 rounded-full bg-green-50 px-3 py-1 text-xs font-black text-green-700">
+      <div className="absolute left-5 top-5 z-10 rounded-full bg-green-50 px-3 py-1 text-xs font-black text-green-700 ring-1 ring-green-100">
         CH Lager
       </div>
 
@@ -346,12 +344,11 @@ function HeroProduct({
 
 export default function HomePage() {
   const winners = readWinningProducts();
+  const rawProducts = winners.length > 0 ? winners : getTopProducts(1000);
 
-  const products = uniqueProductFamilies(
-    (winners.length > 0 ? winners : getTopProducts(800)).filter(isBuyable)
-  );
+  const allBuyable = rawProducts.filter(isBuyable);
 
-  const allBuyable = (winners.length > 0 ? winners : getTopProducts(1000)).filter(isBuyable);
+  const products = uniqueProductFamilies(allBuyable);
 
   const laptops = products
     .filter((p) => isLaptop(p) && getPrice(p) >= 300)
@@ -379,15 +376,13 @@ export default function HomePage() {
     .filter((p) => getStockQty(p) >= 2 && getPrice(p) >= 300 && !isAccessory(p))
     .slice(0, 16);
 
-  const heroProducts = [
-    laptops[0],
-    monitors[0],
-    smartphonesAndTablets[0],
-  ].filter(Boolean) as Product[];
+  const heroProducts = [laptops[0], monitors[0], smartphonesAndTablets[0]].filter(
+    Boolean
+  ) as Product[];
 
   return (
     <main className="bg-white">
-      <section className="relative overflow-hidden border-b border-neutral-200 bg-gradient-to-br from-neutral-50 via-white to-red-50/40">
+      <section className="relative overflow-hidden border-b border-neutral-200 bg-gradient-to-br from-neutral-50 via-white to-red-50/50">
         <div className="absolute -right-32 -top-32 h-96 w-96 rounded-full bg-red-100 blur-3xl" />
         <div className="absolute -bottom-40 left-0 h-96 w-96 rounded-full bg-neutral-200/70 blur-3xl" />
 
