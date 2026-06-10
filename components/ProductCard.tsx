@@ -3,14 +3,18 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useCart } from "@/context/CartContext";
+import { useCompare } from "@/context/CompareContext";
 
 type Props = {
   product: {
+    sku?: string;
     slug: string;
     title: string;
     brand?: string;
     price: number;
     image?: string | null;
+    category?: string;
+    subcategory?: string;
     inStock?: boolean;
     stockQty?: number;
     merchandiseId?: string | null;
@@ -44,7 +48,11 @@ function isTopDeal(product: Props["product"]) {
 
 export default function ProductCard({ product }: Props) {
   const { addItem, loading } = useCart();
+  const { toggleCompare, isInCompare } = useCompare();
   const [imageFailed, setImageFailed] = useState(false);
+
+  const compareSku = product.sku || product.slug;
+  const compared = isInCompare(compareSku);
 
   const stockQty = product.stockQty ?? 0;
   const inStock = stockQty > 0 || Boolean(product.inStock);
@@ -85,6 +93,31 @@ export default function ProductCard({ product }: Props) {
           </span>
         ) : null}
       </div>
+
+      <button
+        type="button"
+        onClick={() =>
+          toggleCompare({
+            sku: compareSku,
+            slug: product.slug,
+            title: product.title,
+            price: product.price,
+            brand: product.brand,
+            image: product.image ?? null,
+            category: product.category,
+            subcategory: product.subcategory,
+            stockQty: product.stockQty,
+            inStock: product.inStock,
+          })
+        }
+        className={`absolute right-4 top-4 z-20 rounded-full px-3 py-1 text-xs font-black shadow-sm transition ${
+          compared
+            ? "bg-neutral-950 text-white"
+            : "bg-white text-neutral-700 ring-1 ring-neutral-200 hover:bg-neutral-100"
+        }`}
+      >
+        {compared ? "✓ Vergleich" : "+ Vergleich"}
+      </button>
 
       <Link href={`/produkte/${product.slug}`} className="block">
         <div className="flex h-72 items-center justify-center overflow-hidden bg-neutral-50 px-7 pb-7 pt-14">
