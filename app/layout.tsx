@@ -6,6 +6,7 @@ import { CompareProvider } from "@/context/CompareContext";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import CartDrawer from "@/components/CartDrawer";
+import CompareBar from "@/components/CompareBar";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://iumatec.ch"),
@@ -32,6 +33,7 @@ export default function RootLayout({
               {children}
               <SiteFooter />
               <CartDrawer />
+              <CompareBar />
             </CartProvider>
           </WishlistProvider>
         </CompareProvider>
