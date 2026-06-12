@@ -13,17 +13,39 @@ if (!domain) throw new Error("Missing SHOPIFY_STORE_DOMAIN");
 if (!token) throw new Error("Missing SHOPIFY_ADMIN_ACCESS_TOKEN");
 if (!locationId) throw new Error("Missing SHOPIFY_LOCATION_ID");
 
-const catalogPath = path.join(
-  process.cwd(),
-  "integrations",
-  "alltron",
-  "out",
-  "iumatec-catalog-filtered.json"
+const catalogPaths = [
+  path.join(
+    process.cwd(),
+    "integrations",
+    "alltron",
+    "out",
+    "iumatec-catalog-sellable.json"
+  ),
+  path.join(
+    process.cwd(),
+    "integrations",
+    "alltron",
+    "out",
+    "iumatec-catalog-filtered.json"
+  ),
+  path.join(
+    process.cwd(),
+    "integrations",
+    "alltron",
+    "out",
+    "iumatec-catalog-enriched.json"
+  ),
+];
+
+const existingCatalogPaths = catalogPaths.filter((filePath) =>
+  fs.existsSync(filePath)
 );
 
-if (!fs.existsSync(catalogPath)) {
-  throw new Error(`Catalog file not found: ${catalogPath}`);
+if (existingCatalogPaths.length === 0) {
+  throw new Error("No catalog files found.");
 }
+
+const primaryCatalogPath = existingCatalogPaths[0];
 
 const BATCH_PAUSE_MS = 600;
 const RETRY_PAUSE_MS = 1500;
@@ -46,14 +68,17 @@ function applyPricing(basePrice) {
 
 async function shopifyFetch(query, variables = {}, retries = MAX_RETRIES) {
   try {
-    const res = await fetch(`https://${domain}/admin/api/${apiVersion}/graphql.json`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Shopify-Access-Token": token,
-      },
-      body: JSON.stringify({ query, variables }),
-    });
+    const res = await fetch(
+      `https://${domain}/admin/api/${apiVersion}/graphql.json`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Shopify-Access-Token": token,
+        },
+        body: JSON.stringify({ query, variables }),
+      }
+    );
 
     const text = await res.text();
 
@@ -62,7 +87,10 @@ async function shopifyFetch(query, variables = {}, retries = MAX_RETRIES) {
       json = JSON.parse(text);
     } catch {
       throw new Error(
-        `Shopify returned non-JSON response (${res.status}): ${text.slice(0, 300)}`
+        `Shopify returned non-JSON response (${res.status}): ${text.slice(
+          0,
+          300
+        )}`
       );
     }
 
@@ -79,7 +107,12 @@ async function shopifyFetch(query, variables = {}, retries = MAX_RETRIES) {
     const message = error instanceof Error ? error.message : String(error);
 
     if (retries > 0) {
-      console.log(`- RETRY Shopify request (${MAX_RETRIES - retries + 1}/${MAX_RETRIES}): ${message.slice(0, 180)}`);
+      console.log(
+        `- RETRY Shopify request (${MAX_RETRIES - retries + 1}/${MAX_RETRIES}): ${message.slice(
+          0,
+          180
+        )}`
+      );
       await sleep(RETRY_PAUSE_MS);
       return shopifyFetch(query, variables, retries - 1);
     }
@@ -122,6 +155,7 @@ async function findVariantBySku(sku) {
   });
 
   const edges = data?.productVariants?.edges || [];
+
   const exact = edges.find(
     (edge) => String(edge?.node?.sku || "").trim() === cleanSku
   );
@@ -158,6 +192,7 @@ async function updateVariantPrice(productId, variantId, price) {
   });
 
   const userErrors = data?.productVariantsBulkUpdate?.userErrors || [];
+
   if (userErrors.length) {
     throw new Error(JSON.stringify(userErrors, null, 2));
   }
@@ -241,6 +276,7 @@ async function setInventoryAbsolute(inventoryItemId, locationId, qty) {
   });
 
   const userErrors = data?.inventorySetQuantities?.userErrors || [];
+
   if (userErrors.length) {
     throw new Error(JSON.stringify(userErrors, null, 2));
   }
@@ -261,8 +297,84 @@ function getStockQty(product) {
   return 0;
 }
 
+function getBasePrice(product) {
+  const candidates = [
+    product.basePrice,
+    product.purchasePrice,
+    product.buyPrice,
+    product.costPrice,
+    product.netPrice,
+    product.price,
+  ];
+
+  for (const value of candidates) {
+    const n = Number(value);
+    if (Number.isFinite(n) && n > 0) return n;
+  }
+
+  return 0;
+}
+
+function syncAllCatalogFiles(products) {
+  const syncedBySku = new Map(
+    products
+      .map((product) => [String(product.sku || "").trim(), product])
+      .filter(([sku]) => Boolean(sku))
+  );
+
+  for (const filePath of existingCatalogPaths) {
+    try {
+      const fileRaw = fs.readFileSync(filePath, "utf-8");
+      const fileProducts = JSON.parse(fileRaw);
+
+      if (!Array.isArray(fileProducts)) {
+        console.log(`- SKIPPED catalog sync: ${filePath} is not an array`);
+        continue;
+      }
+
+      let changed = 0;
+
+      const updatedFileProducts = fileProducts.map((item) => {
+        const sku = String(item.sku || "").trim();
+        const synced = syncedBySku.get(sku);
+
+        if (!synced) return item;
+
+        changed++;
+
+        return {
+          ...item,
+          basePrice: synced.basePrice,
+          price: synced.price,
+          marginRate: synced.marginRate,
+          priceRule: synced.priceRule,
+          stockQty: synced.stockQty,
+          stock: synced.stock,
+          shopifyProductId: synced.shopifyProductId,
+          shopifyProductHandle: synced.shopifyProductHandle,
+          shopifyVariantId: synced.shopifyVariantId,
+          merchandiseId: synced.merchandiseId,
+          shopifySyncStatus: synced.shopifySyncStatus,
+          shopifySyncError: synced.shopifySyncError,
+        };
+      });
+
+      fs.writeFileSync(
+        filePath,
+        JSON.stringify(updatedFileProducts, null, 2),
+        "utf-8"
+      );
+
+      console.log(`- Catalog synced: ${path.basename(filePath)} (${changed})`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.log(`- ERROR syncing catalog ${filePath}: ${message}`);
+    }
+  }
+}
+
 async function run() {
-  const raw = fs.readFileSync(catalogPath, "utf-8");
+  const raw = fs.readFileSync(primaryCatalogPath, "utf-8");
   const products = JSON.parse(raw);
 
   if (!Array.isArray(products)) {
@@ -271,9 +383,14 @@ async function run() {
 
   console.log(`Shopify domain: ${domain}`);
   console.log(`Location ID: ${locationId}`);
+  console.log(`Primary catalog: ${primaryCatalogPath}`);
+  console.log("All catalogs:");
+  existingCatalogPaths.forEach((filePath) => console.log(`- ${filePath}`));
   console.log(`Products to process: ${products.length}`);
-  console.log("Pricing: Alltron price +20%, rounded to .90 CHF");
-  console.log(`Retry: ${MAX_RETRIES}x | Pause every 25 products: ${BATCH_PAUSE_MS}ms`);
+  console.log("Pricing: Alltron/base price +20%, rounded to .90 CHF");
+  console.log(
+    `Retry: ${MAX_RETRIES}x | Pause every 25 products: ${BATCH_PAUSE_MS}ms`
+  );
 
   let updated = 0;
   let notFound = 0;
@@ -284,7 +401,7 @@ async function run() {
     const product = products[i];
 
     const sku = String(product.sku || "").trim();
-    const basePrice = Number(product.basePrice ?? product.price ?? 0);
+    const basePrice = getBasePrice(product);
     const price = applyPricing(basePrice);
     const stockQty = getStockQty(product);
 
@@ -294,6 +411,13 @@ async function run() {
     if (!sku) {
       console.log("- SKIPPED: missing SKU");
       product.shopifySyncStatus = "skipped-missing-sku";
+      skipped++;
+      continue;
+    }
+
+    if (!price || price <= 0) {
+      console.log("- SKIPPED: invalid price");
+      product.shopifySyncStatus = "skipped-invalid-price";
       skipped++;
       continue;
     }
@@ -320,11 +444,16 @@ async function run() {
 
       product.basePrice = basePrice;
       product.price = price;
+      product.stockQty = stockQty;
+      product.stock = stockQty;
       product.marginRate = 0.2;
       product.priceRule = "base_price_plus_20_percent_rounded_to_90";
       product.shopifyProductId = variant.product.id;
       product.shopifyProductHandle = variant.product.handle;
-      product.shopifyVariantId = String(variant.id).replace("gid://shopify/ProductVariant/", "");
+      product.shopifyVariantId = String(variant.id).replace(
+        "gid://shopify/ProductVariant/",
+        ""
+      );
       product.merchandiseId = variant.id;
       product.shopifySyncStatus = "synced";
       product.shopifySyncError = undefined;
@@ -341,7 +470,7 @@ async function run() {
     }
 
     if ((i + 1) % SAVE_EVERY === 0) {
-      fs.writeFileSync(catalogPath, JSON.stringify(products, null, 2), "utf-8");
+      syncAllCatalogFiles(products);
       console.log(`- Progress saved at ${i + 1}/${products.length}`);
     }
 
@@ -350,7 +479,7 @@ async function run() {
     }
   }
 
-  fs.writeFileSync(catalogPath, JSON.stringify(products, null, 2), "utf-8");
+  syncAllCatalogFiles(products);
 
   console.log("");
   console.log("========== DONE ==========");
