@@ -10,8 +10,96 @@ function formatPrice(price: number) {
   }).format(price || 0);
 }
 
+function specText(item: any) {
+  return `${item.title || ""} ${item.brand || ""} ${item.category || ""} ${
+    item.subcategory || ""
+  }`.toLowerCase();
+}
+
+function clean(value?: string | null) {
+  return value ? value.replace(/\s+/g, " ").trim() : "-";
+}
+
+function extractSpecs(item: any) {
+  const text = specText(item);
+
+  return {
+    cpu: clean(
+      text.match(
+        /\b(m[1-9](\s?(pro|max|ultra))?|i[3579]-?\d{4,5}[a-z]*|u[3579]\s?\d{3,4}v?|ryzen\s?[3579]\s?\d{4}[a-z]*)\b/i
+      )?.[0]
+    ),
+
+    ram: clean(text.match(/\b(8|16|24|32|64|128)\s?gb\b/i)?.[0]),
+
+    storage: clean(
+      text.match(/\b(128|256|512)\s?gb\b/i)?.[0] ||
+        text.match(/\b(1|2|4|8)\s?tb\b/i)?.[0]
+    ),
+
+    display: clean(
+      text.match(/\b(11|12|13|14|15|16|17|24|27|32|34|49)(\.|,)?\d?\s?("|zoll)\b/i)
+        ?.[0]
+    ),
+
+    gpu: clean(
+      text.match(
+        /\b(rtx\s?\d{4}|gtx\s?\d{4}|radeon|intel arc|iris xe|uhd graphics)\b/i
+      )?.[0]
+    ),
+
+    resolution: clean(
+      text.match(
+        /\b(4k|uhd|qhd|wqhd|fhd|full hd|2560x1440|3840x2160|1920x1080)\b/i
+      )?.[0]
+    ),
+
+    hz: clean(text.match(/\b(60|75|100|120|144|165|240)\s?hz\b/i)?.[0]),
+
+    color: clean(
+      text.match(
+        /\b(schwarz|black|silber|silver|grau|grey|gray|blau|blue|gold|starlight|midnight|mitternacht|space black|space schwarz|platinum)\b/i
+      )?.[0]
+    ),
+  };
+}
+
+function isDifferent(values: string[]) {
+  const cleanValues = values
+    .filter((v) => v && v !== "-")
+    .map((v) => v.toLowerCase());
+
+  return new Set(cleanValues).size > 1;
+}
+
+function SpecRow({ label, values }: { label: string; values: string[] }) {
+  const different = isDifferent(values);
+
+  return (
+    <tr>
+      <td className="border-b border-neutral-200 bg-neutral-50 px-5 py-4 font-black">
+        {label}
+      </td>
+
+      {values.map((value, index) => (
+        <td
+          key={`${label}-${index}`}
+          className={`border-b border-neutral-200 px-5 py-4 ${
+            different && value !== "-"
+              ? "bg-red-50 font-extrabold text-red-700"
+              : ""
+          }`}
+        >
+          {value}
+        </td>
+      ))}
+    </tr>
+  );
+}
+
 export default function ComparePage() {
   const { items, removeCompare, clearCompare } = useCompare();
+  const specs = items.map((item) => extractSpecs(item));
 
   if (items.length === 0) {
     return (
@@ -64,7 +152,7 @@ export default function ComparePage() {
 
       <section className="mx-auto max-w-7xl px-4 py-10">
         <div className="overflow-x-auto rounded-3xl border border-neutral-200 bg-white shadow-sm">
-          <table className="min-w-[900px] w-full border-collapse text-sm">
+          <table className="w-full min-w-[900px] border-collapse text-sm">
             <thead>
               <tr>
                 <th className="w-52 border-b border-neutral-200 bg-neutral-50 px-5 py-4 text-left font-black text-neutral-950">
@@ -126,6 +214,18 @@ export default function ComparePage() {
                 ))}
               </tr>
 
+              <SpecRow label="CPU / Prozessor" values={specs.map((s) => s.cpu)} />
+              <SpecRow label="RAM" values={specs.map((s) => s.ram)} />
+              <SpecRow label="Speicher" values={specs.map((s) => s.storage)} />
+              <SpecRow label="Displaygrösse" values={specs.map((s) => s.display)} />
+              <SpecRow label="Grafik" values={specs.map((s) => s.gpu)} />
+              <SpecRow label="Auflösung" values={specs.map((s) => s.resolution)} />
+              <SpecRow
+                label="Bildwiederholrate"
+                values={specs.map((s) => s.hz)}
+              />
+              <SpecRow label="Farbe" values={specs.map((s) => s.color)} />
+
               <tr>
                 <td className="border-b border-neutral-200 bg-neutral-50 px-5 py-4 font-black">
                   Marke
@@ -149,7 +249,7 @@ export default function ComparePage() {
                     key={`${item.sku}-category`}
                     className="border-b border-neutral-200 px-5 py-4"
                   >
-                    {item.category || "-"}
+                    {(item as any).category || "-"}
                   </td>
                 ))}
               </tr>
@@ -163,7 +263,7 @@ export default function ComparePage() {
                     key={`${item.sku}-subcategory`}
                     className="border-b border-neutral-200 px-5 py-4"
                   >
-                    {item.subcategory || "-"}
+                    {(item as any).subcategory || "-"}
                   </td>
                 ))}
               </tr>
@@ -174,7 +274,7 @@ export default function ComparePage() {
                 </td>
                 {items.map((item) => {
                   const available =
-                    item.inStock || Number(item.stockQty || 0) > 0;
+                    (item as any).inStock || Number((item as any).stockQty || 0) > 0;
 
                   return (
                     <td
@@ -196,9 +296,7 @@ export default function ComparePage() {
               </tr>
 
               <tr>
-                <td className="bg-neutral-50 px-5 py-4 font-black">
-                  Aktion
-                </td>
+                <td className="bg-neutral-50 px-5 py-4 font-black">Aktion</td>
                 {items.map((item) => (
                   <td key={`${item.sku}-action`} className="px-5 py-4">
                     <Link
