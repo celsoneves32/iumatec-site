@@ -1,3 +1,4 @@
+
 import dotenv from "dotenv";
 dotenv.config({ path: ".env.local" });
 
@@ -14,6 +15,20 @@ if (!token) throw new Error("Missing SHOPIFY_ADMIN_ACCESS_TOKEN");
 if (!locationId) throw new Error("Missing SHOPIFY_LOCATION_ID");
 
 const catalogPaths = [
+  path.join(
+    process.cwd(),
+    "integrations",
+    "alltron",
+    "out",
+    "winning-products.json"
+  ),
+  path.join(
+    process.cwd(),
+    "integrations",
+    "alltron",
+    "out",
+    "iumatec-catalog-live.json"
+  ),
   path.join(
     process.cwd(),
     "integrations",
@@ -36,7 +51,6 @@ const catalogPaths = [
     "iumatec-catalog-enriched.json"
   ),
 ];
-
 const existingCatalogPaths = catalogPaths.filter((filePath) =>
   fs.existsSync(filePath)
 );
