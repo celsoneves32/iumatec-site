@@ -1,35 +1,50 @@
 import { NextResponse } from "next/server";
 import { getPurchasableProducts } from "@/lib/productData";
 
-export async function GET() {
-  const products = getPurchasableProducts();
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-  const map = new Map<string, Set<string>>();
+export async function GET() {
+  const products = getPurchasableProducts(6000);
+
+  const categoryMap = new Map<
+    string,
+    {
+      count: number;
+      subcategories: Map<string, number>;
+    }
+  >();
 
   for (const product of products) {
     const category = product.category || "Zubehör";
     const subcategory = product.subcategory || "Sonstiges Zubehör";
 
-    if (!map.has(category)) {
-      map.set(category, new Set());
+    if (!categoryMap.has(category)) {
+      categoryMap.set(category, {
+        count: 0,
+        subcategories: new Map<string, number>(),
+      });
     }
 
-    map.get(category)?.add(subcategory);
+    const entry = categoryMap.get(category)!;
+
+    entry.count += 1;
+    entry.subcategories.set(
+      subcategory,
+      (entry.subcategories.get(subcategory) || 0) + 1
+    );
   }
 
-  const categories = Array.from(map.entries())
-    .map(([name, subcategories]) => ({
+  const categories = Array.from(categoryMap.entries())
+    .map(([name, entry]) => ({
       name,
-      count: products.filter((product) => product.category === name).length,
-      subcategories: Array.from(subcategories)
-        .sort()
-        .map((subcategory) => ({
-          name: subcategory,
-          count: products.filter(
-            (product) =>
-              product.category === name && product.subcategory === subcategory
-          ).length,
-        })),
+      count: entry.count,
+      subcategories: Array.from(entry.subcategories.entries())
+        .map(([name, count]) => ({
+          name,
+          count,
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name)),
     }))
     .sort((a, b) => a.name.localeCompare(b.name));
 
