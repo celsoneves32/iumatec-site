@@ -50,11 +50,11 @@ const LIVE_CATALOG_PATH = path.join(
 );
 
 const CATALOG_PATHS = [
-  WINNING_PRODUCTS_PATH,
   LIVE_CATALOG_PATH,
   path.join(process.cwd(), "integrations", "alltron", "out", "iumatec-catalog-sellable.json"),
   path.join(process.cwd(), "integrations", "alltron", "out", "iumatec-catalog-enriched.json"),
   path.join(process.cwd(), "integrations", "alltron", "out", "iumatec-catalog-filtered.json"),
+  WINNING_PRODUCTS_PATH,
   path.join(process.cwd(), "integrations", "alltron", "out", "iumatec-products.json"),
   path.join(process.cwd(), "data", "catalog.json"),
 ];
