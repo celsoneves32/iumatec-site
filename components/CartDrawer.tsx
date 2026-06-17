@@ -5,11 +5,15 @@ import Link from "next/link";
 import { useEffect } from "react";
 import { useCart } from "@/context/CartContext";
 
-function formatMoney(value: number, currencyCode: string) {
+function formatMoney(value: string | number, currencyCode = "CHF") {
+  const numberValue = Number(value || 0);
+
   return new Intl.NumberFormat("de-CH", {
     style: "currency",
     currency: currencyCode || "CHF",
-  }).format(value);
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(Number.isFinite(numberValue) ? numberValue : 0);
 }
 
 export default function CartDrawer() {
@@ -133,7 +137,9 @@ export default function CartDrawer() {
                 >
                   <div className="flex gap-4">
                     <Link
-                      href={item.productHandle ? `/produkte/${item.productHandle}` : "#"}
+                      href={
+                        item.productHandle ? `/produkte/${item.productHandle}` : "#"
+                      }
                       onClick={closeDrawer}
                       className="relative h-28 w-28 shrink-0 overflow-hidden rounded-2xl border border-neutral-100 bg-neutral-50"
                     >
@@ -157,7 +163,8 @@ export default function CartDrawer() {
                         {item.title}
                       </p>
 
-                      {item.variantTitle && item.variantTitle !== "Default Title" ? (
+                      {item.variantTitle &&
+                      item.variantTitle !== "Default Title" ? (
                         <p className="mt-1 text-xs text-neutral-500">
                           {item.variantTitle}
                         </p>
@@ -198,10 +205,10 @@ export default function CartDrawer() {
 
                         <div className="text-right">
                           <p className="text-base font-extrabold text-neutral-950">
-                            {item.totalPrice}
+                            {formatMoney(item.totalPrice, currencyCode)}
                           </p>
                           <p className="text-xs text-neutral-500">
-                            {item.unitPrice} / Stück
+                            {formatMoney(item.unitPrice, currencyCode)} / Stück
                           </p>
                         </div>
                       </div>
