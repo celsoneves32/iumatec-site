@@ -34,31 +34,15 @@ export type Product = {
 
 type CatalogRecord = Record<string, any>;
 
-const LIVE_CATALOG_PATH = path.join(
+const STOREFRONT_CLEAN_PATH = path.join(
   process.cwd(),
   "integrations",
   "alltron",
   "out",
-  "iumatec-catalog-live.json"
+  "iumatec-storefront-clean.json"
 );
 
-const WINNING_PRODUCTS_PATH = path.join(
-  process.cwd(),
-  "integrations",
-  "alltron",
-  "out",
-  "winning-products.json"
-);
-
-const CATALOG_PATHS = [
-  LIVE_CATALOG_PATH,
-  path.join(process.cwd(), "integrations", "alltron", "out", "iumatec-catalog-sellable.json"),
-  path.join(process.cwd(), "integrations", "alltron", "out", "iumatec-catalog-enriched.json"),
-  path.join(process.cwd(), "integrations", "alltron", "out", "iumatec-catalog-filtered.json"),
-  WINNING_PRODUCTS_PATH,
-  path.join(process.cwd(), "integrations", "alltron", "out", "iumatec-products.json"),
-  path.join(process.cwd(), "data", "catalog.json"),
-];
+const CATALOG_PATHS = [STOREFRONT_CLEAN_PATH];
 
 function normalize(value?: string | null) {
   return String(value || "")
@@ -69,6 +53,10 @@ function normalize(value?: string | null) {
     .replace(/Ã¶/g, "o")
     .replace(/Ã¼/g, "u")
     .replace(/ÃŸ/g, "ss")
+    .replace(/ä/g, "a")
+    .replace(/ö/g, "o")
+    .replace(/ü/g, "u")
+    .replace(/ß/g, "ss")
     .trim();
 }
 
@@ -85,12 +73,14 @@ function pickString(record: CatalogRecord, keys: string[]): string | undefined {
     if (typeof value === "string" && value.trim()) return value.trim();
     if (typeof value === "number" && Number.isFinite(value)) return String(value);
   }
+
   return undefined;
 }
 
 function pickNumber(record: CatalogRecord, keys: string[]): number | undefined {
   for (const key of keys) {
     const value = getNestedValue(record, key);
+
     if (typeof value === "number" && Number.isFinite(value)) return value;
 
     if (typeof value === "string") {
@@ -98,6 +88,7 @@ function pickNumber(record: CatalogRecord, keys: string[]): number | undefined {
       if (Number.isFinite(parsed)) return parsed;
     }
   }
+
   return undefined;
 }
 
@@ -147,6 +138,7 @@ function resolveShopifyHandle(record: CatalogRecord): string | null {
     "shopifyProductHandle",
     "shopifyHandle",
     "handle",
+    "productHandle",
     "shopifyProduct.handle",
     "shopifyHandleFromSync",
     "matchedHandle",
@@ -182,6 +174,7 @@ function resolveImages(record: CatalogRecord, mainImage?: string | null): string
     ...toStringArray(getNestedValue(record, "imageUrls")),
     ...toStringArray(getNestedValue(record, "gallery")),
     ...toStringArray(getNestedValue(record, "shopifyImages")),
+    ...toStringArray(getNestedValue(record, "shopifyImageUrl")),
   ].filter((url) => url.startsWith("http"));
 
   return [...new Set(images)];
@@ -216,6 +209,8 @@ function getRawText(record: CatalogRecord) {
       record.rawCategory?.cat2,
       record.rawCategory?.cat3,
       record.rawCategory?.cat4,
+      record.iumatecCategory?.main,
+      record.iumatecCategory?.sub,
       record.category,
       record.subcategory,
       record.cat1,
@@ -227,6 +222,19 @@ function getRawText(record: CatalogRecord) {
 }
 
 function mapCategoryFromRaw(record: CatalogRecord) {
+  const existingCategory =
+    cleanupText(record.category) || cleanupText(record.iumatecCategory?.main);
+
+  const existingSubcategory =
+    cleanupText(record.subcategory) || cleanupText(record.iumatecCategory?.sub);
+
+  if (existingCategory && existingSubcategory) {
+    return {
+      category: existingCategory,
+      subcategory: existingSubcategory,
+    };
+  }
+
   const cat3 = normalize(record.rawCategory?.cat3 || record.cat3);
   const cat4 = normalize(record.rawCategory?.cat4 || record.cat4);
 
@@ -245,58 +253,6 @@ function mapCategoryFromRaw(record: CatalogRecord) {
 
   const titleHas = (terms: string[]) =>
     terms.some((term) => title.includes(normalize(term)));
-
-  if (has(["garantieerweiterung", "garantieverlangerung", "warranty", "prosupport", "support service", "servicepack", "care pack"])) {
-    return { category: "Zubehör", subcategory: "Service & Garantie" };
-  }
-
-  if (has(["toner", "tinte", "patrone", "cartridge", "druckerpatrone", "ink cartridge"])) {
-    return { category: "Büro & Drucker", subcategory: "Tinte & Toner" };
-  }
-
-  if (has(["papier", "etikett", "labels", "label", "etikettenrolle", "fotopapier"])) {
-    return { category: "Büro & Drucker", subcategory: "Papier & Etiketten" };
-  }
-
-  if (has(["drucker", "printer", "multifunktionsdrucker", "laserjet", "officejet", "pixma", "ecotank"])) {
-    return { category: "Büro & Drucker", subcategory: "Drucker" };
-  }
-
-  if (has(["kaffee", "kaffeefettloser", "reinigungstabletten", "serviertablett", "holztablett", "cocon tablett", "tablett,", "tablett "])) {
-    return { category: "Zubehör", subcategory: "Sonstiges Zubehör" };
-  }
-
-  if (has(["spielzeug", "toy", "lexibook", "padagogisch", "pädagogisch", "kinder", "disney", "frozen"])) {
-    return { category: "Zubehör", subcategory: "Sonstiges Zubehör" };
-  }
-
-  if (has(["staubsauger", "saugroboter", "robot vacuum", "roboterstaubsauger", "saug-roboter"])) {
-    return { category: "Smart Home", subcategory: "Haushalt" };
-  }
-
-  if (has(["panzerglass", "schutzglas", "displayschutz", "screen protector", "schutzfolie", "privacy filter", "kameraschutz", "camera protector", "handyhulle", "handy hulle", "iphone hulle", "iphone case", "smartphone case", "tablet case", "ipad case", "cover", "ladekabel", "usb-c kabel", "lightning kabel", "charger", "ladegerat", "powerbank", "active pen", "ersatzstift", "ersatzstifte", "stylus", "pencil"])) {
-    return { category: "Mobile", subcategory: "Zubehör" };
-  }
-
-  if (has(["desktop set", "keyboard", "tastatur", "maus", "mouse", "combo", "mk270", "mk470", "b.unlimited"])) {
-    return { category: "Peripherie", subcategory: "Tastaturen" };
-  }
-
-  if (has(["mikrofon", "microphon", "microphone"])) {
-    return { category: "Peripherie", subcategory: "Mikrofone" };
-  }
-
-  if (has(["monitor splitter", "splitter", "adapter", "usb-c zu", "hdmi adapter", "displayport adapter", "vga adapter", "kabel", "cable"])) {
-    return { category: "Zubehör", subcategory: "Kabel & Adapter" };
-  }
-
-  if (has(["rucksack", "tasche", "sleeve", "laptopsafe", "notebook safe", "hulle", "huelle", "case", "halter", "halterung", "stander", "staender", "akku", "batterie", "docking", "dock", "notebook-zubehor", "laptop-zubehor", "notebook zubehor", "laptop zubehor"])) {
-    return { category: "Zubehör", subcategory: "Notebook-Zubehör" };
-  }
-
-  if (has(["matte", "unterlage", "bodenschutz", "bodenmatte", "mauspad", "mousepad"])) {
-    return { category: "Zubehör", subcategory: "Sonstiges Zubehör" };
-  }
 
   if (cat3 === "notebook" || cat4 === "notebook" || titleHas(["macbook", "notebook", "probook", "elitebook", "thinkpad", "latitude", "surface laptop", "laptop "])) {
     return { category: "Computer", subcategory: "Laptops" };
@@ -319,23 +275,11 @@ function mapCategoryFromRaw(record: CatalogRecord) {
   }
 
   if (cat3 === "monitore" || cat4 === "monitore" || has(["gaming monitor", "business monitor", "lcd monitor", "led monitor", "oled monitor", "curved monitor", "monitor 24", "monitor 27", "monitor 32", "monitor 34", "monitor 49", "display 24", "display 27", "display 32", "qhd monitor", "uhd monitor", "4k monitor", "fhd monitor"])) {
-    return { category: "Peripherie", subcategory: "Monitors" };
+    return { category: "Peripherie", subcategory: "Monitore" };
   }
 
-  if (has(["grafikkarte", "graphics card", "gpu", "rtx ", "radeon"])) {
-    return { category: "PC-Komponenten", subcategory: "Grafikkarten" };
-  }
-
-  if (has(["arbeitsspeicher", "ram", "memory", "ddr4", "ddr5"])) {
-    return { category: "PC-Komponenten", subcategory: "Arbeitsspeicher" };
-  }
-
-  if (has(["mainboard", "motherboard"])) {
-    return { category: "PC-Komponenten", subcategory: "Mainboards" };
-  }
-
-  if (has(["netzteil", "power supply", "psu"])) {
-    return { category: "PC-Komponenten", subcategory: "Netzteile" };
+  if (has(["desktop set", "keyboard", "tastatur", "maus", "mouse", "combo", "mk270", "mk470", "b.unlimited"])) {
+    return { category: "Peripherie", subcategory: "Tastaturen & Mäuse" };
   }
 
   if (has(["headset", "kopfhorer", "kopfhoerer", "headphone"])) {
@@ -346,28 +290,96 @@ function mapCategoryFromRaw(record: CatalogRecord) {
     return { category: "Peripherie", subcategory: "Webcams" };
   }
 
+  if (has(["mikrofon", "microphon", "microphone"])) {
+    return { category: "Peripherie", subcategory: "Mikrofone" };
+  }
+
+  if (has(["grafikkarte", "graphics card", "gpu", "rtx ", "radeon"])) {
+    return { category: "PC-Komponenten", subcategory: "Grafikkarten" };
+  }
+
+  if (has(["arbeitsspeicher", "ram", "memory", "ddr4", "ddr5"])) {
+    return { category: "PC-Komponenten", subcategory: "RAM" };
+  }
+
+  if (has(["mainboard", "motherboard"])) {
+    return { category: "PC-Komponenten", subcategory: "Mainboards" };
+  }
+
+  if (has(["netzteil", "power supply", "psu"])) {
+    return { category: "PC-Komponenten", subcategory: "Netzteile" };
+  }
+
+  if (has(["prozessor", "processor", "cpu ", "intel core", "ryzen"])) {
+    return { category: "PC-Komponenten", subcategory: "Prozessoren" };
+  }
+
   if (has(["router", "firewall"])) {
     return { category: "Netzwerk", subcategory: "Router" };
   }
 
   if (has(["switch", "switches"])) {
-    return { category: "Netzwerk", subcategory: "Netzwerk-Switches" };
+    return { category: "Netzwerk", subcategory: "Switches" };
   }
 
   if (has(["wlan", "wifi", "mesh", "access point", "accesspoint"])) {
     return { category: "Netzwerk", subcategory: "WLAN Mesh" };
   }
 
-  if (has(["ssd", "festplatte", "hard disk", "hdd", "nvme"])) {
-    return { category: "Datenspeicher", subcategory: "SSD & Festplatten" };
+  if (has(["netzwerkkabel", "ethernet", "patchkabel", "rj45"])) {
+    return { category: "Netzwerk", subcategory: "Netzwerk Kabel" };
+  }
+
+  if (has(["ssd", "nvme"])) {
+    return { category: "Datenspeicher", subcategory: "SSD" };
+  }
+
+  if (has(["festplatte", "hard disk", "hdd"])) {
+    return { category: "Datenspeicher", subcategory: "HDD" };
   }
 
   if (has(["nas"])) {
     return { category: "Datenspeicher", subcategory: "NAS" };
   }
 
-  if (has(["kamera", "camera", "security cam"])) {
+  if (has(["externe ssd", "external ssd", "portable ssd"])) {
+    return { category: "Datenspeicher", subcategory: "Externe SSD" };
+  }
+
+  if (has(["drucker", "printer", "multifunktionsdrucker", "laserjet", "officejet", "pixma", "ecotank"])) {
+    return { category: "Office & Business", subcategory: "Drucker" };
+  }
+
+  if (has(["toner", "tinte", "patrone", "cartridge", "druckerpatrone", "ink cartridge"])) {
+    return { category: "Office & Business", subcategory: "Tinte & Toner" };
+  }
+
+  if (has(["papier", "etikett", "labels", "label", "etikettenrolle", "fotopapier"])) {
+    return { category: "Office & Business", subcategory: "Papier & Etiketten" };
+  }
+
+  if (has(["kamera", "camera", "security cam", "überwachungskamera", "ueberwachungskamera"])) {
     return { category: "Smart Home", subcategory: "Kameras" };
+  }
+
+  if (has(["steckdose", "smart plug", "plug"])) {
+    return { category: "Smart Home", subcategory: "Steckdosen" };
+  }
+
+  if (has(["beleuchtung", "light", "led stripe", "led strip", "lampe"])) {
+    return { category: "Smart Home", subcategory: "Beleuchtung" };
+  }
+
+  if (has(["panzerglass", "schutzglas", "displayschutz", "screen protector", "schutzfolie", "kameraschutz", "camera protector", "handyhulle", "handy hulle", "iphone hulle", "iphone case", "smartphone case", "tablet case", "ipad case", "cover", "ladekabel", "usb-c kabel", "lightning kabel", "charger", "ladegerat", "powerbank", "active pen", "ersatzstift", "ersatzstifte", "stylus", "pencil"])) {
+    return { category: "Mobile", subcategory: "Zubehör" };
+  }
+
+  if (has(["monitor splitter", "splitter", "adapter", "usb-c zu", "hdmi adapter", "displayport adapter", "vga adapter", "kabel", "cable"])) {
+    return { category: "Zubehör", subcategory: "Kabel & Adapter" };
+  }
+
+  if (has(["rucksack", "tasche", "sleeve", "laptopsafe", "notebook safe", "hulle", "huelle", "case", "halter", "halterung", "stander", "staender", "akku", "batterie", "docking", "dock", "notebook-zubehor", "laptop-zubehor", "notebook zubehor", "laptop zubehor"])) {
+    return { category: "Zubehör", subcategory: "Notebook-Zubehör" };
   }
 
   return { category: "Zubehör", subcategory: "Sonstiges Zubehör" };
@@ -519,7 +531,13 @@ export function isValidMerchandiseId(value?: string | null) {
 function isSyncedProduct(product: Product) {
   const status = String(product.shopifySyncStatus || "").trim();
 
-  return status === "synced" || status === "updated-existing";
+  if (!status) return true;
+
+  return (
+    status === "synced" ||
+    status === "updated-existing" ||
+    status === "ok"
+  );
 }
 
 export function isSellableProduct(product: Product) {
@@ -547,7 +565,7 @@ function isBlockedProduct(product: Product) {
   );
 
   const allowedOffice =
-    product.category === "Büro & Drucker" ||
+    product.category === "Office & Business" ||
     product.subcategory === "Tinte & Toner" ||
     product.subcategory === "Papier & Etiketten";
 
@@ -558,11 +576,17 @@ function isBlockedProduct(product: Product) {
     "garantieerw",
     "prosupport",
     "warranty",
-    "support",
-    "service",
+    "support service",
     "servicepack",
-    "schutzfolie",
-    "privacy filter",
+    "kaffee",
+    "kaffeefettloser",
+    "serviertablett",
+    "holztablett",
+    "spielzeug",
+    "toy",
+    "lexibook",
+    "disney",
+    "frozen",
   ];
 
   return blockedTerms.some((term) => text.includes(normalize(term)));
@@ -591,11 +615,7 @@ export function scoreProduct(product: Product): number {
 
 const loadAllProducts = cache((): Product[] => {
   const allRecords = CATALOG_PATHS.flatMap(readJsonArray);
-  const energySource = readJsonArray(
-    path.join(process.cwd(), "integrations", "alltron", "out", "iumatec-products.json")
-  );
-
-  const energyMap = buildEnergyMap(energySource);
+  const energyMap = buildEnergyMap(allRecords);
 
   const mapped = allRecords
     .map((record) => mapRecordToProduct(record, energyMap))
@@ -605,6 +625,7 @@ const loadAllProducts = cache((): Product[] => {
 
   for (const product of mapped) {
     const key =
+      product.merchandiseId ||
       product.ean ||
       product.internalNumber ||
       product.sku ||

@@ -166,6 +166,13 @@ export default function SiteHeader() {
             </form>
 
             <nav className="ml-auto hidden items-center gap-6 xl:flex">
+              <Link
+                href="/athletes"
+                className="text-sm font-bold text-neutral-800 hover:text-red-600"
+              >
+                Athletes
+              </Link>
+
               <div
                 className="relative"
                 onMouseEnter={() => setMegaOpen(true)}
@@ -256,6 +263,14 @@ export default function SiteHeader() {
                 className="w-full rounded-2xl border border-neutral-300 px-4 py-3 text-sm outline-none"
               />
             </form>
+
+            <Link
+              href="/athletes"
+              onClick={() => setMobileOpen(false)}
+              className="mb-6 block rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-extrabold text-white"
+            >
+              Team IUMATEC Athletes →
+            </Link>
 
             <div className="grid gap-6 sm:grid-cols-2">
               {categories.map((group) => (
