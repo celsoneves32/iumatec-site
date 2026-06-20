@@ -228,13 +228,8 @@ function mapCategoryFromRaw(record: CatalogRecord) {
   const existingSubcategory =
     cleanupText(record.subcategory) || cleanupText(record.iumatecCategory?.sub);
 
-  if (existingCategory && existingSubcategory) {
-    return {
-      category: existingCategory,
-      subcategory: existingSubcategory,
-    };
-  }
-
+  const cat1 = normalize(record.rawCategory?.cat1 || record.cat1);
+  const cat2 = normalize(record.rawCategory?.cat2 || record.cat2);
   const cat3 = normalize(record.rawCategory?.cat3 || record.cat3);
   const cat4 = normalize(record.rawCategory?.cat4 || record.cat4);
 
@@ -254,111 +249,381 @@ function mapCategoryFromRaw(record: CatalogRecord) {
   const titleHas = (terms: string[]) =>
     terms.some((term) => title.includes(normalize(term)));
 
-  if (cat3 === "notebook" || cat4 === "notebook" || titleHas(["macbook", "notebook", "probook", "elitebook", "thinkpad", "latitude", "surface laptop", "laptop "])) {
+  const rawHas = (terms: string[]) =>
+    terms.some((term) =>
+      [cat1, cat2, cat3, cat4].some((cat) => cat.includes(normalize(term)))
+    );
+
+  /*
+    IMPORTANT:
+    Primeiro vêm cabos/adaptadores/docks/acessórios.
+    Assim evitamos o erro antigo:
+    "Video-Kabel" cair em "Monitore" só porque aparecia "monitor" no texto.
+  */
+
+  if (
+    rawHas(["kabel", "adapter", "video-kabel", "audio-kabel", "usb-kabel"]) ||
+    has([
+      "displayport kabel",
+      "hdmi kabel",
+      "usb-c kabel",
+      "usb c kabel",
+      "thunderbolt kabel",
+      "patchkabel",
+      "netzwerkkabel",
+      "ethernet kabel",
+      "adapter",
+      "dongle",
+      "splitter",
+      "konverter",
+      "converter",
+      "usb-c zu",
+      "hdmi adapter",
+      "displayport adapter",
+      "vga adapter",
+      "dvi adapter",
+      "kabel",
+      "cable",
+    ])
+  ) {
+    return { category: "Peripherie", subcategory: "Kabel & Adapter" };
+  }
+
+  if (
+    rawHas(["docking", "dock", "port-replikator"]) ||
+    has([
+      "dockingstation",
+      "docking station",
+      "dock ",
+      "usb-c dock",
+      "thunderbolt dock",
+      "port replikator",
+      "port-replikator",
+    ])
+  ) {
+    return { category: "Peripherie", subcategory: "Dockingstationen" };
+  }
+
+  if (
+    rawHas(["notebook-zubehor", "notebook zubehor", "taschen", "rucksack"]) ||
+    has([
+      "laptop tasche",
+      "notebook tasche",
+      "notebook sleeve",
+      "laptop sleeve",
+      "rucksack",
+      "sleeve",
+      "laptopsafe",
+      "notebook safe",
+      "notebook-zubehor",
+      "laptop-zubehor",
+      "notebook zubehor",
+      "laptop zubehor",
+      "notebook stand",
+      "laptop stand",
+      "notebook halter",
+      "laptop halter",
+    ])
+  ) {
+    return { category: "Zubehör", subcategory: "Notebook-Zubehör" };
+  }
+
+  if (
+    has([
+      "panzerglass",
+      "schutzglas",
+      "displayschutz",
+      "screen protector",
+      "schutzfolie",
+      "kameraschutz",
+      "camera protector",
+      "handyhulle",
+      "handy hulle",
+      "iphone hulle",
+      "iphone case",
+      "smartphone case",
+      "tablet case",
+      "ipad case",
+      "cover",
+      "ladegerat",
+      "charger",
+      "powerbank",
+      "active pen",
+      "ersatzstift",
+      "ersatzstifte",
+      "stylus",
+      "pencil",
+    ])
+  ) {
+    return { category: "Mobile", subcategory: "Zubehör" };
+  }
+
+  if (
+    cat3 === "notebook" ||
+    cat4 === "notebook" ||
+    titleHas([
+      "macbook",
+      "notebook",
+      "probook",
+      "elitebook",
+      "thinkpad",
+      "latitude",
+      "surface laptop",
+      "laptop ",
+    ])
+  ) {
     return { category: "Computer", subcategory: "Laptops" };
   }
 
-  if (titleHas(["iphone", "galaxy s", "galaxy a", "pixel ", "smartphone", "xiaomi ", "redmi ", "oppo ", "motorola "]) || cat3.includes("smartphone") || cat4.includes("smartphone")) {
+  if (
+    titleHas([
+      "iphone",
+      "galaxy s",
+      "galaxy a",
+      "galaxy z",
+      "pixel ",
+      "smartphone",
+      "xiaomi ",
+      "redmi ",
+      "oppo ",
+      "motorola ",
+    ]) ||
+    rawHas(["smartphone", "mobiltelefon", "mobile phone"])
+  ) {
     return { category: "Mobile", subcategory: "Smartphones" };
   }
 
-  if (titleHas(["ipad", "galaxy tab", "surface pro", "tablet ", "tab s", "tab a"]) || cat3 === "tablets" || cat4 === "tablets" || cat3 === "tablet" || cat4 === "tablet") {
+  if (
+    titleHas([
+      "ipad",
+      "galaxy tab",
+      "surface pro",
+      "tablet ",
+      "tab s",
+      "tab a",
+    ]) ||
+    rawHas(["tablet", "tablets"])
+  ) {
     return { category: "Mobile", subcategory: "Tablets" };
   }
 
-  if (has(["mini pc", "minipc", "mini-pc", "usff", "nuc", "tiny pc"])) {
+  if (
+    has([
+      "mini pc",
+      "minipc",
+      "mini-pc",
+      "usff",
+      "nuc",
+      "tiny pc",
+      "pro mini",
+    ])
+  ) {
     return { category: "Computer", subcategory: "Mini PCs" };
   }
 
-  if (has(["workstation", "tower pc", "desktop pc", "pc system", "pc-system", "barebone", "all-in-one", "all in one", "mini tower", "micro tower", "small form factor", "sff", "optiplex", "prodesk", "elitedesk", "thinkcentre", "precision tower", "z2 tower", "z4 tower", "z6 tower", "z8 tower", "gaming desktop", "desktop-computer"])) {
+  if (
+    rawHas(["desktop", "workstation", "pc-systeme", "pc systeme"]) ||
+    has([
+      "workstation",
+      "tower pc",
+      "desktop pc",
+      "pc system",
+      "pc-system",
+      "barebone",
+      "all-in-one",
+      "all in one",
+      "mini tower",
+      "micro tower",
+      "small form factor",
+      "sff",
+      "optiplex",
+      "prodesk",
+      "elitedesk",
+      "thinkcentre",
+      "precision tower",
+      "z2 tower",
+      "z4 tower",
+      "z6 tower",
+      "z8 tower",
+      "gaming desktop",
+      "desktop-computer",
+    ])
+  ) {
     return { category: "Computer", subcategory: "Desktop-PCs" };
   }
 
-  if (cat3 === "monitore" || cat4 === "monitore" || has(["gaming monitor", "business monitor", "lcd monitor", "led monitor", "oled monitor", "curved monitor", "monitor 24", "monitor 27", "monitor 32", "monitor 34", "monitor 49", "display 24", "display 27", "display 32", "qhd monitor", "uhd monitor", "4k monitor", "fhd monitor"])) {
+  if (
+    rawHas(["monitore", "display", "bildschirm"]) ||
+    has([
+      "gaming monitor",
+      "business monitor",
+      "lcd monitor",
+      "led monitor",
+      "oled monitor",
+      "curved monitor",
+      "monitor 24",
+      "monitor 27",
+      "monitor 32",
+      "monitor 34",
+      "monitor 49",
+      "display 24",
+      "display 27",
+      "display 32",
+      "qhd monitor",
+      "uhd monitor",
+      "4k monitor",
+      "fhd monitor",
+      "bildschirm",
+    ])
+  ) {
     return { category: "Peripherie", subcategory: "Monitore" };
   }
 
-  if (has(["desktop set", "keyboard", "tastatur", "maus", "mouse", "combo", "mk270", "mk470", "b.unlimited"])) {
-    return { category: "Peripherie", subcategory: "Tastaturen & Mäuse" };
+  if (
+    rawHas(["tastatur", "keyboard"]) ||
+    has(["desktop set", "keyboard", "tastatur", "combo", "mk270", "mk470"])
+  ) {
+    return { category: "Peripherie", subcategory: "Tastaturen" };
   }
 
-  if (has(["headset", "kopfhorer", "kopfhoerer", "headphone"])) {
+  if (rawHas(["maus", "mouse"]) || has(["maus", "mouse", "trackball"])) {
+    return { category: "Peripherie", subcategory: "Mäuse" };
+  }
+
+  if (
+    rawHas(["headset", "kopfhorer", "kopfhoerer"]) ||
+    has(["headset", "kopfhorer", "kopfhoerer", "headphone"])
+  ) {
     return { category: "Peripherie", subcategory: "Headsets" };
   }
 
-  if (has(["webcam"])) {
+  if (rawHas(["webcam"]) || has(["webcam"])) {
     return { category: "Peripherie", subcategory: "Webcams" };
   }
 
-  if (has(["mikrofon", "microphon", "microphone"])) {
+  if (
+    rawHas(["mikrofon", "microphone"]) ||
+    has(["mikrofon", "microphon", "microphone"])
+  ) {
     return { category: "Peripherie", subcategory: "Mikrofone" };
   }
 
-  if (has(["grafikkarte", "graphics card", "gpu", "rtx ", "radeon"])) {
+  if (
+    rawHas(["grafikkarte", "graphics card"]) ||
+    has(["grafikkarte", "graphics card", "gpu", "geforce", "rtx ", "radeon"])
+  ) {
     return { category: "PC-Komponenten", subcategory: "Grafikkarten" };
   }
 
-  if (has(["arbeitsspeicher", "ram", "memory", "ddr4", "ddr5"])) {
+  if (
+    rawHas(["arbeitsspeicher", "memory", "ram"]) ||
+    has(["arbeitsspeicher", "ram", "memory", "ddr4", "ddr5", "so-dimm", "sodimm"])
+  ) {
     return { category: "PC-Komponenten", subcategory: "RAM" };
   }
 
-  if (has(["mainboard", "motherboard"])) {
+  if (rawHas(["mainboard", "motherboard"]) || has(["mainboard", "motherboard"])) {
     return { category: "PC-Komponenten", subcategory: "Mainboards" };
   }
 
-  if (has(["netzteil", "power supply", "psu"])) {
+  if (
+    rawHas(["netzteil", "power supply"]) ||
+    has(["netzteil", "power supply", "psu"])
+  ) {
     return { category: "PC-Komponenten", subcategory: "Netzteile" };
   }
 
-  if (has(["prozessor", "processor", "cpu ", "intel core", "ryzen"])) {
+  if (
+    rawHas(["prozessor", "processor", "cpu"]) ||
+    has(["prozessor", "processor", "cpu ", "intel core", "ryzen"])
+  ) {
     return { category: "PC-Komponenten", subcategory: "Prozessoren" };
   }
 
-  if (has(["router", "firewall"])) {
+  if (rawHas(["gehause", "gehaeuse", "case"]) || has(["pc gehause", "pc case"])) {
+    return { category: "PC-Komponenten", subcategory: "Gehäuse" };
+  }
+
+  if (rawHas(["kuhler", "kuehler", "cooler"]) || has(["cpu cooler", "kuhler", "kuehler"])) {
+    return { category: "PC-Komponenten", subcategory: "Kühlung" };
+  }
+
+  if (rawHas(["router", "firewall"]) || has(["router", "firewall"])) {
     return { category: "Netzwerk", subcategory: "Router" };
   }
 
-  if (has(["switch", "switches"])) {
+  if (rawHas(["switch", "switches"]) || has(["switch", "switches"])) {
     return { category: "Netzwerk", subcategory: "Switches" };
   }
 
-  if (has(["wlan", "wifi", "mesh", "access point", "accesspoint"])) {
+  if (
+    rawHas(["wlan", "wifi", "mesh", "access point", "accesspoint"]) ||
+    has(["wlan", "wifi", "wi-fi", "mesh", "access point", "accesspoint"])
+  ) {
     return { category: "Netzwerk", subcategory: "WLAN Mesh" };
   }
 
-  if (has(["netzwerkkabel", "ethernet", "patchkabel", "rj45"])) {
+  if (rawHas(["netzwerkkabel", "patchkabel", "rj45"]) || has(["rj45", "cat6", "cat 6", "cat7", "cat 7"])) {
     return { category: "Netzwerk", subcategory: "Netzwerk Kabel" };
   }
 
-  if (has(["ssd", "nvme"])) {
+  if (
+    rawHas(["ssd", "solid state drive"]) ||
+    has(["ssd", "nvme", "m.2", "solid state"])
+  ) {
     return { category: "Datenspeicher", subcategory: "SSD" };
   }
 
-  if (has(["festplatte", "hard disk", "hdd"])) {
+  if (
+    rawHas(["festplatte", "hard disk", "hdd"]) ||
+    has(["festplatte", "hard disk", "hdd"])
+  ) {
     return { category: "Datenspeicher", subcategory: "HDD" };
   }
 
-  if (has(["nas"])) {
+  if (rawHas(["nas"]) || has(["nas", "synology", "qnap"])) {
     return { category: "Datenspeicher", subcategory: "NAS" };
   }
 
-  if (has(["externe ssd", "external ssd", "portable ssd"])) {
+  if (
+    has(["externe ssd", "external ssd", "portable ssd", "portable drive"])
+  ) {
     return { category: "Datenspeicher", subcategory: "Externe SSD" };
   }
 
-  if (has(["drucker", "printer", "multifunktionsdrucker", "laserjet", "officejet", "pixma", "ecotank"])) {
+  if (
+    rawHas(["drucker", "printer"]) ||
+    has([
+      "drucker",
+      "printer",
+      "multifunktionsdrucker",
+      "laserjet",
+      "officejet",
+      "pixma",
+      "ecotank",
+    ])
+  ) {
     return { category: "Office & Business", subcategory: "Drucker" };
   }
 
-  if (has(["toner", "tinte", "patrone", "cartridge", "druckerpatrone", "ink cartridge"])) {
+  if (
+    rawHas(["toner", "tinte", "patrone"]) ||
+    has(["toner", "tinte", "patrone", "cartridge", "druckerpatrone", "ink cartridge"])
+  ) {
     return { category: "Office & Business", subcategory: "Tinte & Toner" };
   }
 
-  if (has(["papier", "etikett", "labels", "label", "etikettenrolle", "fotopapier"])) {
+  if (
+    rawHas(["papier", "etikett", "etiketten"]) ||
+    has(["papier", "etikett", "labels", "label", "etikettenrolle", "fotopapier"])
+  ) {
     return { category: "Office & Business", subcategory: "Papier & Etiketten" };
   }
 
-  if (has(["kamera", "camera", "security cam", "überwachungskamera", "ueberwachungskamera"])) {
+  if (
+    rawHas(["kamera", "camera", "uberwachung", "ueberwachung"]) ||
+    has(["kamera", "camera", "security cam", "überwachungskamera", "ueberwachungskamera"])
+  ) {
     return { category: "Smart Home", subcategory: "Kameras" };
   }
 
@@ -370,16 +635,11 @@ function mapCategoryFromRaw(record: CatalogRecord) {
     return { category: "Smart Home", subcategory: "Beleuchtung" };
   }
 
-  if (has(["panzerglass", "schutzglas", "displayschutz", "screen protector", "schutzfolie", "kameraschutz", "camera protector", "handyhulle", "handy hulle", "iphone hulle", "iphone case", "smartphone case", "tablet case", "ipad case", "cover", "ladekabel", "usb-c kabel", "lightning kabel", "charger", "ladegerat", "powerbank", "active pen", "ersatzstift", "ersatzstifte", "stylus", "pencil"])) {
-    return { category: "Mobile", subcategory: "Zubehör" };
-  }
-
-  if (has(["monitor splitter", "splitter", "adapter", "usb-c zu", "hdmi adapter", "displayport adapter", "vga adapter", "kabel", "cable"])) {
-    return { category: "Zubehör", subcategory: "Kabel & Adapter" };
-  }
-
-  if (has(["rucksack", "tasche", "sleeve", "laptopsafe", "notebook safe", "hulle", "huelle", "case", "halter", "halterung", "stander", "staender", "akku", "batterie", "docking", "dock", "notebook-zubehor", "laptop-zubehor", "notebook zubehor", "laptop zubehor"])) {
-    return { category: "Zubehör", subcategory: "Notebook-Zubehör" };
+  if (existingCategory && existingSubcategory) {
+    return {
+      category: existingCategory,
+      subcategory: existingSubcategory,
+    };
   }
 
   return { category: "Zubehör", subcategory: "Sonstiges Zubehör" };
