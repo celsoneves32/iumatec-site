@@ -15,7 +15,10 @@ const apiVersion =
 
 function getShopifyUrl() {
   if (!domain) throw new Error("Missing env var: SHOPIFY_STORE_DOMAIN");
-  if (!storefrontAccessToken) throw new Error("Missing env var: SHOPIFY_STOREFRONT_ACCESS_TOKEN");
+  if (!storefrontAccessToken) {
+    throw new Error("Missing env var: SHOPIFY_STOREFRONT_ACCESS_TOKEN");
+  }
+
   return `https://${domain}/api/${apiVersion}/graphql.json`;
 }
 
@@ -30,9 +33,18 @@ async function shopifyFetch(query: string, variables?: Record<string, unknown>) 
     cache: "no-store",
   });
 
-  const json = await res.json();
+  const text = await res.text();
 
-  if (!res.ok) throw new Error(`Shopify HTTP error ${res.status}`);
+  let json: any;
+  try {
+    json = JSON.parse(text);
+  } catch {
+    throw new Error(`Shopify returned invalid JSON (${res.status})`);
+  }
+
+  if (!res.ok) {
+    throw new Error(`Shopify HTTP error ${res.status}`);
+  }
 
   if (json.errors?.length) {
     throw new Error(
@@ -46,10 +58,22 @@ async function shopifyFetch(query: string, variables?: Record<string, unknown>) 
 
 function normalizeVariantId(value?: string | null) {
   if (!value || typeof value !== "string") return null;
+
   const trimmed = value.trim();
+
   if (trimmed.startsWith("gid://shopify/ProductVariant/")) return trimmed;
+
   const numeric = trimmed.replace(/[^\d]/g, "");
   return numeric ? `gid://shopify/ProductVariant/${numeric}` : null;
+}
+
+function getUserErrorMessage(payload: any) {
+  const messages =
+    payload?.userErrors
+      ?.map((item: any) => item?.message)
+      ?.filter(Boolean) ?? [];
+
+  return messages.join(" | ");
 }
 
 function mapCart(cart: any) {
@@ -102,10 +126,11 @@ async function findCurrentVariantByHandle(productHandle?: string | null) {
         handle
         title
         availableForSale
-        variants(first: 20) {
+        variants(first: 50) {
           edges {
             node {
               id
+              title
               availableForSale
               quantityAvailable
             }
@@ -123,11 +148,34 @@ async function findCurrentVariantByHandle(productHandle?: string | null) {
       ?.filter(Boolean) ?? [];
 
   const available =
-    variants.find((v: any) => v.availableForSale && v.id) ??
-    variants.find((v: any) => v.id) ??
+    variants.find((variant: any) => variant?.availableForSale && variant?.id) ??
     null;
 
   return available?.id ?? null;
+}
+
+async function checkVariant(merchandiseId: string) {
+  const query = `
+    query CheckVariant($id: ID!) {
+      node(id: $id) {
+        ... on ProductVariant {
+          id
+          title
+          availableForSale
+          quantityAvailable
+          product {
+            id
+            handle
+            title
+            availableForSale
+          }
+        }
+      }
+    }
+  `;
+
+  const json = await shopifyFetch(query, { id: merchandiseId });
+  return json?.data?.node ?? null;
 }
 
 async function tryCartLinesAdd(
@@ -169,7 +217,10 @@ async function tryCartLinesAdd(
             }
           }
         }
-        userErrors { field message }
+        userErrors {
+          field
+          message
+        }
       }
     }
   `;
@@ -188,26 +239,13 @@ async function tryCartLinesAdd(
   return json?.data?.cartLinesAdd;
 }
 
-function isDeadVariantError(payload: any) {
-  const message = payload?.userErrors
-    ?.map((item: any) => item?.message || "")
-    ?.join(" ")
-    ?.toLowerCase();
-
-  return (
-    message?.includes("does not exist") ||
-    message?.includes("não existe") ||
-    message?.includes("not exist") ||
-    message?.includes("invalid")
-  );
-}
-
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
     const cartId = String(body.cartId || "").trim();
     const quantity = Math.max(1, Number(body.quantity || 1));
+
     const productHandle =
       typeof body.productHandle === "string" ? body.productHandle.trim() : null;
 
@@ -216,43 +254,71 @@ export async function POST(req: NextRequest) {
         ? body.imageUrl.trim()
         : null;
 
-    let merchandiseId = normalizeVariantId(body.merchandiseId);
-
     if (!cartId) {
-      return NextResponse.json({ ok: false, error: "Missing cartId" }, { status: 400 });
+      return NextResponse.json(
+        { ok: false, message: "Warenkorb wurde nicht gefunden." },
+        { status: 400 }
+      );
     }
 
-    if (!merchandiseId && productHandle) {
-      merchandiseId = await findCurrentVariantByHandle(productHandle);
+    let merchandiseId = normalizeVariantId(body.merchandiseId);
+
+    if (productHandle) {
+      const freshVariantId = await findCurrentVariantByHandle(productHandle);
+      if (freshVariantId) merchandiseId = freshVariantId;
     }
 
     if (!merchandiseId) {
       return NextResponse.json(
         {
           ok: false,
-          error:
+          message:
             "Dieses Produkt ist aktuell nicht bestellbar. Die Shopify-Variante wurde nicht gefunden.",
         },
         { status: 400 }
       );
     }
 
-    let payload = await tryCartLinesAdd(cartId, merchandiseId, quantity, imageUrl);
+    const variant = await checkVariant(merchandiseId);
 
-    if (payload?.userErrors?.length && isDeadVariantError(payload) && productHandle) {
-      const freshVariantId = await findCurrentVariantByHandle(productHandle);
-
-      if (freshVariantId && freshVariantId !== merchandiseId) {
-        payload = await tryCartLinesAdd(cartId, freshVariantId, quantity, imageUrl);
-      }
-    }
-
-    if (payload?.userErrors?.length) {
+    if (!variant) {
       return NextResponse.json(
         {
           ok: false,
-          error:
-            "Dieses Produkt ist aktuell nicht bestellbar. Bitte wähle ein anderes Produkt.",
+          message:
+            "Dieses Produkt ist aktuell nicht bestellbar. Die Variante existiert nicht mehr in Shopify.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (!variant.availableForSale) {
+      return NextResponse.json(
+        {
+          ok: false,
+          message:
+            "Dieses Produkt ist in Shopify aktuell nicht zum Verkauf verfügbar. Bitte Bestand/Variante in Shopify prüfen.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const payload = await tryCartLinesAdd(
+      cartId,
+      merchandiseId,
+      quantity,
+      imageUrl
+    );
+
+    if (payload?.userErrors?.length) {
+      const shopifyMessage = getUserErrorMessage(payload);
+
+      return NextResponse.json(
+        {
+          ok: false,
+          message:
+            shopifyMessage ||
+            "Produkt konnte nicht zum Warenkorb hinzugefügt werden.",
           userErrors: payload.userErrors,
         },
         { status: 400 }
@@ -261,7 +327,10 @@ export async function POST(req: NextRequest) {
 
     if (!payload?.cart) {
       return NextResponse.json(
-        { ok: false, error: "Produkt konnte nicht zum Warenkorb hinzugefügt werden." },
+        {
+          ok: false,
+          message: "Produkt konnte nicht zum Warenkorb hinzugefügt werden.",
+        },
         { status: 400 }
       );
     }
@@ -276,7 +345,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         ok: false,
-        error:
+        message:
           error instanceof Error
             ? error.message
             : "Produkt konnte nicht zum Warenkorb hinzugefügt werden.",
