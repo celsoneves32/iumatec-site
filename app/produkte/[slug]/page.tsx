@@ -1,4 +1,5 @@
 import ProductBuyButton from "@/components/ProductBuyButton";
+import ProductGallery from "@/components/ProductGallery";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import ProductCard from "@/components/ProductCard";
@@ -13,6 +14,13 @@ type Props = {
   params: { slug: string };
 };
 
+function formatPrice(price: number) {
+  const safe = Number.isFinite(Number(price)) ? Number(price) : 0;
+  const rounded = safe.toFixed(2);
+  const [francs, cents] = rounded.split(".");
+  return `CHF ${francs.replace(/\B(?=(\d{3})+(?!\d))/g, "'")}.${cents}`;
+}
+
 function getProductSlug(product: Product) {
   const p = product as any;
   return p.slug || p.shopifyProductHandle || "";
@@ -26,6 +34,17 @@ function getMerchandiseId(product: Product) {
 function getStockQty(product: Product) {
   const p = product as any;
   return Number(p.stockQty ?? p.stock ?? 0);
+}
+
+function getProductImages(product: Product) {
+  const images = [
+    product.image,
+    ...(Array.isArray(product.images) ? product.images : []),
+  ]
+    .filter((image): image is string => Boolean(image && image.trim()))
+    .filter((image) => image.startsWith("http"));
+
+  return Array.from(new Set(images));
 }
 
 function normalize(value: unknown) {
@@ -61,12 +80,14 @@ function getVariantLabel(product: Product) {
   const text = `${p.title || ""} ${p.description || ""} ${p.description2 || ""}`;
 
   const color =
-    text.match(/(Midnight|Mitternacht|Sky Blue|Silber|Silver|Schwarz|Black|Grau|Gray|Grey|Blue|Blau|Gold|Starlight|Space Schwarz|Space Black)/i)?.[0] || null;
+    text.match(/(Midnight|Mitternacht|Sky Blue|Silber|Silver|Schwarz|Black|Grau|Gray|Grey|Blue|Blau|Gold|Starlight|Space Schwarz|Space Black)/i)?.[0] ||
+    null;
 
   const storage = text.match(/(128GB|256GB|512GB|1TB|2TB|4TB)/i)?.[0] || null;
 
   const ram =
-    text.match(/(8 GB|16 GB|24 GB|32 GB|64 GB|128 GB|8GB|16GB|24GB|32GB|64GB|128GB)/i)?.[0] || null;
+    text.match(/(8 GB|16 GB|24 GB|32 GB|64 GB|128 GB|8GB|16GB|24GB|32GB|64GB|128GB)/i)?.[0] ||
+    null;
 
   const parts = [color, storage, ram]
     .filter(Boolean)
@@ -113,6 +134,8 @@ export default function ProductPage({ params }: Props) {
 
   if (!product) return notFound();
 
+  const productImages = getProductImages(product);
+
   const related = getRelatedProducts(
     product.slug,
     product.category,
@@ -143,17 +166,7 @@ export default function ProductPage({ params }: Props) {
     <main className="bg-white">
       <section className="mx-auto max-w-7xl px-4 py-10">
         <div className="grid gap-10 lg:grid-cols-2">
-          <div className="flex items-center justify-center rounded-3xl border bg-neutral-50 p-6">
-            {product.image ? (
-              <img
-                src={product.image}
-                alt={product.title}
-                className="max-h-[480px] max-w-full object-contain"
-              />
-            ) : (
-              <div className="text-neutral-400">Kein Bild</div>
-            )}
-          </div>
+          <ProductGallery title={product.title} images={productImages} />
 
           <div>
             <div className="text-sm text-neutral-500">
@@ -169,7 +182,7 @@ export default function ProductPage({ params }: Props) {
             </div>
 
             <div className="mt-6 text-4xl font-extrabold text-neutral-950">
-              CHF {price.toFixed(2)}
+              {formatPrice(price)}
             </div>
 
             <div className="text-sm text-neutral-500">

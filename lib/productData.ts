@@ -254,13 +254,6 @@ function mapCategoryFromRaw(record: CatalogRecord) {
       [cat1, cat2, cat3, cat4].some((cat) => cat.includes(normalize(term)))
     );
 
-  /*
-    IMPORTANT:
-    Primeiro vêm cabos/adaptadores/docks/acessórios.
-    Assim evitamos o erro antigo:
-    "Video-Kabel" cair em "Monitore" só porque aparecia "monitor" no texto.
-  */
-
   if (
     rawHas(["kabel", "adapter", "video-kabel", "audio-kabel", "usb-kabel"]) ||
     has([
@@ -394,14 +387,7 @@ function mapCategoryFromRaw(record: CatalogRecord) {
   }
 
   if (
-    titleHas([
-      "ipad",
-      "galaxy tab",
-      "surface pro",
-      "tablet ",
-      "tab s",
-      "tab a",
-    ]) ||
+    titleHas(["ipad", "galaxy tab", "surface pro", "tablet ", "tab s", "tab a"]) ||
     rawHas(["tablet", "tablets"])
   ) {
     return { category: "Mobile", subcategory: "Tablets" };
@@ -526,10 +512,7 @@ function mapCategoryFromRaw(record: CatalogRecord) {
     return { category: "PC-Komponenten", subcategory: "Mainboards" };
   }
 
-  if (
-    rawHas(["netzteil", "power supply"]) ||
-    has(["netzteil", "power supply", "psu"])
-  ) {
+  if (rawHas(["netzteil", "power supply"]) || has(["netzteil", "power supply", "psu"])) {
     return { category: "PC-Komponenten", subcategory: "Netzteile" };
   }
 
@@ -563,7 +546,10 @@ function mapCategoryFromRaw(record: CatalogRecord) {
     return { category: "Netzwerk", subcategory: "WLAN Mesh" };
   }
 
-  if (rawHas(["netzwerkkabel", "patchkabel", "rj45"]) || has(["rj45", "cat6", "cat 6", "cat7", "cat 7"])) {
+  if (
+    rawHas(["netzwerkkabel", "patchkabel", "rj45"]) ||
+    has(["rj45", "cat6", "cat 6", "cat7", "cat 7"])
+  ) {
     return { category: "Netzwerk", subcategory: "Netzwerk Kabel" };
   }
 
@@ -585,9 +571,7 @@ function mapCategoryFromRaw(record: CatalogRecord) {
     return { category: "Datenspeicher", subcategory: "NAS" };
   }
 
-  if (
-    has(["externe ssd", "external ssd", "portable ssd", "portable drive"])
-  ) {
+  if (has(["externe ssd", "external ssd", "portable ssd", "portable drive"])) {
     return { category: "Datenspeicher", subcategory: "Externe SSD" };
   }
 
@@ -793,11 +777,7 @@ function isSyncedProduct(product: Product) {
 
   if (!status) return true;
 
-  return (
-    status === "synced" ||
-    status === "updated-existing" ||
-    status === "ok"
-  );
+  return status === "synced" || status === "updated-existing" || status === "ok";
 }
 
 export function isSellableProduct(product: Product) {
@@ -917,7 +897,22 @@ export function getAllProductSlugs(): string[] {
 }
 
 export function getProductBySlug(slug: string): Product | undefined {
-  return getPurchasableProducts().find((product) => product.slug === slug);
+  const wanted = slugifyValue(decodeURIComponent(slug || ""));
+
+  return getAllProducts().find((product) => {
+    const candidates = [
+      product.slug,
+      product.shopifyProductHandle,
+      product.sku,
+      product.internalNumber,
+      product.ean,
+      product.title,
+    ]
+      .filter(Boolean)
+      .map((value) => slugifyValue(String(value)));
+
+    return candidates.includes(wanted);
+  });
 }
 
 export function getFeaturedProducts(limit = 8): Product[] {

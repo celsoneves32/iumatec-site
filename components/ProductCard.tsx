@@ -24,10 +24,11 @@ type Props = {
 };
 
 function formatPrice(price: number) {
-  return new Intl.NumberFormat("de-CH", {
-    style: "currency",
-    currency: "CHF",
-  }).format(price || 0);
+  const safe = Number.isFinite(Number(price)) ? Number(price) : 0;
+  const rounded = safe.toFixed(2);
+  const [francs, cents] = rounded.split(".");
+
+  return `CHF ${francs.replace(/\B(?=(\d{3})+(?!\d))/g, "'")}.${cents}`;
 }
 
 function isTopDeal(product: Props["product"]) {
