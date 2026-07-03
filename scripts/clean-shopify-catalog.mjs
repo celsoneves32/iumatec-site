@@ -52,6 +52,16 @@ function slugify(value) {
     .replace(/-{2,}/g, "-");
 }
 
+function hasAny(text, terms) {
+  const clean = normalizeText(text);
+  return terms.some((term) => clean.includes(normalizeText(term)));
+}
+
+function hasWord(text, terms) {
+  const clean = ` ${normalizeText(text)} `;
+  return terms.some((term) => clean.includes(` ${normalizeText(term)} `));
+}
+
 function getVariantId(product) {
   const id = product.merchandiseId || product.shopifyVariantId;
   if (!id) return "";
@@ -106,7 +116,10 @@ function getImages(product) {
     }
   }
 
-  if (typeof product.shopifyImageUrl === "string" && product.shopifyImageUrl.trim()) {
+  if (
+    typeof product.shopifyImageUrl === "string" &&
+    product.shopifyImageUrl.trim()
+  ) {
     urls.push(product.shopifyImageUrl.trim());
   }
 
@@ -123,7 +136,9 @@ function getStock(product) {
 }
 
 function getPrice(product) {
-  const price = Number(product.price ?? product.finalPrice ?? product.shopifyPrice ?? 0);
+  const price = Number(
+    product.price ?? product.finalPrice ?? product.shopifyPrice ?? 0
+  );
   return Number.isFinite(price) ? price : 0;
 }
 
@@ -132,11 +147,7 @@ function isSynced(product) {
 
   if (!status) return true;
 
-  return (
-    status === "synced" ||
-    status === "updated-existing" ||
-    status === "ok"
-  );
+  return status === "synced" || status === "updated-existing" || status === "ok";
 }
 
 function rawCategoryText(product) {
@@ -190,30 +201,285 @@ function titleText(product) {
   );
 }
 
-function hasAny(text, terms) {
-  return terms.some((term) => text.includes(normalizeText(term)));
+function brandText(product) {
+  return normalizeText(product.brand || product.vendor || "");
+}
+
+function rawPath(product) {
+  return [
+    product.rawCategory?.cat1,
+    product.rawCategory?.cat2,
+    product.rawCategory?.cat3,
+    product.rawCategory?.cat4,
+    product.cat1,
+    product.cat2,
+    product.cat3,
+    product.cat4,
+  ]
+    .filter(Boolean)
+    .map((x) => String(x).trim())
+    .join(" > ");
 }
 
 function mapCategory(product) {
   const text = productText(product);
   const title = titleText(product);
   const raw = rawCategoryText(product);
+  const brand = brandText(product);
 
   const rawHas = (terms) => hasAny(raw, terms);
   const titleHas = (terms) => hasAny(title, terms);
   const textHas = (terms) => hasAny(text, terms);
+  const titleWord = (terms) => hasWord(title, terms);
+  const rawWord = (terms) => hasWord(raw, terms);
 
   /*
-    Muito importante:
-    Regras específicas primeiro.
-    Assim "HDMI Dock" não cai em cabo,
-    "DisplayPort KVM" não cai em monitor,
-    e "Notebook Dockingstation" não cai em Laptops.
+    ORDEM IMPORTANTE:
+    1. Bloqueios e acessórios específicos.
+    2. Datenspeicher.
+    3. Mobile.
+    4. Peripherie.
+    5. Netzwerk.
+    6. PC-Komponenten.
+    7. Computer.
+    8. Fallback Zubehör.
   */
 
+  // Serviços / licenças / garantias não devem cair em hardware.
+  if (
+    textHas([
+      "garantieerweiterung",
+      "garantie",
+      "warranty",
+      "care pack",
+      "carepack",
+      "servicepack",
+      "support service",
+      "prosupport",
+      "lizenz",
+      "license",
+      "subscription",
+      "abo",
+      "cloud service",
+    ])
+  ) {
+    return { category: "Zubehör", subcategory: "Services & Lizenzen" };
+  }
+
+  // Áudio / colunas / studio monitors: impedir que "Monitor" vire monitor de ecrã.
+  if (
+    rawHas(["audio", "lautsprecher", "speaker", "studio monitor"]) ||
+    textHas([
+      "lautsprecher",
+      "speaker",
+      "speakers",
+      "soundbar",
+      "m audio",
+      "m-audio",
+      "studio monitor",
+      "studiomonitor",
+      "bx3",
+      "bx4",
+      "bx5",
+      "monitor speaker",
+      "monitor lautsprecher",
+      "paar",
+    ]) ||
+    brand === "m audio" ||
+    brand === "m-audio" ||
+    brand === "vonyx"
+  ) {
+    return { category: "Peripherie", subcategory: "Lautsprecher" };
+  }
+
+  // Datenspeicher primeiro, para SSDs/HDDs não caírem em Laptops/Notebook-Zubehör.
+  if (
+    rawHas(["ssd", "solid state drive"]) ||
+    titleHas([
+      "ssd",
+      "nvme",
+      "m 2",
+      "m2",
+      "solid state",
+      "sata ssd",
+      "portable ssd",
+      "external ssd",
+      "externe ssd",
+      "opal",
+      "universal bay",
+    ]) ||
+    textHas(["ssd", "nvme", "solid state drive", "solid state"])
+  ) {
+    return { category: "Datenspeicher", subcategory: "SSD" };
+  }
+
+  if (
+    rawHas(["festplatte", "hard disk", "hdd"]) ||
+    titleHas(["festplatte", "hard disk", "hdd", "harddrive", "hard drive"]) ||
+    textHas(["festplatte", "hard disk", "hdd"])
+  ) {
+    return { category: "Datenspeicher", subcategory: "HDD" };
+  }
+
+  if (
+    rawHas(["nas", "network attached storage"]) ||
+    titleHas(["nas", "synology", "qnap", "asustor"]) ||
+    textHas(["network attached storage", "synology nas", "qnap nas"])
+  ) {
+    return { category: "Datenspeicher", subcategory: "NAS" };
+  }
+
+  if (
+    titleHas([
+      "externe ssd",
+      "external ssd",
+      "portable ssd",
+      "portable drive",
+      "external drive",
+      "externe festplatte",
+    ]) ||
+    textHas(["portable drive", "external drive"])
+  ) {
+    return { category: "Datenspeicher", subcategory: "Externe Speicher" };
+  }
+
+  if (
+    rawHas(["usb stick", "speicherkarte", "memory card"]) ||
+    titleHas(["usb stick", "usb-stick", "microsd", "micro sd", "sd card", "speicherkarte"])
+  ) {
+    return { category: "Datenspeicher", subcategory: "USB-Sticks & Speicherkarten" };
+  }
+
+  // Mobile acessórios antes de smartphones/tablets.
+  if (
+    textHas([
+      "panzerglass",
+      "schutzglas",
+      "displayschutz",
+      "schutzfolie",
+      "screen protector",
+      "kameraschutz",
+      "handyhulle",
+      "handy hulle",
+      "iphone hulle",
+      "iphone case",
+      "smartphone case",
+      "tablet case",
+      "ipad case",
+      "cover",
+      "powerbank",
+      "ladegerat",
+      "ladegerät",
+      "charger",
+      "stylus",
+      "active pen",
+      "ersatzstift",
+      "pencil",
+      "apple pencil",
+      "s pen",
+      "wallet case",
+      "clear case",
+      "backcover",
+      "book cover",
+    ])
+  ) {
+    return { category: "Mobile", subcategory: "Zubehör" };
+  }
+
+  if (
+    rawHas(["smartphone", "mobiltelefon", "mobile phone"]) ||
+    titleHas([
+      "iphone",
+      "galaxy s",
+      "galaxy a",
+      "galaxy z",
+      "pixel",
+      "smartphone",
+      "xiaomi",
+      "redmi",
+      "oppo",
+      "motorola",
+      "nothing phone",
+      "fairphone",
+    ])
+  ) {
+    return { category: "Mobile", subcategory: "Smartphones" };
+  }
+
+  if (
+    rawHas(["tablet", "tablets"]) ||
+    titleHas([
+      "ipad",
+      "galaxy tab",
+      "surface pro",
+      "tablet",
+      "tab s",
+      "tab a",
+      "tab active",
+      "lenovo tab",
+      "xiaomi pad",
+    ])
+  ) {
+    return { category: "Mobile", subcategory: "Tablets" };
+  }
+
+  if (
+    rawHas(["smartwatch", "watch", "wearable"]) ||
+    titleHas(["apple watch", "galaxy watch", "smartwatch", "garmin watch"])
+  ) {
+    return { category: "Mobile", subcategory: "Smartwatches" };
+  }
+
+  // Notebook-Zubehör antes de Laptop.
+  if (
+    rawHas([
+      "notebook zubehor",
+      "notebook-zubehor",
+      "laptop zubehor",
+      "laptop-zubehor",
+      "taschen",
+      "rucksack",
+      "sleeve",
+    ]) ||
+    textHas([
+      "notebook zubehor",
+      "notebook-zubehor",
+      "laptop zubehor",
+      "laptop-zubehor",
+      "notebook tasche",
+      "laptop tasche",
+      "notebook sleeve",
+      "laptop sleeve",
+      "rucksack",
+      "backpack",
+      "notebook rucksack",
+      "laptop rucksack",
+      "notebook stand",
+      "laptop stand",
+      "notebook halter",
+      "laptop halter",
+      "privacy filter",
+      "blickschutz",
+      "display privacy",
+      "universal bay",
+      "replacement battery",
+      "akku fur notebook",
+      "netzteil fur notebook",
+    ])
+  ) {
+    return { category: "Zubehör", subcategory: "Notebook-Zubehör" };
+  }
+
+  // Docking/KVM antes de cabo/monitor/laptop.
   if (
     rawHas(["kvm", "kvm systeme", "kvm-systeme"]) ||
-    textHas(["kvm switch", "kvm-switch", "displayport kvm", "hdmi kvm", "kvm "])
+    textHas([
+      "kvm switch",
+      "kvm-switch",
+      "displayport kvm",
+      "hdmi kvm",
+      "kvm",
+    ])
   ) {
     return { category: "Netzwerk", subcategory: "KVM-Switches" };
   }
@@ -231,11 +497,14 @@ function mapCategory(product) {
       "port replikator",
       "port-replikator",
       "travel docking",
+      "dock usb",
+      "dock thunderbolt",
     ])
   ) {
     return { category: "Peripherie", subcategory: "Dockingstationen" };
   }
 
+  // Kabel/Adapter.
   if (
     rawHas(["kabel", "adapter", "kabel adapter", "video kabel", "audio kabel"]) ||
     textHas([
@@ -264,60 +533,160 @@ function mapCategory(product) {
       "cable",
     ])
   ) {
+    if (textHas(["patchkabel", "netzwerkkabel", "ethernet kabel", "rj45", "cat6", "cat 6", "cat7", "cat 7"])) {
+      return { category: "Netzwerk", subcategory: "Netzwerk Kabel" };
+    }
+
     return { category: "Peripherie", subcategory: "Kabel & Adapter" };
   }
 
+  // Peripherie.
   if (
-    rawHas(["notebook zubehor", "notebook-zubehor", "taschen", "rucksack"]) ||
-    textHas([
-      "notebook zubehor",
-      "notebook-zubehor",
-      "laptop zubehor",
-      "laptop-zubehor",
-      "notebook tasche",
-      "laptop tasche",
-      "notebook sleeve",
-      "laptop sleeve",
-      "rucksack",
-      "notebook stand",
-      "laptop stand",
-      "notebook halter",
-      "laptop halter",
-      "privacy filter",
-      "blickschutz",
+    rawHas(["monitore", "monitor", "bildschirm", "display"]) ||
+    titleHas([
+      "gaming monitor",
+      "business monitor",
+      "lcd monitor",
+      "led monitor",
+      "oled monitor",
+      "curved monitor",
+      "monitor 24",
+      "monitor 27",
+      "monitor 32",
+      "monitor 34",
+      "monitor 49",
+      "qhd monitor",
+      "uhd monitor",
+      "4k monitor",
+      "fhd monitor",
+      "bildschirm",
+      "public display",
+      "smart signage",
     ])
   ) {
-    return { category: "Zubehör", subcategory: "Notebook-Zubehör" };
+    const isAudioMonitor =
+      textHas(["studio monitor", "monitor speaker", "lautsprecher", "speaker", "m audio", "m-audio"]) ||
+      brand === "m audio" ||
+      brand === "m-audio";
+
+    if (!isAudioMonitor) {
+      return { category: "Peripherie", subcategory: "Monitore" };
+    }
   }
 
   if (
-    textHas([
-      "panzerglass",
-      "schutzglas",
-      "displayschutz",
-      "schutzfolie",
-      "screen protector",
-      "kameraschutz",
-      "handyhulle",
-      "handy hulle",
-      "iphone hulle",
-      "iphone case",
-      "smartphone case",
-      "tablet case",
-      "ipad case",
-      "cover",
-      "powerbank",
-      "ladegerat",
-      "charger",
-      "stylus",
-      "active pen",
-      "ersatzstift",
-      "pencil",
-    ])
+    rawHas(["tastatur", "keyboard"]) ||
+    textHas(["keyboard", "tastatur", "desktop set", "mk270", "mk470"])
   ) {
-    return { category: "Mobile", subcategory: "Zubehör" };
+    return { category: "Peripherie", subcategory: "Tastaturen" };
   }
 
+  if (rawHas(["maus", "mouse"]) || textHas(["maus", "mouse", "trackball"])) {
+    return { category: "Peripherie", subcategory: "Mäuse" };
+  }
+
+  if (
+    rawHas(["headset", "kopfhorer", "kopfhoerer"]) ||
+    textHas(["headset", "kopfhorer", "kopfhoerer", "headphone", "earbuds"])
+  ) {
+    return { category: "Peripherie", subcategory: "Headsets" };
+  }
+
+  if (rawHas(["webcam"]) || textHas(["webcam"])) {
+    return { category: "Peripherie", subcategory: "Webcams" };
+  }
+
+  if (
+    rawHas(["mikrofon", "microphone"]) ||
+    textHas(["mikrofon", "microphone", "microphon"])
+  ) {
+    return { category: "Peripherie", subcategory: "Mikrofone" };
+  }
+
+  if (
+    rawHas(["gaming stuhl", "gaming chair", "stuhl"]) ||
+    titleHas(["gaming stuhl", "gaming chair", "office chair", "bürostuhl", "buerostuhl"])
+  ) {
+    return { category: "Peripherie", subcategory: "Gaming-Stühle" };
+  }
+
+  // Netzwerk.
+  if (rawHas(["router", "firewall"]) || textHas(["router", "firewall"])) {
+    return { category: "Netzwerk", subcategory: "Router" };
+  }
+
+  if (
+    rawHas(["switch", "switches", "netzwerk switch"]) ||
+    textHas(["network switch", "netzwerk switch", "poe switch", "switches"])
+  ) {
+    return { category: "Netzwerk", subcategory: "Switches" };
+  }
+
+  if (
+    rawHas(["wlan", "wifi", "wi fi", "mesh", "access point", "accesspoint"]) ||
+    textHas(["wlan", "wifi", "wi fi", "mesh", "access point", "accesspoint", "deco", "orbi", "unifi ap"])
+  ) {
+    return { category: "Netzwerk", subcategory: "WLAN Mesh" };
+  }
+
+  if (
+    rawHas(["netzwerkkabel", "patchkabel", "rj45"]) ||
+    textHas(["rj45", "cat6", "cat 6", "cat7", "cat 7", "ethernet"])
+  ) {
+    return { category: "Netzwerk", subcategory: "Netzwerk Kabel" };
+  }
+
+  // PC-Komponenten.
+  if (
+    rawHas(["grafikkarte", "graphics card"]) ||
+    titleHas(["grafikkarte", "graphics card", "geforce", "rtx", "radeon", "quadro", "nvidia"])
+  ) {
+    return { category: "PC-Komponenten", subcategory: "Grafikkarten" };
+  }
+
+  if (
+    rawHas(["arbeitsspeicher", "memory", "ram"]) ||
+    titleHas(["arbeitsspeicher", "ram", "memory", "ddr4", "ddr5", "so dimm", "sodimm"])
+  ) {
+    return { category: "PC-Komponenten", subcategory: "RAM" };
+  }
+
+  if (
+    rawHas(["mainboard", "motherboard"]) ||
+    titleHas(["mainboard", "motherboard", "b650", "x670", "z790", "z890"])
+  ) {
+    return { category: "PC-Komponenten", subcategory: "Mainboards" };
+  }
+
+  if (
+    rawHas(["netzteil", "power supply"]) ||
+    titleHas(["netzteil", "power supply", "psu"])
+  ) {
+    return { category: "PC-Komponenten", subcategory: "Netzteile" };
+  }
+
+  if (
+    rawHas(["prozessor", "processor", "cpu"]) ||
+    titleHas(["prozessor", "processor", "intel core", "ryzen", "cpu"])
+  ) {
+    return { category: "PC-Komponenten", subcategory: "Prozessoren" };
+  }
+
+  if (
+    rawHas(["gehause", "gehaeuse", "case"]) ||
+    titleHas(["pc gehause", "pc case", "computer case", "tower case"])
+  ) {
+    return { category: "PC-Komponenten", subcategory: "Gehäuse" };
+  }
+
+  if (
+    rawHas(["kuhler", "kuehler", "cooler"]) ||
+    titleHas(["cpu cooler", "kuhler", "kuehler", "aio cooler", "wasserkühlung", "wasserkuehlung"])
+  ) {
+    return { category: "PC-Komponenten", subcategory: "Kühlung" };
+  }
+
+  // Computer só depois de remover acessórios, SSDs, docks, cabos, etc.
   if (
     rawHas(["notebook"]) ||
     titleHas([
@@ -335,47 +704,14 @@ function mapCategory(product) {
       "ideapad",
       "travelmate",
       "aspire",
+      "chromebook",
     ])
   ) {
     return { category: "Computer", subcategory: "Laptops" };
   }
 
   if (
-    rawHas(["smartphone", "mobiltelefon", "mobile phone"]) ||
     titleHas([
-      "iphone",
-      "galaxy s",
-      "galaxy a",
-      "galaxy z",
-      "pixel",
-      "smartphone",
-      "xiaomi",
-      "redmi",
-      "oppo",
-      "motorola",
-      "nothing phone",
-    ])
-  ) {
-    return { category: "Mobile", subcategory: "Smartphones" };
-  }
-
-  if (
-    rawHas(["tablet", "tablets"]) ||
-    titleHas([
-      "ipad",
-      "galaxy tab",
-      "surface pro",
-      "tablet",
-      "tab s",
-      "tab a",
-      "tab active",
-    ])
-  ) {
-    return { category: "Mobile", subcategory: "Tablets" };
-  }
-
-  if (
-    textHas([
       "mini pc",
       "minipc",
       "mini-pc",
@@ -419,169 +755,7 @@ function mapCategory(product) {
     return { category: "Computer", subcategory: "Desktop-PCs" };
   }
 
-  if (
-    rawHas(["monitore", "monitor", "bildschirm"]) ||
-    titleHas([
-      "gaming monitor",
-      "business monitor",
-      "lcd monitor",
-      "led monitor",
-      "oled monitor",
-      "curved monitor",
-      "monitor 24",
-      "monitor 27",
-      "monitor 32",
-      "monitor 34",
-      "monitor 49",
-      "qhd monitor",
-      "uhd monitor",
-      "4k monitor",
-      "fhd monitor",
-      "bildschirm",
-    ])
-  ) {
-    return { category: "Peripherie", subcategory: "Monitore" };
-  }
-
-  if (
-    rawHas(["tastatur", "keyboard"]) ||
-    textHas(["keyboard", "tastatur", "desktop set", "mk270", "mk470"])
-  ) {
-    return { category: "Peripherie", subcategory: "Tastaturen" };
-  }
-
-  if (
-    rawHas(["maus", "mouse"]) ||
-    textHas(["maus", "mouse", "trackball"])
-  ) {
-    return { category: "Peripherie", subcategory: "Mäuse" };
-  }
-
-  if (
-    rawHas(["headset", "kopfhorer", "kopfhoerer"]) ||
-    textHas(["headset", "kopfhorer", "kopfhoerer", "headphone", "earbuds"])
-  ) {
-    return { category: "Peripherie", subcategory: "Headsets" };
-  }
-
-  if (
-    rawHas(["webcam"]) ||
-    textHas(["webcam"])
-  ) {
-    return { category: "Peripherie", subcategory: "Webcams" };
-  }
-
-  if (
-    rawHas(["mikrofon", "microphone"]) ||
-    textHas(["mikrofon", "microphone", "microphon"])
-  ) {
-    return { category: "Peripherie", subcategory: "Mikrofone" };
-  }
-
-  if (
-    rawHas(["grafikkarte", "graphics card"]) ||
-    textHas(["grafikkarte", "graphics card", "gpu", "geforce", "rtx", "radeon"])
-  ) {
-    return { category: "PC-Komponenten", subcategory: "Grafikkarten" };
-  }
-
-  if (
-    rawHas(["arbeitsspeicher", "memory", "ram"]) ||
-    textHas(["arbeitsspeicher", "ram", "memory", "ddr4", "ddr5", "so dimm", "sodimm"])
-  ) {
-    return { category: "PC-Komponenten", subcategory: "RAM" };
-  }
-
-  if (
-    rawHas(["mainboard", "motherboard"]) ||
-    textHas(["mainboard", "motherboard"])
-  ) {
-    return { category: "PC-Komponenten", subcategory: "Mainboards" };
-  }
-
-  if (
-    rawHas(["netzteil", "power supply"]) ||
-    textHas(["netzteil", "power supply", "psu"])
-  ) {
-    return { category: "PC-Komponenten", subcategory: "Netzteile" };
-  }
-
-  if (
-    rawHas(["prozessor", "processor", "cpu"]) ||
-    textHas(["prozessor", "processor", "intel core", "ryzen", "cpu"])
-  ) {
-    return { category: "PC-Komponenten", subcategory: "Prozessoren" };
-  }
-
-  if (
-    rawHas(["gehause", "gehaeuse", "case"]) ||
-    textHas(["pc gehause", "pc case", "computer case"])
-  ) {
-    return { category: "PC-Komponenten", subcategory: "Gehäuse" };
-  }
-
-  if (
-    rawHas(["kuhler", "kuehler", "cooler"]) ||
-    textHas(["cpu cooler", "kuhler", "kuehler", "aio cooler", "wasserkühlung", "wasserkuehlung"])
-  ) {
-    return { category: "PC-Komponenten", subcategory: "Kühlung" };
-  }
-
-  if (
-    rawHas(["router", "firewall"]) ||
-    textHas(["router", "firewall"])
-  ) {
-    return { category: "Netzwerk", subcategory: "Router" };
-  }
-
-  if (
-    rawHas(["switch", "switches"]) ||
-    textHas(["switch", "switches"])
-  ) {
-    return { category: "Netzwerk", subcategory: "Switches" };
-  }
-
-  if (
-    rawHas(["wlan", "wifi", "wi fi", "mesh", "access point", "accesspoint"]) ||
-    textHas(["wlan", "wifi", "wi fi", "mesh", "access point", "accesspoint"])
-  ) {
-    return { category: "Netzwerk", subcategory: "WLAN Mesh" };
-  }
-
-  if (
-    rawHas(["netzwerkkabel", "patchkabel", "rj45"]) ||
-    textHas(["rj45", "cat6", "cat 6", "cat7", "cat 7", "ethernet"])
-  ) {
-    return { category: "Netzwerk", subcategory: "Netzwerk Kabel" };
-  }
-
-  if (
-    rawHas(["ssd", "solid state drive"]) ||
-    textHas(["ssd", "nvme", "m 2", "solid state"])
-  ) {
-    return { category: "Datenspeicher", subcategory: "SSD" };
-  }
-
-  if (
-    rawHas(["festplatte", "hard disk", "hdd"]) ||
-    textHas(["festplatte", "hard disk", "hdd"])
-  ) {
-    return { category: "Datenspeicher", subcategory: "HDD" };
-  }
-
-  if (
-    rawHas(["nas"]) ||
-    textHas(["nas", "synology", "qnap"])
-  ) {
-    return { category: "Datenspeicher", subcategory: "NAS" };
-  }
-
-  if (
-    textHas(["externe ssd", "external ssd", "portable ssd", "portable drive"])
-  ) {
-    return { category: "Datenspeicher", subcategory: "Externe SSD" };
-  }
-
+  // Office.
   if (
     rawHas(["drucker", "printer"]) ||
     textHas([
@@ -611,22 +785,25 @@ function mapCategory(product) {
     return { category: "Office & Business", subcategory: "Papier & Etiketten" };
   }
 
+  // Smart Home.
   if (
     rawHas(["kamera", "camera", "uberwachung", "ueberwachung"]) ||
-    textHas(["kamera", "camera", "security cam", "überwachungskamera", "ueberwachungskamera"])
+    textHas([
+      "kamera",
+      "camera",
+      "security cam",
+      "überwachungskamera",
+      "ueberwachungskamera",
+    ])
   ) {
     return { category: "Smart Home", subcategory: "Kameras" };
   }
 
-  if (
-    textHas(["steckdose", "smart plug", "smartplug"])
-  ) {
+  if (textHas(["steckdose", "smart plug", "smartplug"])) {
     return { category: "Smart Home", subcategory: "Steckdosen" };
   }
 
-  if (
-    textHas(["beleuchtung", "light", "led strip", "led stripe", "lampe"])
-  ) {
+  if (textHas(["beleuchtung", "light", "led strip", "led stripe", "lampe"])) {
     return { category: "Smart Home", subcategory: "Beleuchtung" };
   }
 
@@ -637,9 +814,18 @@ function familyKey(product) {
   let title = normalizeText(product.title || product.fullTitle || "");
 
   title = title
-    .replace(/\b(midnight|mitternacht|starlight|platinum|platinium|ocean|violet|sky blue|space black|space schwarz|silber|silver|schwarz|black|grau|gray|grey|blau|blue|weiss|white|gold|rose|rot|red|grun|green)\b/g, "")
-    .replace(/\b(64gb|128gb|256gb|512gb|1tb|2tb|4tb|8gb|16gb|24gb|32gb|64gb|128gb)\b/g, "")
-    .replace(/\b(64 gb|128 gb|256 gb|512 gb|1 tb|2 tb|4 tb|8 gb|16 gb|24 gb|32 gb|64 gb|128 gb)\b/g, "")
+    .replace(
+      /\b(midnight|mitternacht|starlight|platinum|platinium|ocean|violet|sky blue|space black|space schwarz|silber|silver|schwarz|black|grau|gray|grey|blau|blue|weiss|white|gold|rose|rot|red|grun|green)\b/g,
+      ""
+    )
+    .replace(
+      /\b(64gb|128gb|256gb|512gb|1tb|2tb|4tb|8gb|16gb|24gb|32gb|64gb|128gb)\b/g,
+      ""
+    )
+    .replace(
+      /\b(64 gb|128 gb|256 gb|512 gb|1 tb|2 tb|4 tb|8 gb|16 gb|24 gb|32 gb|64 gb|128 gb)\b/g,
+      ""
+    )
     .replace(/\b(wifi|wi fi|5g|cellular|lte)\b/g, "")
     .replace(/\s+/g, " ")
     .trim();
@@ -664,7 +850,10 @@ function scoreProduct(product) {
   const mapped = mapCategory(product);
 
   if (mapped.category !== "Zubehör") score += 100;
-  if (mapped.subcategory !== "Sonstiges Zubehör" && mapped.subcategory !== "Sonstiges") {
+  if (
+    mapped.subcategory !== "Sonstiges Zubehör" &&
+    mapped.subcategory !== "Sonstiges"
+  ) {
     score += 80;
   }
 
@@ -710,6 +899,7 @@ for (const file of inputFiles) {
       ...item,
 
       _sourceFile: file,
+      _rawPath: rawPath(item),
 
       merchandiseId: getVariantId(item),
 
@@ -725,11 +915,6 @@ for (const file of inputFiles) {
       stock: getStock(item),
       inStock: getStock(item) > 0,
 
-      /*
-        Aqui está a correção principal:
-        NÃO usamos item.category nem item.iumatecCategory antiga.
-        Recalculamos sempre com mapCategory().
-      */
       category: mapped.category,
       subcategory: mapped.subcategory,
       iumatecCategory: {
@@ -798,6 +983,34 @@ console.log("========== TOP CATEGORIES ==========");
 console.log(
   Object.entries(categoryCounts)
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 40)
+    .slice(0, 60)
 );
 console.log("====================================");
+
+console.log("");
+console.log("========== QUICK CHECKS ==========");
+const checks = [
+  "pana 512gb",
+  "m-audio bx",
+  "rucksack",
+  "dockingstation",
+  "macbook",
+  "rtx",
+  "mainboard",
+  "router",
+];
+
+for (const query of checks) {
+  const found = cleaned.find((product) => productText(product).includes(normalizeText(query)));
+
+  if (found) {
+    console.log(query, "=>", {
+      title: found.title,
+      brand: found.brand,
+      category: found.category,
+      subcategory: found.subcategory,
+      raw: found._rawPath,
+    });
+  }
+}
+console.log("================================");
