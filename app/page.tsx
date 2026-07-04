@@ -154,51 +154,306 @@ function uniqueFamilies(products: Product[]) {
   });
 }
 
+function productNameText(product: Product) {
+  const p = product as any;
+
+  return normalize(
+    `${p.title || ""} ${p.fullTitle || ""} ${p.shopifyProductTitle || ""} ${p.brand || ""}`
+  );
+}
+
+function hasProductWords(product: Product, words: string[]) {
+  const text = productNameText(product);
+  return words.some((word) => text.includes(normalize(word)));
+}
+
+function hasBlockedWords(product: Product, words: string[]) {
+  const text = productNameText(product);
+  return words.some((word) => text.includes(normalize(word)));
+}
+
+const nonComputerWords = [
+  "rucksack",
+  "backpack",
+  "tasche",
+  "sleeve",
+  "adapter",
+  "akku",
+  "battery",
+  "netzteil",
+  "charger",
+  "dock",
+  "docking",
+  "privacy",
+  "schutz",
+  "filter",
+  "ssd",
+  "hdd",
+  "kabel",
+  "cable",
+];
+
+const nonMonitorWords = [
+  "lautsprecher",
+  "speaker",
+  "soundbar",
+  "m-audio",
+  "vonyx",
+  "headset",
+  "webcam",
+  "tablet",
+  "ipad",
+  "smartphone",
+  "iphone",
+  "galaxy tab",
+  "roboter",
+  "robot",
+  "staubsauger",
+  "vacuum",
+];
+
+const nonSmartphoneWords = [
+  "clear glass",
+  "panzerglass",
+  "schutzglas",
+  "screen protector",
+  "schutzfolie",
+  "case",
+  "cover",
+  "hulle",
+  "hülle",
+  "adapter",
+  "charger",
+  "ladegerät",
+  "ladegerat",
+  "kabel",
+  "cable",
+  "monitor",
+  "display",
+  "tablet",
+  "galaxy tab",
+  "ipad",
+  "roboter",
+  "robot",
+  "staubsauger",
+  "vacuum",
+  "notepad",
+  "reader",
+];
+
+const nonTabletWords = [
+  "case",
+  "cover",
+  "keyboard",
+  "tastatur",
+  "akku",
+  "battery",
+  "adapter",
+  "notepad",
+  "reader",
+  "monitor",
+  "display",
+  "roboter",
+  "robot",
+  "staubsauger",
+  "vacuum",
+];
+
+const nonStorageWords = [
+  "adapter",
+  "charger",
+  "ladegerät",
+  "ladegerat",
+  "netzteil",
+  "usb-c",
+  "usb c",
+  "kitchen",
+  "küche",
+  "kuche",
+  "kitchenaid",
+  "mixer",
+  "maschine",
+  "printer",
+  "drucker",
+  "toner",
+];
+
 function isLaptop(product: Product) {
   return (
-    normalize(getCategory(product)) === "computer" &&
-    normalize(getSubcategory(product)) === "laptops"
+    hasProductWords(product, [
+      "notebook",
+      "laptop",
+      "thinkpad",
+      "elitebook",
+      "latitude",
+      "probook",
+      "macbook",
+      "aspire",
+      "vivobook",
+      "zenbook",
+      "travelmate",
+      "chromebook",
+      "surface laptop",
+    ]) && !hasBlockedWords(product, nonComputerWords)
   );
 }
 
 function isMonitor(product: Product) {
   return (
-    normalize(getCategory(product)) === "peripherie" &&
-    normalize(getSubcategory(product)) === "monitore"
+    hasProductWords(product, [
+      "monitor",
+      "display",
+      "27\"",
+      "32\"",
+      "34\"",
+      "qhd",
+      "uhd",
+      "4k",
+      "wqhd",
+      "ultrawide",
+    ]) && !hasBlockedWords(product, nonMonitorWords)
   );
 }
 
 function isSmartphone(product: Product) {
   return (
-    normalize(getCategory(product)) === "mobile" &&
-    normalize(getSubcategory(product)) === "smartphones"
+    hasProductWords(product, [
+      "iphone",
+      "samsung galaxy s",
+      "samsung galaxy a",
+      "samsung galaxy z",
+      "galaxy s",
+      "galaxy a",
+      "galaxy z",
+      "pixel",
+      "redmi",
+      "xiaomi",
+      "realme",
+      "motorola",
+      "honor",
+      "oppo",
+      "smartphone",
+    ]) && !hasBlockedWords(product, nonSmartphoneWords)
   );
 }
 
 function isTablet(product: Product) {
   return (
-    normalize(getCategory(product)) === "mobile" &&
-    normalize(getSubcategory(product)) === "tablets"
+    hasProductWords(product, [
+      "ipad",
+      "galaxy tab",
+      "lenovo tab",
+      "xiaomi pad",
+      "tablet",
+    ]) && !hasBlockedWords(product, nonTabletWords)
   );
 }
 
 function isGpu(product: Product) {
-  return (
-    normalize(getCategory(product)) === "pc-komponenten" &&
-    normalize(getSubcategory(product)) === "grafikkarten"
-  );
+  return hasProductWords(product, [
+    "rtx",
+    "geforce",
+    "radeon",
+    "grafikkarte",
+    "graphics card",
+    "nvidia",
+  ]);
 }
 
 function isNetwork(product: Product) {
-  return normalize(getCategory(product)) === "netzwerk";
+  return hasProductWords(product, [
+    "router",
+    "switch",
+    "unifi",
+    "access point",
+    "accesspoint",
+    "mesh",
+    "wlan",
+    "wifi",
+  ]);
 }
 
 function isStorage(product: Product) {
-  return normalize(getCategory(product)) === "datenspeicher";
+  return (
+    hasProductWords(product, [
+      "ssd",
+      "nvme",
+      "m.2",
+      "m 2",
+      "ironwolf",
+      "wd black",
+      "crucial",
+      "kingston",
+      "samsung 990",
+      "samsung 980",
+      "external ssd",
+      "portable ssd",
+      "solid state",
+    ]) && !hasBlockedWords(product, nonStorageWords)
+  );
 }
 
 function isAccessory(product: Product) {
-  return normalize(getCategory(product)) === "zubehor";
+  return hasProductWords(product, [
+    "maus",
+    "mouse",
+    "tastatur",
+    "keyboard",
+    "headset",
+    "webcam",
+    "dock",
+    "docking",
+    "usb hub",
+  ]);
+}
+
+function scoreShowcaseProduct(product: Product) {
+  const text = productNameText(product);
+  let score = 0;
+
+  score += Math.min(getStockQty(product), 20) * 10;
+
+  if (getPrice(product) >= 100) score += 100;
+  if (getPrice(product) >= 250) score += 120;
+  if (getPrice(product) >= 500) score += 80;
+
+  if (
+    [
+      "apple",
+      "samsung",
+      "lenovo",
+      "hp",
+      "dell",
+      "asus",
+      "acer",
+      "msi",
+      "lg",
+      "philips",
+      "ubiquiti",
+      "tp-link",
+      "kingston",
+      "crucial",
+      "western digital",
+      "wd",
+    ].some((brand) => text.includes(brand))
+  ) {
+    score += 180;
+  }
+
+  if (text.includes("rtx")) score += 160;
+  if (text.includes("iphone")) score += 160;
+  if (text.includes("galaxy")) score += 140;
+  if (text.includes("thinkpad") || text.includes("elitebook") || text.includes("latitude")) score += 120;
+  if (text.includes('27"') || text.includes('32"') || text.includes("qhd") || text.includes("uhd")) score += 120;
+  if (text.includes("nvme") || text.includes("m.2") || text.includes("ssd")) score += 120;
+
+  return score;
+}
+
+function pickShowcaseProduct(products: Product[], matcher: (product: Product) => boolean) {
+  return products
+    .filter((product) => isBuyable(product) && matcher(product))
+    .sort((a, b) => scoreShowcaseProduct(b) - scoreShowcaseProduct(a))[0];
 }
 
 function formatPrice(price: number) {
@@ -335,29 +590,47 @@ function CategoryCard({
   subtitle,
   href,
   icon,
+  product,
 }: {
   title: string;
   subtitle: string;
   href: string;
   icon: string;
+  product?: Product;
 }) {
+  const productData = product as any;
+  const image = productData?.image || null;
+  const alt = productData?.title || title;
+
   return (
     <Link
       href={href}
-      className="group rounded-[2rem] border border-neutral-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
+      className="group overflow-hidden rounded-[2rem] border border-neutral-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
     >
-      <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-3xl bg-neutral-100 text-3xl transition group-hover:bg-red-50">
-        {icon}
+      <div className="flex h-48 items-center justify-center bg-neutral-50 p-6">
+        {image ? (
+          <img
+            src={image}
+            alt={alt}
+            className="max-h-full max-w-full object-contain transition duration-300 group-hover:scale-105"
+          />
+        ) : (
+          <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-neutral-100 text-3xl transition group-hover:bg-red-50">
+            {icon}
+          </div>
+        )}
       </div>
 
-      <h3 className="text-xl font-black text-neutral-950">{title}</h3>
+      <div className="p-6">
+        <h3 className="text-xl font-black text-neutral-950">{title}</h3>
 
-      <p className="mt-2 min-h-[48px] text-sm leading-6 text-neutral-500">
-        {subtitle}
-      </p>
+        <p className="mt-2 min-h-[48px] text-sm leading-6 text-neutral-500">
+          {subtitle}
+        </p>
 
-      <div className="mt-5 text-sm font-black text-red-600">
-        Jetzt entdecken →
+        <div className="mt-5 text-sm font-black text-red-600">
+          Jetzt entdecken →
+        </div>
       </div>
     </Link>
   );
@@ -416,6 +689,15 @@ export default function HomePage() {
     smartphones[0],
     gpus[0],
   ].filter(Boolean) as Product[];
+
+  const categoryShowcase: Record<string, Product | undefined> = {
+    Computer: pickShowcaseProduct(allBuyable, isLaptop),
+    "PC-Komponenten": pickShowcaseProduct(allBuyable, isGpu),
+    Peripherie: pickShowcaseProduct(allBuyable, isMonitor),
+    Netzwerk: pickShowcaseProduct(allBuyable, isNetwork),
+    Mobile: pickShowcaseProduct(allBuyable, isSmartphone),
+    Datenspeicher: pickShowcaseProduct(allBuyable, isStorage),
+  };
 
   return (
     <main className="bg-white">
@@ -498,7 +780,11 @@ export default function HomePage() {
 
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {mainCategories.map((item) => (
-            <CategoryCard key={item.title} {...item} />
+            <CategoryCard
+              key={item.title}
+              {...item}
+              product={categoryShowcase[item.title]}
+            />
           ))}
         </div>
       </section>
