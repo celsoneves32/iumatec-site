@@ -48,16 +48,27 @@ const mainCategories = [
 
 const quickLinks = [
   { label: "Laptops", href: "/produkte?category=Computer&subcategory=Laptops" },
-  { label: "Monitore", href: "/produkte?category=Peripherie&subcategory=Monitore" },
-  { label: "Smartphones", href: "/produkte?category=Mobile&subcategory=Smartphones" },
-  { label: "Grafikkarten", href: "/produkte?category=PC-Komponenten&subcategory=Grafikkarten" },
+  {
+    label: "Monitore",
+    href: "/produkte?category=Peripherie&subcategory=Monitore",
+  },
+  {
+    label: "Smartphones",
+    href: "/produkte?category=Mobile&subcategory=Smartphones",
+  },
+  {
+    label: "Grafikkarten",
+    href: "/produkte?category=PC-Komponenten&subcategory=Grafikkarten",
+  },
   { label: "SSD", href: "/produkte?category=Datenspeicher&subcategory=SSD" },
   { label: "Zubehör", href: "/produkte?category=Zubehör" },
 ];
 
 function getProductSlug(product: Product) {
   const p = product as any;
-  return String(p.slug || p.shopifyProductHandle || p.productHandle || "").trim();
+  return String(
+    p.slug || p.shopifyProductHandle || p.productHandle || "",
+  ).trim();
 }
 
 function getMerchandiseId(product: Product) {
@@ -100,7 +111,7 @@ function productText(product: Product) {
   return normalize(
     `${p.title || ""} ${p.brand || ""} ${p.category || ""} ${
       p.subcategory || ""
-    } ${p.description || ""} ${p.description2 || ""}`
+    } ${p.description || ""} ${p.description2 || ""}`,
   );
 }
 
@@ -120,11 +131,11 @@ function familyKey(product: Product) {
   return productText(product)
     .replace(
       /\b(schwarz|black|midnight|mitternacht|sky blue|sky-blue|silber|silver|grau|gray|grey|blau|blue|weiss|white|gold|rose|rot|red|grun|green|starlight|space black|space schwarz)\b/g,
-      ""
+      "",
     )
     .replace(
       /\b(64gb|128gb|256gb|512gb|1tb|2tb|4tb|8gb|16gb|24gb|32gb|64 gb|128 gb|256 gb|512 gb|1 tb|2 tb|4 tb|8 gb|16 gb|24 gb|32 gb)\b/g,
-      ""
+      "",
     )
     .replace(/\b(wifi|wi fi|wi-fi|5g|cellular|lte)\b/g, "")
     .replace(/\s+/g, " ")
@@ -158,7 +169,7 @@ function productNameText(product: Product) {
   const p = product as any;
 
   return normalize(
-    `${p.title || ""} ${p.fullTitle || ""} ${p.shopifyProductTitle || ""} ${p.brand || ""}`
+    `${p.title || ""} ${p.fullTitle || ""} ${p.shopifyProductTitle || ""} ${p.brand || ""}`,
   );
 }
 
@@ -303,9 +314,9 @@ function isMonitor(product: Product) {
     hasProductWords(product, [
       "monitor",
       "display",
-      "27\"",
-      "32\"",
-      "34\"",
+      '27"',
+      '32"',
+      '34"',
       "qhd",
       "uhd",
       "4k",
@@ -443,14 +454,29 @@ function scoreShowcaseProduct(product: Product) {
   if (text.includes("rtx")) score += 160;
   if (text.includes("iphone")) score += 160;
   if (text.includes("galaxy")) score += 140;
-  if (text.includes("thinkpad") || text.includes("elitebook") || text.includes("latitude")) score += 120;
-  if (text.includes('27"') || text.includes('32"') || text.includes("qhd") || text.includes("uhd")) score += 120;
-  if (text.includes("nvme") || text.includes("m.2") || text.includes("ssd")) score += 120;
+  if (
+    text.includes("thinkpad") ||
+    text.includes("elitebook") ||
+    text.includes("latitude")
+  )
+    score += 120;
+  if (
+    text.includes('27"') ||
+    text.includes('32"') ||
+    text.includes("qhd") ||
+    text.includes("uhd")
+  )
+    score += 120;
+  if (text.includes("nvme") || text.includes("m.2") || text.includes("ssd"))
+    score += 120;
 
   return score;
 }
 
-function pickShowcaseProduct(products: Product[], matcher: (product: Product) => boolean) {
+function pickShowcaseProduct(
+  products: Product[],
+  matcher: (product: Product) => boolean,
+) {
   return products
     .filter((product) => isBuyable(product) && matcher(product))
     .sort((a, b) => scoreShowcaseProduct(b) - scoreShowcaseProduct(a))[0];
@@ -507,7 +533,9 @@ function ProductCarousel({
   products: Product[];
   uniqueFamily?: boolean;
 }) {
-  const items = (uniqueFamily ? uniqueFamilies(products) : uniqueBySlug(products))
+  const items = (
+    uniqueFamily ? uniqueFamilies(products) : uniqueBySlug(products)
+  )
     .filter(isBuyable)
     .slice(0, 16);
 
@@ -534,7 +562,8 @@ function ProductCarousel({
                 inStock: true,
                 stockQty: getStockQty(product),
                 merchandiseId: getMerchandiseId(product),
-                productHandle: p.shopifyProductHandle ?? p.productHandle ?? slug,
+                productHandle:
+                  p.shopifyProductHandle ?? p.productHandle ?? slug,
                 energyLabel: p.energyLabel,
               }}
             />
@@ -582,6 +611,173 @@ function HeroProduct({ product }: { product?: Product }) {
         {formatPrice(getPrice(product))}
       </div>
     </Link>
+  );
+}
+
+function PremiumHero({
+  count,
+  mainProduct,
+  sideProducts,
+}: {
+  count: number;
+  mainProduct?: Product;
+  sideProducts: Product[];
+}) {
+  const p = mainProduct as any;
+  const mainSlug = mainProduct ? getProductSlug(mainProduct) : "";
+
+  return (
+    <section className="relative overflow-hidden border-b border-neutral-200 bg-neutral-950 text-white">
+      <div className="absolute -right-40 -top-40 h-[34rem] w-[34rem] rounded-full bg-red-600/30 blur-3xl" />
+      <div className="absolute -bottom-48 left-0 h-[30rem] w-[30rem] rounded-full bg-white/10 blur-3xl" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.16),transparent_36%),linear-gradient(135deg,rgba(255,255,255,0.08),transparent_45%)]" />
+
+      <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-12 lg:grid-cols-[1.02fr_0.98fr] lg:items-center lg:py-16">
+        <div>
+          <div className="inline-flex flex-wrap gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-black text-white ring-1 ring-white/15">
+            <span>🇨🇭 Schweizer Tech-Shop</span>
+            <span className="text-white/50">•</span>
+            <span>
+              {count.toLocaleString("de-CH")} sofort kaufbare Produkte
+            </span>
+          </div>
+
+          <h1 className="mt-6 max-w-3xl text-5xl font-black leading-[0.92] tracking-tight md:text-7xl">
+            Technik für dein Business, Gaming und Zuhause.
+          </h1>
+
+          <p className="mt-6 max-w-2xl text-lg leading-8 text-white/75">
+            Laptops, Komponenten, Monitore, Smartphones, Netzwerk und Zubehör.
+            Direkt aus der Schweiz, mit klaren Preisen und sicherem Shopify
+            Checkout.
+          </p>
+
+          <div className="mt-8 flex flex-wrap gap-4">
+            <Link
+              href="/produkte"
+              className="rounded-2xl bg-red-600 px-8 py-4 text-base font-black text-white shadow-lg shadow-red-950/30 transition hover:bg-red-700"
+            >
+              Jetzt einkaufen
+            </Link>
+
+            <Link
+              href="/produkte?sort=price-asc"
+              className="rounded-2xl border border-white/20 bg-white/10 px-8 py-4 text-base font-black text-white transition hover:bg-white/15"
+            >
+              Angebote entdecken
+            </Link>
+          </div>
+
+          <div className="mt-8 grid max-w-3xl gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              "CH Versand",
+              "MWST inklusive",
+              "Sichere Zahlung",
+              "Support 24h",
+            ].map((item) => (
+              <div
+                key={item}
+                className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm font-black text-white/90"
+              >
+                ✓ {item}
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-8 flex flex-wrap gap-3">
+            {quickLinks.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm font-black text-white/85 transition hover:bg-white/10 hover:text-white"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid gap-5">
+          {mainProduct ? (
+            <Link
+              href={`/produkte/${mainSlug}`}
+              className="group overflow-hidden rounded-[2.2rem] border border-white/15 bg-white text-neutral-950 shadow-2xl shadow-black/30 transition hover:-translate-y-1 hover:shadow-black/40"
+            >
+              <div className="grid gap-6 p-6 sm:grid-cols-[1fr_0.95fr] sm:items-center">
+                <div>
+                  <div className="inline-flex rounded-full bg-green-50 px-3 py-1 text-xs font-black text-green-700 ring-1 ring-green-100">
+                    Sofort lieferbar
+                  </div>
+
+                  <div className="mt-4 text-xs font-black uppercase tracking-wide text-neutral-500">
+                    {p.brand || "IUMATEC"}
+                  </div>
+
+                  <h2 className="mt-2 line-clamp-3 text-2xl font-black leading-tight text-neutral-950">
+                    {p.title}
+                  </h2>
+
+                  <div className="mt-5 text-3xl font-black">
+                    {formatPrice(getPrice(mainProduct))}
+                  </div>
+
+                  <div className="mt-1 text-sm text-neutral-500">
+                    inkl. MWST · Lieferung Schweiz
+                  </div>
+
+                  <div className="mt-6 inline-flex rounded-2xl bg-red-600 px-6 py-3 text-sm font-black text-white transition group-hover:bg-red-700">
+                    Produkt ansehen →
+                  </div>
+                </div>
+
+                <div className="flex h-72 items-center justify-center rounded-3xl bg-neutral-50 p-6">
+                  {p.image ? (
+                    <img
+                      src={p.image}
+                      alt={p.title}
+                      className="max-h-full max-w-full object-contain transition duration-300 group-hover:scale-105"
+                    />
+                  ) : null}
+                </div>
+              </div>
+            </Link>
+          ) : null}
+
+          <div className="grid gap-5 sm:grid-cols-3">
+            {sideProducts.slice(0, 3).map((product) => {
+              const item = product as any;
+              const slug = getProductSlug(product);
+
+              return (
+                <Link
+                  key={slug}
+                  href={`/produkte/${slug}`}
+                  className="group overflow-hidden rounded-[1.7rem] border border-white/15 bg-white/10 p-4 transition hover:-translate-y-1 hover:bg-white/15"
+                >
+                  <div className="flex h-28 items-center justify-center rounded-2xl bg-white p-3">
+                    {item.image ? (
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        className="max-h-full max-w-full object-contain transition duration-300 group-hover:scale-105"
+                      />
+                    ) : null}
+                  </div>
+
+                  <div className="mt-3 line-clamp-2 text-sm font-black text-white">
+                    {item.title}
+                  </div>
+
+                  <div className="mt-2 text-sm font-black text-white/80">
+                    {formatPrice(getPrice(product))}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -699,76 +895,24 @@ export default function HomePage() {
     Datenspeicher: pickShowcaseProduct(allBuyable, isStorage),
   };
 
+  const heroMainProduct =
+    pickShowcaseProduct(allBuyable, isGpu) ||
+    pickShowcaseProduct(allBuyable, isLaptop) ||
+    pickShowcaseProduct(allBuyable, isSmartphone);
+
+  const heroSideProducts = [
+    pickShowcaseProduct(allBuyable, isLaptop),
+    pickShowcaseProduct(allBuyable, isMonitor),
+    pickShowcaseProduct(allBuyable, isSmartphone),
+  ].filter(Boolean) as Product[];
+
   return (
     <main className="bg-white">
-      <section className="relative overflow-hidden border-b border-neutral-200 bg-gradient-to-br from-neutral-50 via-white to-red-50">
-        <div className="absolute -right-40 -top-40 h-[34rem] w-[34rem] rounded-full bg-red-100 blur-3xl" />
-        <div className="absolute -bottom-48 left-0 h-[30rem] w-[30rem] rounded-full bg-neutral-200/80 blur-3xl" />
-
-        <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-14 lg:grid-cols-[1fr_1.05fr] lg:items-center lg:py-20">
-          <div>
-            <div className="inline-flex rounded-full bg-white px-4 py-2 text-sm font-black text-red-700 shadow-sm ring-1 ring-red-100">
-              🇨🇭 IUMATEC Schweiz · über {allBuyable.length.toLocaleString("de-CH")} Produkte
-            </div>
-
-            <h1 className="mt-6 max-w-3xl text-5xl font-black leading-[0.95] tracking-tight text-neutral-950 md:text-7xl">
-              Technik für Business, Gaming und Alltag.
-            </h1>
-
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-neutral-600">
-              Computer, Komponenten, Monitore, Smartphones, Netzwerk und Zubehör.
-              Schnell verfügbar, transparent kalkuliert und mit sicherem Shopify Checkout.
-            </p>
-
-            <div className="mt-8 flex flex-wrap gap-4">
-              <Link
-                href="/produkte"
-                className="rounded-2xl bg-red-600 px-8 py-4 text-base font-black text-white shadow-sm transition hover:bg-red-700"
-              >
-                Jetzt einkaufen
-              </Link>
-
-              <Link
-                href="/produkte?sort=price-asc"
-                className="rounded-2xl border border-neutral-300 bg-white px-8 py-4 text-base font-black text-neutral-950 transition hover:bg-neutral-50"
-              >
-                Angebote entdecken
-              </Link>
-            </div>
-
-            <div className="mt-8 flex flex-wrap gap-3">
-              {quickLinks.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-black text-neutral-800 shadow-sm transition hover:border-red-200 hover:bg-red-50 hover:text-red-700"
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </div>
-
-            <div className="mt-8 grid max-w-3xl gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {["CH Versand", "MWST inklusive", "Sicherer Checkout", "Support innerhalb 24h"].map(
-                (item) => (
-                  <div
-                    key={item}
-                    className="rounded-2xl border border-neutral-200 bg-white/90 px-4 py-3 text-sm font-black text-neutral-800 shadow-sm"
-                  >
-                    ✓ {item}
-                  </div>
-                )
-              )}
-            </div>
-          </div>
-
-          <div className="grid gap-5 sm:grid-cols-2">
-            {heroProducts.slice(0, 4).map((product) => (
-              <HeroProduct key={getProductSlug(product)} product={product} />
-            ))}
-          </div>
-        </div>
-      </section>
+      <PremiumHero
+        count={allBuyable.length}
+        mainProduct={heroMainProduct}
+        sideProducts={heroSideProducts}
+      />
 
       <section className="mx-auto max-w-7xl px-4 py-12">
         <SectionHeader
@@ -937,9 +1081,21 @@ export default function HomePage() {
 
         <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
           {[
-            ["🇨🇭", "CH Versand", "Lieferung in der Schweiz mit klaren Konditionen."],
-            ["🔒", "Sichere Zahlung", "Checkout über Shopify mit Kreditkarte, TWINT und mehr."],
-            ["✅", "Originalware", "Produkte von offiziellen Distributoren und Marken."],
+            [
+              "🇨🇭",
+              "CH Versand",
+              "Lieferung in der Schweiz mit klaren Konditionen.",
+            ],
+            [
+              "🔒",
+              "Sichere Zahlung",
+              "Checkout über Shopify mit Kreditkarte, TWINT und mehr.",
+            ],
+            [
+              "✅",
+              "Originalware",
+              "Produkte von offiziellen Distributoren und Marken.",
+            ],
             ["💬", "Support", "Persönlicher Support innerhalb von 24 Stunden."],
           ].map(([icon, title, text]) => (
             <div
