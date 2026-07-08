@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { Search, Heart, GitCompare, ShoppingCart, Menu } from "lucide-react";
+
 import HeaderAccount from "@/components/HeaderAccount";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
@@ -17,80 +19,146 @@ export default function Header({ onOpenCart }: Props) {
   const { items: compareItems } = useCompare();
 
   return (
-    <header className="sticky top-0 z-40 border-b border-neutral-200 bg-white/95 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4">
-        <div className="flex items-center gap-6">
-          <Link href="/" className="flex items-center">
-            <Image
-              src="/iumatec-logo.png"
-              alt="IUMATEC"
-              width={140}
-              height={36}
-              priority
-              className="h-auto w-auto"
+    <header className="sticky top-0 z-50 bg-white border-b border-neutral-200">
+
+      {/* Top Bar */}
+      <div className="border-b bg-neutral-50">
+        <div className="mx-auto max-w-7xl flex justify-between items-center px-4 py-2 text-xs text-neutral-600">
+
+          <div className="flex gap-6">
+            <span>🇨🇭 Lieferung Schweiz</span>
+            <span>24h Support</span>
+            <span>Sicher bezahlen</span>
+          </div>
+
+          <div className="hidden md:flex gap-5">
+            <Link href="/angebote">Angebote</Link>
+            <Link href="/kontakt">Kontakt</Link>
+            <Link href="/hilfe">Hilfe</Link>
+          </div>
+
+        </div>
+      </div>
+
+      {/* Main Header */}
+
+      <div className="mx-auto max-w-7xl flex items-center gap-5 px-4 py-4">
+
+        <button className="lg:hidden">
+          <Menu size={24} />
+        </button>
+
+        <Link href="/">
+          <Image
+            src="/iumatec-logo.png"
+            alt="IUMATEC"
+            width={170}
+            height={40}
+            priority
+          />
+        </Link>
+
+        {/* SEARCH */}
+
+        <div className="flex-1 hidden md:flex">
+
+          <div className="flex w-full overflow-hidden rounded-xl border">
+
+            <input
+              placeholder="Produkte suchen..."
+              className="w-full px-5 py-3 outline-none"
             />
-          </Link>
 
-          <nav className="hidden items-center gap-5 md:flex">
-            <Link
-              href="/produkte"
-              className="text-sm font-medium text-neutral-700 transition hover:text-black"
-            >
-              Produkte
-            </Link>
+            <button className="bg-black text-white px-6 flex items-center justify-center hover:bg-neutral-800">
+              <Search size={18} />
+            </button>
 
-            <Link
-              href="/collections"
-              className="text-sm font-medium text-neutral-700 transition hover:text-black"
-            >
-              Kategorien
-            </Link>
+          </div>
 
-            <Link
-              href="/angebote"
-              className="text-sm font-medium text-neutral-700 transition hover:text-black"
-            >
-              Angebote
-            </Link>
-          </nav>
         </div>
 
-        <div className="flex items-center gap-4">
+        {/* Icons */}
+
+        <div className="flex items-center gap-5">
+
           <HeaderAccount />
 
-          <Link
-            href="/merken"
-            className="hidden text-sm font-semibold text-neutral-700 transition hover:text-black sm:block"
-          >
-            Merken ({wishlistItems.length})
+          <Link href="/merken" className="relative">
+            <Heart size={22} />
+
+            {wishlistItems.length > 0 && (
+              <span className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full text-[10px] w-5 h-5 flex items-center justify-center">
+                {wishlistItems.length}
+              </span>
+            )}
+
           </Link>
 
-          <Link
-            href="/compare"
-            className="hidden text-sm font-semibold text-neutral-700 transition hover:text-black sm:block"
-          >
-            Vergleichen ({compareItems.length})
-          </Link>
+          <Link href="/compare" className="relative">
+            <GitCompare size={22} />
 
-          <Link
-            href="/warenkorb"
-            className="hidden text-sm font-semibold text-neutral-700 transition hover:text-black sm:block"
-          >
-            Warenkorb
+            {compareItems.length > 0 && (
+              <span className="absolute -top-2 -right-2 bg-black text-white rounded-full text-[10px] w-5 h-5 flex items-center justify-center">
+                {compareItems.length}
+              </span>
+            )}
+
           </Link>
 
           <button
-            type="button"
             onClick={onOpenCart}
-            className="inline-flex items-center gap-2 rounded-xl border border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-900 transition hover:bg-neutral-50"
+            className="relative"
           >
-            <span>Cart</span>
-            <span className="inline-flex min-w-6 items-center justify-center rounded-full bg-black px-2 py-0.5 text-xs font-bold text-white">
-              {totalQuantity ?? 0}
-            </span>
+            <ShoppingCart size={24} />
+
+            {totalQuantity > 0 && (
+              <span className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full text-[10px] w-5 h-5 flex items-center justify-center">
+                {totalQuantity}
+              </span>
+            )}
+
           </button>
+
         </div>
+
       </div>
+
+      {/* Categories */}
+
+      <div className="border-t hidden lg:block">
+
+        <div className="mx-auto max-w-7xl flex gap-8 px-4 py-3 text-sm font-medium">
+
+          <Link href="/produkte">Produkte</Link>
+
+          <Link href="/collections/computer">
+            Computer
+          </Link>
+
+          <Link href="/collections/pc-komponenten">
+            PC-Komponenten
+          </Link>
+
+          <Link href="/collections/peripherie">
+            Peripherie
+          </Link>
+
+          <Link href="/collections/mobile">
+            Mobile
+          </Link>
+
+          <Link href="/collections/netzwerk">
+            Netzwerk
+          </Link>
+
+          <Link href="/collections/datenspeicher">
+            Speicher
+          </Link>
+
+        </div>
+
+      </div>
+
     </header>
   );
 }
