@@ -1,8 +1,12 @@
-import ProductBuyButton from "@/components/ProductBuyButton";
-import ProductGallery from "@/components/ProductGallery";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import ProductCard from "@/components/ProductCard";
+
+import ProductGallery from "@/components/ProductGallery";
+import ProductBuyBox from "@/components/product/ProductBuyBox";
+import ProductTrust from "@/components/product/ProductTrust";
+import ProductSpecs from "@/components/product/ProductSpecs";
+import RelatedCarousel from "@/components/product/RelatedCarousel";
+
 import {
   getAllProducts,
   getProductBySlug,
@@ -11,29 +15,44 @@ import {
 } from "@/lib/productData";
 
 type Props = {
-  params: { slug: string };
+  params: {
+    slug: string;
+  };
 };
 
 function formatPrice(price: number) {
-  const safe = Number.isFinite(Number(price)) ? Number(price) : 0;
-  const rounded = safe.toFixed(2);
-  const [francs, cents] = rounded.split(".");
+  const safePrice = Number.isFinite(Number(price)) ? Number(price) : 0;
+  const roundedPrice = safePrice.toFixed(2);
+  const [francs, cents] = roundedPrice.split(".");
+
   return `CHF ${francs.replace(/\B(?=(\d{3})+(?!\d))/g, "'")}.${cents}`;
 }
 
 function getProductSlug(product: Product) {
-  const p = product as any;
-  return p.slug || p.shopifyProductHandle || "";
+  const productData = product as any;
+
+  return String(
+    productData.slug ||
+      productData.shopifyProductHandle ||
+      productData.productHandle ||
+      "",
+  ).trim();
 }
 
 function getMerchandiseId(product: Product) {
-  const p = product as any;
-  return p.merchandiseId || p.shopifyVariantId || null;
+  const productData = product as any;
+
+  return (
+    productData.merchandiseId ||
+    productData.shopifyVariantId ||
+    null
+  );
 }
 
 function getStockQty(product: Product) {
-  const p = product as any;
-  return Number(p.stockQty ?? p.stock ?? 0);
+  const productData = product as any;
+
+  return Number(productData.stockQty ?? productData.stock ?? 0);
 }
 
 function getProductImages(product: Product) {
@@ -41,7 +60,7 @@ function getProductImages(product: Product) {
     product.image,
     ...(Array.isArray(product.images) ? product.images : []),
   ]
-    .filter((image): image is string => Boolean(image && image.trim()))
+    .filter((image): image is string => Boolean(image?.trim()))
     .filter((image) => image.startsWith("http"));
 
   return Array.from(new Set(images));
@@ -60,71 +79,105 @@ function normalize(value: unknown) {
 }
 
 function getFamilyKey(product: Product) {
-  const p = product as any;
-  let title = normalize(p.title);
+  const productData = product as any;
+
+  let title = normalize(productData.title);
 
   title = title
-    .replace(/\b(midnight|mitternacht|sky blue|sky-blue|silber|silver|schwarz|black|grau|gray|grey|blau|blue|weiss|white|gold|rose|rot|red|grun|green|starlight|space schwarz|space black)\b/g, "")
-    .replace(/\b(64gb|128gb|256gb|512gb|1tb|2tb|4tb|8gb|16gb|24gb|32gb|64gb|128gb)\b/g, "")
-    .replace(/\b(8 gb|16 gb|24 gb|32 gb|64 gb|128 gb)\b/g, "")
+    .replace(
+      /\b(midnight|mitternacht|sky blue|sky-blue|silber|silver|schwarz|black|grau|gray|grey|blau|blue|weiss|white|gold|rose|rot|red|grun|green|starlight|space schwarz|space black)\b/g,
+      "",
+    )
+    .replace(
+      /\b(64gb|128gb|256gb|512gb|1tb|2tb|4tb|8gb|16gb|24gb|32gb)\b/g,
+      "",
+    )
+    .replace(
+      /\b(8 gb|16 gb|24 gb|32 gb|64 gb|128 gb|256 gb|512 gb|1 tb|2 tb|4 tb)\b/g,
+      "",
+    )
     .replace(/\b(wifi|wi-fi|5g|cellular|lte)\b/g, "")
     .replace(/[,/()-]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 
-  return `${normalize(p.brand)}-${title}`;
+  return `${normalize(productData.brand)}-${title}`;
 }
 
 function getVariantLabel(product: Product) {
-  const p = product as any;
-  const text = `${p.title || ""} ${p.description || ""} ${p.description2 || ""}`;
+  const productData = product as any;
+
+  const text = `${productData.title || ""} ${
+    productData.description || ""
+  } ${productData.description2 || ""}`;
 
   const color =
-    text.match(/(Midnight|Mitternacht|Sky Blue|Silber|Silver|Schwarz|Black|Grau|Gray|Grey|Blue|Blau|Gold|Starlight|Space Schwarz|Space Black)/i)?.[0] ||
-    null;
+    text.match(
+      /(Midnight|Mitternacht|Sky Blue|Silber|Silver|Schwarz|Black|Grau|Gray|Grey|Blue|Blau|Gold|Starlight|Space Schwarz|Space Black)/i,
+    )?.[0] || null;
 
-  const storage = text.match(/(128GB|256GB|512GB|1TB|2TB|4TB)/i)?.[0] || null;
+  const storage =
+    text.match(/(64GB|128GB|256GB|512GB|1TB|2TB|4TB)/i)?.[0] ||
+    null;
 
   const ram =
-    text.match(/(8 GB|16 GB|24 GB|32 GB|64 GB|128 GB|8GB|16GB|24GB|32GB|64GB|128GB)/i)?.[0] ||
-    null;
+    text.match(
+      /(8 GB|16 GB|24 GB|32 GB|64 GB|128 GB|8GB|16GB|24GB|32GB|64GB|128GB)/i,
+    )?.[0] || null;
 
   const parts = [color, storage, ram]
     .filter(Boolean)
-    .map((v) => String(v).replace(/(\d+)(GB)/i, "$1 GB"));
+    .map((value) =>
+      String(value).replace(/(\d+)(GB)/i, "$1 GB"),
+    );
 
-  return parts.length ? parts.join(" · ") : p.title;
+  return parts.length
+    ? parts.join(" · ")
+    : String(productData.title || "Variante");
 }
 
 function getVariantProducts(product: Product) {
-  const currentKey = getFamilyKey(product);
+  const currentFamilyKey = getFamilyKey(product);
   const currentSlug = getProductSlug(product);
   const allProducts = getAllProducts();
 
   const variants = allProducts
     .filter((item) => {
-      const slug = getProductSlug(item);
-      if (!slug) return false;
+      const itemSlug = getProductSlug(item);
+      const itemPrice = Number((item as any).price || 0);
 
-      const price = Number((item as any).price || 0);
-      if (price <= 0) return false;
+      if (!itemSlug) return false;
+      if (itemPrice <= 0) return false;
 
-      return getFamilyKey(item) === currentKey;
+      return getFamilyKey(item) === currentFamilyKey;
     })
-    .sort((a, b) => {
-      const activeA = getProductSlug(a) === currentSlug ? -1 : 0;
-      const activeB = getProductSlug(b) === currentSlug ? -1 : 0;
-      if (activeA !== activeB) return activeA - activeB;
+    .sort((firstProduct, secondProduct) => {
+      const firstIsActive =
+        getProductSlug(firstProduct) === currentSlug ? -1 : 0;
 
-      return Number((a as any).price || 0) - Number((b as any).price || 0);
+      const secondIsActive =
+        getProductSlug(secondProduct) === currentSlug ? -1 : 0;
+
+      if (firstIsActive !== secondIsActive) {
+        return firstIsActive - secondIsActive;
+      }
+
+      return (
+        Number((firstProduct as any).price || 0) -
+        Number((secondProduct as any).price || 0)
+      );
     });
 
-  const seen = new Set<string>();
+  const seenSlugs = new Set<string>();
 
   return variants.filter((item) => {
-    const slug = getProductSlug(item);
-    if (seen.has(slug)) return false;
-    seen.add(slug);
+    const itemSlug = getProductSlug(item);
+
+    if (!itemSlug || seenSlugs.has(itemSlug)) {
+      return false;
+    }
+
+    seenSlugs.add(itemSlug);
     return true;
   });
 }
@@ -132,243 +185,183 @@ function getVariantProducts(product: Product) {
 export default function ProductPage({ params }: Props) {
   const product = getProductBySlug(params.slug);
 
-  if (!product) return notFound();
+  if (!product) {
+    return notFound();
+  }
 
+  const productData = product as any;
+  const currentSlug = getProductSlug(product);
   const productImages = getProductImages(product);
 
-  const related = getRelatedProducts(
-    product.slug,
-    product.category,
-    product.subcategory,
-    4
-  );
+  const stockQty = getStockQty(product);
+  const inStock = stockQty > 0 || Boolean(product.inStock);
+  const price = Number(productData.price || 0);
 
   const variantProducts = getVariantProducts(product);
-  const stockQty = getStockQty(product);
-  const inStock = stockQty > 0 || product.inStock;
-  const price = Number((product as any).price || 0);
 
-  const stockLabel =
-    stockQty > 0 && stockQty <= 3
-      ? `Nur noch ${stockQty} Stück`
-      : inStock
-        ? "Sofort lieferbar"
-        : "Nicht verfügbar";
-
-  const stockColor =
-    stockQty > 0 && stockQty <= 3
-      ? "text-orange-600"
-      : inStock
-        ? "text-green-600"
-        : "text-neutral-400";
+  const relatedProducts = getRelatedProducts(
+    currentSlug,
+    product.category,
+    product.subcategory,
+    8,
+  );
 
   return (
     <main className="bg-white">
-      <section className="mx-auto max-w-7xl px-4 py-10">
-        <div className="grid gap-10 lg:grid-cols-2">
-          <ProductGallery title={product.title} images={productImages} />
+      <section className="border-b border-neutral-200 bg-neutral-50">
+        <div className="mx-auto max-w-7xl px-4 py-4">
+          <nav
+            aria-label="Breadcrumb"
+            className="flex flex-wrap items-center gap-2 text-sm text-neutral-500"
+          >
+            <Link
+              href="/"
+              className="transition hover:text-neutral-950"
+            >
+              Startseite
+            </Link>
 
-          <div>
-            <div className="text-sm text-neutral-500">
-              {product.brand || "IUMATEC"}
-            </div>
+            <span>/</span>
 
-            <h1 className="mt-2 text-3xl font-extrabold text-neutral-950">
+            <Link
+              href="/produkte"
+              className="transition hover:text-neutral-950"
+            >
+              Produkte
+            </Link>
+
+            {product.category ? (
+              <>
+                <span>/</span>
+
+                <Link
+                  href={`/produkte?category=${encodeURIComponent(
+                    product.category,
+                  )}`}
+                  className="transition hover:text-neutral-950"
+                >
+                  {product.category}
+                </Link>
+              </>
+            ) : null}
+
+            <span>/</span>
+
+            <span className="max-w-[280px] truncate font-semibold text-neutral-800">
               {product.title}
-            </h1>
+            </span>
+          </nav>
+        </div>
+      </section>
 
-            <div className={`mt-3 text-sm font-bold ${stockColor}`}>
-              {stockLabel}
-            </div>
+      <section className="mx-auto max-w-7xl px-4 py-10 lg:py-14">
+        <div className="grid gap-10 lg:grid-cols-[1.08fr_0.92fr] lg:items-start">
+          <div>
+            <ProductGallery
+              title={product.title}
+              images={productImages}
+            />
 
-            <div className="mt-6 text-4xl font-extrabold text-neutral-950">
-              {formatPrice(price)}
-            </div>
+            {variantProducts.length > 1 ? (
+              <div className="mt-6 rounded-[2rem] border border-neutral-200 bg-white p-6 shadow-sm">
+                <div className="mb-4">
+                  <p className="text-sm font-black uppercase tracking-widest text-red-600">
+                    Varianten
+                  </p>
 
-            <div className="text-sm text-neutral-500">
-              inkl. MWST · Versand Schweiz
-            </div>
+                  <h2 className="mt-1 text-xl font-black text-neutral-950">
+                    Andere Ausführungen
+                  </h2>
+                </div>
 
-            {variantProducts.length > 1 && (
-              <div className="mt-6 rounded-3xl border border-neutral-200 bg-white p-5">
-                <h2 className="mb-3 text-sm font-extrabold text-neutral-900">
-                  Andere Varianten
-                </h2>
+                <div className="flex flex-wrap gap-3">
+                  {variantProducts.map((variantProduct) => {
+                    const variantSlug =
+                      getProductSlug(variantProduct);
 
-                <div className="flex flex-wrap gap-2">
-                  {variantProducts.map((item) => {
-                    const slug = getProductSlug(item);
-                    const active = slug === getProductSlug(product);
+                    const isActive =
+                      variantSlug === currentSlug;
 
                     return (
                       <Link
-                        key={slug}
-                        href={`/produkte/${slug}`}
+                        key={variantSlug}
+                        href={`/produkte/${variantSlug}`}
                         className={
-                          active
-                            ? "rounded-2xl border-2 border-red-600 bg-red-50 px-4 py-3 text-sm font-extrabold text-red-700"
-                            : "rounded-2xl border border-neutral-300 bg-white px-4 py-3 text-sm font-bold text-neutral-800 hover:border-neutral-900"
+                          isActive
+                            ? "rounded-2xl border-2 border-red-600 bg-red-50 px-4 py-3 text-sm font-black text-red-700"
+                            : "rounded-2xl border border-neutral-300 bg-white px-4 py-3 text-sm font-bold text-neutral-800 transition hover:border-neutral-950 hover:bg-neutral-50"
                         }
                       >
-                        {getVariantLabel(item)}
+                        {getVariantLabel(variantProduct)}
                       </Link>
                     );
                   })}
                 </div>
               </div>
-            )}
+            ) : null}
 
-            <div className="mt-6 flex gap-3">
-              <ProductBuyButton
-                merchandiseId={getMerchandiseId(product)}
-                productHandle={(product as any).shopifyProductHandle ?? product.slug}
-                imageUrl={product.image ?? null}
-                disabled={!inStock}
-              />
+            <div className="mt-6 rounded-[2rem] border border-neutral-200 bg-neutral-50 p-6">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-widest text-neutral-500">
+                    Artikelnummer
+                  </p>
 
-              <button className="rounded-2xl border px-6 py-4 font-bold hover:bg-neutral-100">
-                ♥
-              </button>
-            </div>
-
-            <div className="mt-6 space-y-2 text-sm text-neutral-600">
-              <div>⚡ Lieferung 1–2 Werktage</div>
-              <div>🛡️ Sicherer Checkout Shopify</div>
-              <div>🇨🇭 Versand aus der Schweiz</div>
-            </div>
-
-            <div className="mt-6 rounded-3xl border border-neutral-200 bg-neutral-50 p-5">
-              <h3 className="mb-4 text-base font-extrabold text-neutral-950">
-                Warum bei IUMATEC kaufen?
-              </h3>
-
-              <div className="grid gap-3 text-sm text-neutral-700">
-                <div className="flex items-center gap-3">
-                  <span>🇨🇭</span>
-                  <span>Versand aus der Schweiz</span>
+                  <p className="mt-1 text-sm font-bold text-neutral-950">
+                    {productData.internalNumber ||
+                      product.sku ||
+                      "Nicht angegeben"}
+                  </p>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <span>🔒</span>
-                  <span>Sicherer Shopify Checkout</span>
-                </div>
+                <div>
+                  <p className="text-xs font-black uppercase tracking-widest text-neutral-500">
+                    EAN
+                  </p>
 
-                <div className="flex items-center gap-3">
-                  <span>⚡</span>
-                  <span>Schnelle Lieferung bei Lagerbestand</span>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <span>✅</span>
-                  <span>Originalprodukte von offiziellen Distributoren</span>
+                  <p className="mt-1 break-all text-sm font-bold text-neutral-950">
+                    {productData.ean || "Nicht angegeben"}
+                  </p>
                 </div>
               </div>
             </div>
-
-            <div className="mt-6 flex flex-wrap gap-2">
-              <span className="rounded-full bg-green-50 px-4 py-2 text-xs font-extrabold text-green-700">
-                ✓ Sichere Zahlung
-              </span>
-
-              <span className="rounded-full bg-blue-50 px-4 py-2 text-xs font-extrabold text-blue-700">
-                ✓ Originalware
-              </span>
-
-              <span className="rounded-full bg-orange-50 px-4 py-2 text-xs font-extrabold text-orange-700">
-                ✓ CH Versand
-              </span>
-
-              <span className="rounded-full bg-neutral-100 px-4 py-2 text-xs font-extrabold text-neutral-700">
-                ✓ MWST inklusive
-              </span>
-            </div>
-
-            <div className="mt-8 border-t pt-6">
-              <h2 className="mb-4 text-lg font-bold">Technische Daten</h2>
-
-              <div className="overflow-hidden rounded-2xl border border-neutral-200">
-                <table className="w-full text-sm">
-                  <tbody>
-                    <tr className="border-b">
-                      <td className="bg-neutral-50 px-4 py-3 font-semibold">
-                        Hersteller
-                      </td>
-                      <td className="px-4 py-3">{product.brand || "-"}</td>
-                    </tr>
-
-                    <tr className="border-b">
-                      <td className="bg-neutral-50 px-4 py-3 font-semibold">
-                        Artikelnummer
-                      </td>
-                      <td className="px-4 py-3">
-                        {(product as any).internalNumber || product.sku || "-"}
-                      </td>
-                    </tr>
-
-                    <tr className="border-b">
-                      <td className="bg-neutral-50 px-4 py-3 font-semibold">
-                        EAN
-                      </td>
-                      <td className="px-4 py-3">{(product as any).ean || "-"}</td>
-                    </tr>
-
-                    <tr className="border-b">
-                      <td className="bg-neutral-50 px-4 py-3 font-semibold">
-                        Lagerbestand
-                      </td>
-                      <td className="px-4 py-3">{stockQty > 0 ? stockQty : "-"}</td>
-                    </tr>
-
-                    <tr>
-                      <td className="bg-neutral-50 px-4 py-3 font-semibold">
-                        Lieferung
-                      </td>
-                      <td className="px-4 py-3">
-                        {(product as any).deliveryDate || "1–3 Werktage"}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {(product.description || product.description2) && (
-              <div className="mt-8 border-t pt-6">
-                <h2 className="mb-3 text-lg font-bold">Beschreibung</h2>
-                <p className="whitespace-pre-line text-sm text-neutral-700">
-                  {product.description || product.description2}
-                </p>
-              </div>
-            )}
           </div>
+
+          <ProductBuyBox
+            title={product.title}
+            brand={product.brand}
+            price={formatPrice(price)}
+            stockQty={stockQty}
+            inStock={inStock}
+            merchandiseId={getMerchandiseId(product)}
+            productHandle={
+              productData.shopifyProductHandle ||
+              productData.productHandle ||
+              currentSlug
+            }
+            imageUrl={product.image ?? null}
+          />
         </div>
       </section>
 
-      {related.length > 0 && (
-        <section className="mx-auto max-w-7xl px-4 pb-16">
-          <h2 className="mb-6 text-2xl font-extrabold">Ähnliche Produkte</h2>
+      <ProductTrust />
 
-          <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
-            {related.map((item) => (
-              <ProductCard
-                key={item.slug}
-                product={{
-                  slug: item.slug,
-                  title: item.title,
-                  brand: item.brand,
-                  price: item.price,
-                  image: item.image ?? null,
-                  inStock: item.inStock,
-                  stockQty: item.stockQty,
-                  merchandiseId: getMerchandiseId(item),
-                  productHandle: (item as any).shopifyProductHandle ?? item.slug,
-                  energyLabel: (item as any).energyLabel,
-                }}
-              />
-            ))}
-          </div>
-        </section>
-      )}
+      <ProductSpecs
+        brand={product.brand}
+        sku={product.sku}
+        internalNumber={productData.internalNumber}
+        ean={productData.ean}
+        stockQty={stockQty}
+        deliveryDate={productData.deliveryDate}
+        warrantyMonths={productData.warrantyMonths}
+        weight={productData.weight}
+        category={product.category}
+        subcategory={product.subcategory}
+        description={product.description}
+        description2={product.description2}
+      />
+
+      <RelatedCarousel products={relatedProducts} />
     </main>
   );
 }

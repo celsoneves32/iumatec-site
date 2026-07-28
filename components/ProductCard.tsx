@@ -120,8 +120,8 @@ export default function ProductCard({ product }: Props) {
         {compared ? "✓ Vergleich" : "+ Vergleich"}
       </button>
 
-      <Link href={`/produkte/${product.slug}`} className="block">
-        <div className="flex h-72 items-center justify-center overflow-hidden bg-neutral-50 px-7 pb-7 pt-14">
+      <Link href={`/produkte/${product.slug}`} className="block bg-white">
+        <div className="flex h-72 items-center justify-center overflow-hidden bg-white px-7 pb-7 pt-14">
           {imageSrc ? (
             <img
               src={imageSrc}
@@ -142,7 +142,7 @@ export default function ProductCard({ product }: Props) {
         </div>
       </Link>
 
-      <div className="flex flex-1 flex-col p-5">
+      <div className="flex flex-1 flex-col border-t border-neutral-100 bg-white p-5">
         <div className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
           {product.brand || "IUMATEC"}
         </div>

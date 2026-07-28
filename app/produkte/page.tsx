@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default function ProduktePage() {
-  const products = getPurchasableProducts(6000);
+  const products = getPurchasableProducts();
 
   const catalogProducts: CatalogProduct[] = products.map((product) => ({
     sku: product.sku,

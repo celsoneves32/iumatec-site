@@ -1,6 +1,7 @@
 import Link from "next/link";
 import ProductCard from "@/components/ProductCard";
 import HomepageCarousel from "@/components/HomepageCarousel";
+import { classifyProduct } from "@/lib/categoryRules";
 import {
   getPurchasableProducts,
   getTopProducts,
@@ -86,11 +87,35 @@ function getPrice(product: Product) {
 }
 
 function getCategory(product: Product) {
-  return String((product as any).category || "").trim();
+  const p = product as any;
+
+  return String(
+    p.category ||
+      p?.iumatecCategory?.main ||
+      p?.rawCategory?.cat1 ||
+      "",
+  ).trim();
 }
 
 function getSubcategory(product: Product) {
-  return String((product as any).subcategory || "").trim();
+  const p = product as any;
+
+  return String(
+    p.subcategory ||
+      p?.iumatecCategory?.sub ||
+      p?.rawCategory?.cat2 ||
+      "",
+  ).trim();
+}
+
+function categoryText(product: Product) {
+  return normalize(`${getCategory(product)} ${getSubcategory(product)}`);
+}
+
+function categoryIncludes(product: Product, values: string[]) {
+  const value = categoryText(product);
+
+  return values.some((entry) => value.includes(normalize(entry)));
 }
 
 function normalize(value: unknown) {
@@ -202,14 +227,43 @@ const nonComputerWords = [
   "hdd",
   "kabel",
   "cable",
+  "halterung",
+  "stand",
+  "monitor",
+  "display",
+  "tablet",
+  "smartphone",
+  "iphone",
+  "case",
+  "cover",
 ];
 
 const nonMonitorWords = [
+  "radio",
+  "dab+",
+  "dab plus",
+  "audizio",
+  "tuner",
+  "receiver",
+  "smallrig",
+  "kamera",
+  "camera",
+  "mikrofon",
+  "microphone",
+  "adapter",
+  "dock",
+  "docking",
+  "hub",
+  "switch",
+  "kvm",
+  "kabel",
+  "cable",
+  "halterung",
+  "stand",
+  "arm",
   "lautsprecher",
   "speaker",
   "soundbar",
-  "m-audio",
-  "vonyx",
   "headset",
   "webcam",
   "tablet",
@@ -217,13 +271,20 @@ const nonMonitorWords = [
   "smartphone",
   "iphone",
   "galaxy tab",
-  "roboter",
-  "robot",
-  "staubsauger",
-  "vacuum",
+  "schutz",
+  "folie",
+  "glass",
+  "case",
+  "cover",
 ];
 
 const nonSmartphoneWords = [
+  "monitor",
+  "display",
+  "tv",
+  "tablet",
+  "galaxy tab",
+  "ipad",
   "clear glass",
   "panzerglass",
   "schutzglas",
@@ -239,17 +300,23 @@ const nonSmartphoneWords = [
   "ladegerat",
   "kabel",
   "cable",
-  "monitor",
-  "display",
-  "tablet",
-  "galaxy tab",
-  "ipad",
-  "roboter",
-  "robot",
-  "staubsauger",
-  "vacuum",
+  "halterung",
+  "dock",
+  "docking",
   "notepad",
   "reader",
+  "radio",
+  "autoradio",
+  "receiver",
+  "powerstation",
+  "power station",
+  "ecoflow",
+  "notebook",
+  "laptop",
+  "macbook",
+  "telefonhalter",
+  "car holder",
+  "ersatzteil",
 ];
 
 const nonTabletWords = [
@@ -264,10 +331,23 @@ const nonTabletWords = [
   "reader",
   "monitor",
   "display",
-  "roboter",
-  "robot",
-  "staubsauger",
-  "vacuum",
+  "schutz",
+  "folie",
+  "glass",
+  "smartphone",
+  "iphone",
+  "notebook",
+  "laptop",
+  "macbook",
+  "ladegerät",
+  "ladegerat",
+  "charger",
+  "kabel",
+  "cable",
+  "halterung",
+  "stand",
+  "stylus",
+  "pencil",
 ];
 
 const nonStorageWords = [
@@ -289,133 +369,274 @@ const nonStorageWords = [
   "toner",
 ];
 
+const completeComputerWords = [
+  "desktop",
+  "desktop-pc",
+  "desktop pc",
+  "gaming-pc",
+  "gaming pc",
+  "gaming computer",
+  "notebook",
+  "laptop",
+  "workstation",
+  "mini-pc",
+  "mini pc",
+  "all-in-one",
+  "all in one",
+  "aio pc",
+  "tower pc",
+  "predator orion",
+  "legion tower",
+  "ideacentre",
+  "optiplex",
+  "prodesk",
+  "elitedesk",
+  "thinkcentre",
+  "windows 11",
+];
+
+const nonGpuWords = [
+  ...completeComputerWords,
+  "egpu enclosure",
+  "gpu enclosure",
+  "grafikkartenhalter",
+  "gpu holder",
+  "gpu bracket",
+  "riser cable",
+  "riser kabel",
+  "wasserkühler",
+  "wasserkuhler",
+  "waterblock",
+  "backplate",
+];
+
+const nonNetworkDeviceWords = [
+  ...completeComputerWords,
+  "kabel",
+  "cable",
+  "patchkabel",
+  "patch cable",
+  "stecker",
+  "connector",
+  "adapter",
+  "netzteil",
+  "power supply",
+  "halterung",
+  "mount",
+  "rack",
+  "schrank",
+  "cabinet",
+  "antenne",
+  "antenna",
+  "sfp modul",
+  "sfp module",
+  "transceiver",
+  "injector",
+  "abdeckung",
+  "cover",
+];
+
+const nonStorageDeviceWords = [
+  ...completeComputerWords,
+  ...nonStorageWords,
+  "gehäuse",
+  "gehause",
+  "enclosure",
+  "case",
+  "cover",
+  "halterung",
+  "mount",
+  "tray",
+  "caddy",
+  "controller",
+  "kabel",
+  "cable",
+  "duplicator",
+  "dock",
+  "docking",
+];
+
 function isLaptop(product: Product) {
+  const result = classifyProduct(product as any);
+  const hasLaptopName = hasProductWords(product, [
+    "notebook",
+    "laptop",
+    "macbook",
+    "thinkpad",
+    "elitebook",
+    "probook",
+    "latitude",
+    "chromebook",
+    "surface laptop",
+  ]);
+
   return (
-    hasProductWords(product, [
-      "notebook",
-      "laptop",
-      "thinkpad",
-      "elitebook",
-      "latitude",
-      "probook",
-      "macbook",
-      "aspire",
-      "vivobook",
-      "zenbook",
-      "travelmate",
-      "chromebook",
-      "surface laptop",
-    ]) && !hasBlockedWords(product, nonComputerWords)
+    result.main === "Computer" &&
+    result.sub === "Laptops" &&
+    hasLaptopName &&
+    !hasBlockedWords(product, nonComputerWords)
   );
 }
 
 function isMonitor(product: Product) {
+  const result = classifyProduct(product as any);
+  const hasMonitorCategory = categoryIncludes(product, [
+    "monitore",
+    "monitor",
+    "bildschirme",
+    "displays",
+  ]);
+  const hasMonitorName = hasProductWords(product, [
+    " monitor",
+    "monitor ",
+    "bildschirm",
+  ]);
+
   return (
-    hasProductWords(product, [
-      "monitor",
-      "display",
-      '27"',
-      '32"',
-      '34"',
-      "qhd",
-      "uhd",
-      "4k",
-      "wqhd",
-      "ultrawide",
-    ]) && !hasBlockedWords(product, nonMonitorWords)
+    result.main === "Peripherie" &&
+    result.sub === "Monitore" &&
+    (hasMonitorCategory || hasMonitorName) &&
+    !hasBlockedWords(product, nonMonitorWords)
   );
 }
 
 function isSmartphone(product: Product) {
+  const result = classifyProduct(product as any);
+  const hasSmartphoneName = hasProductWords(product, [
+    "smartphone",
+    "iphone",
+    "galaxy s",
+    "galaxy a",
+    "galaxy z",
+    "google pixel",
+    "pixel phone",
+    "xiaomi ",
+    "redmi ",
+    "oppo ",
+    "motorola ",
+    "nothing phone",
+    "fairphone",
+  ]);
+
   return (
-    hasProductWords(product, [
-      "iphone",
-      "samsung galaxy s",
-      "samsung galaxy a",
-      "samsung galaxy z",
-      "galaxy s",
-      "galaxy a",
-      "galaxy z",
-      "pixel",
-      "redmi",
-      "xiaomi",
-      "realme",
-      "motorola",
-      "honor",
-      "oppo",
-      "smartphone",
-    ]) && !hasBlockedWords(product, nonSmartphoneWords)
+    result.main === "Mobile" &&
+    result.sub === "Smartphones" &&
+    hasSmartphoneName &&
+    !hasBlockedWords(product, nonSmartphoneWords)
   );
 }
 
 function isTablet(product: Product) {
+  const result = classifyProduct(product as any);
+  const hasTabletName = hasProductWords(product, [
+    "tablet",
+    "ipad",
+    "galaxy tab",
+    "surface pro",
+    "tab s",
+    "tab a",
+    "lenovo tab",
+    "honor pad",
+    "matepad",
+  ]);
+
   return (
-    hasProductWords(product, [
-      "ipad",
-      "galaxy tab",
-      "lenovo tab",
-      "xiaomi pad",
-      "tablet",
-    ]) && !hasBlockedWords(product, nonTabletWords)
+    result.main === "Mobile" &&
+    result.sub === "Tablets" &&
+    hasTabletName &&
+    !hasBlockedWords(product, nonTabletWords)
   );
 }
 
 function isGpu(product: Product) {
-  return hasProductWords(product, [
-    "rtx",
-    "geforce",
-    "radeon",
+  const result = classifyProduct(product as any);
+  const hasGpuCategory = categoryIncludes(product, [
+    "grafikkarten",
+    "graphics cards",
+    "video cards",
+  ]);
+  const hasGpuName = hasProductWords(product, [
     "grafikkarte",
     "graphics card",
-    "nvidia",
+    "video card",
+    "geforce",
+    "radeon rx",
+    "radeon pro",
+    "nvidia quadro",
+    "nvidia rtx",
+    "intel arc",
   ]);
+
+  return (
+    result.main === "PC-Komponenten" &&
+    result.sub === "Grafikkarten" &&
+    (hasGpuCategory || hasGpuName) &&
+    hasGpuName &&
+    !hasBlockedWords(product, nonGpuWords)
+  );
 }
 
 function isNetwork(product: Product) {
-  return hasProductWords(product, [
+  const result = classifyProduct(product as any);
+  const hasNetworkDeviceName = hasProductWords(product, [
     "router",
     "switch",
-    "unifi",
+    "gateway",
     "access point",
     "accesspoint",
-    "mesh",
-    "wlan",
-    "wifi",
+    "wlan mesh",
+    "wifi mesh",
+    "wi-fi mesh",
+    "firewall",
+    "security appliance",
   ]);
+
+  return (
+    result.main === "Netzwerk" &&
+    hasNetworkDeviceName &&
+    !hasBlockedWords(product, nonNetworkDeviceWords)
+  );
 }
 
 function isStorage(product: Product) {
+  const result = classifyProduct(product as any);
+  const hasStorageDeviceName = hasProductWords(product, [
+    " ssd",
+    "ssd ",
+    "solid state",
+    " hdd",
+    "hdd ",
+    "hard disk",
+    "harddrive",
+    "festplatte",
+    "nas ",
+    " nas",
+    "network attached storage",
+    "usb stick",
+    "usb-stick",
+    "memory card",
+    "speicherkarte",
+  ]);
+
   return (
-    hasProductWords(product, [
-      "ssd",
-      "nvme",
-      "m.2",
-      "m 2",
-      "ironwolf",
-      "wd black",
-      "crucial",
-      "kingston",
-      "samsung 990",
-      "samsung 980",
-      "external ssd",
-      "portable ssd",
-      "solid state",
-    ]) && !hasBlockedWords(product, nonStorageWords)
+    result.main === "Datenspeicher" &&
+    hasStorageDeviceName &&
+    !hasBlockedWords(product, nonStorageDeviceWords)
   );
 }
 
 function isAccessory(product: Product) {
-  return hasProductWords(product, [
-    "maus",
-    "mouse",
-    "tastatur",
-    "keyboard",
-    "headset",
-    "webcam",
-    "dock",
-    "docking",
-    "usb hub",
-  ]);
+  const result = classifyProduct(product as any);
+
+  return (
+    result.sub === "Monitor-Zubehör" ||
+    result.sub === "Docking & Hubs" ||
+    result.sub === "Tastaturen" ||
+    result.sub === "Mäuse" ||
+    result.sub === "Headsets" ||
+    result.sub === "Webcams" ||
+    result.sub === "Zubehör"
+  );
 }
 
 function scoreShowcaseProduct(product: Product) {
@@ -471,6 +692,16 @@ function scoreShowcaseProduct(product: Product) {
     score += 120;
 
   return score;
+}
+
+function compareShowcaseProducts(a: Product, b: Product) {
+  const scoreDifference = scoreShowcaseProduct(b) - scoreShowcaseProduct(a);
+  if (scoreDifference !== 0) return scoreDifference;
+
+  const stockDifference = getStockQty(b) - getStockQty(a);
+  if (stockDifference !== 0) return stockDifference;
+
+  return getPrice(a) - getPrice(b);
 }
 
 function pickShowcaseProduct(
@@ -589,7 +820,7 @@ function HeroProduct({ product }: { product?: Product }) {
         CH Lager
       </div>
 
-      <div className="flex h-48 items-center justify-center rounded-3xl bg-neutral-50 p-5">
+      <div className="flex h-48 items-center justify-center rounded-3xl bg-white p-5">
         {p.image ? (
           <img
             src={p.image}
@@ -730,7 +961,7 @@ function PremiumHero({
                   </div>
                 </div>
 
-                <div className="flex h-72 items-center justify-center rounded-3xl bg-neutral-50 p-6">
+                <div className="flex h-72 items-center justify-center rounded-3xl bg-white p-6">
                   {p.image ? (
                     <img
                       src={p.image}
@@ -803,7 +1034,7 @@ function CategoryCard({
       href={href}
       className="group overflow-hidden rounded-[2rem] border border-neutral-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
     >
-      <div className="flex h-48 items-center justify-center bg-neutral-50 p-6">
+      <div className="flex h-48 items-center justify-center bg-white p-6">
         {image ? (
           <img
             src={image}
@@ -833,7 +1064,7 @@ function CategoryCard({
 }
 
 export default function HomePage() {
-  const purchasable = getPurchasableProducts(6000);
+  const purchasable = getPurchasableProducts();
   const fallback = getTopProducts(1000);
   const rawProducts = purchasable.length ? purchasable : fallback;
 
@@ -841,35 +1072,35 @@ export default function HomePage() {
 
   const laptops = allBuyable
     .filter((p) => isLaptop(p) && getPrice(p) >= 300)
-    .sort((a, b) => getPrice(a) - getPrice(b));
+    .sort(compareShowcaseProducts);
 
   const monitors = allBuyable
     .filter((p) => isMonitor(p) && getPrice(p) >= 80)
-    .sort((a, b) => getPrice(a) - getPrice(b));
+    .sort(compareShowcaseProducts);
 
   const smartphones = allBuyable
     .filter((p) => isSmartphone(p) && getPrice(p) >= 250)
-    .sort((a, b) => getPrice(a) - getPrice(b));
+    .sort(compareShowcaseProducts);
 
   const tablets = allBuyable
     .filter((p) => isTablet(p) && getPrice(p) >= 200)
-    .sort((a, b) => getPrice(a) - getPrice(b));
+    .sort(compareShowcaseProducts);
 
   const gpus = allBuyable
     .filter((p) => isGpu(p) && getPrice(p) >= 150)
-    .sort((a, b) => getPrice(a) - getPrice(b));
+    .sort(compareShowcaseProducts);
 
   const network = allBuyable
     .filter((p) => isNetwork(p) && getPrice(p) >= 30)
-    .sort((a, b) => getPrice(a) - getPrice(b));
+    .sort(compareShowcaseProducts);
 
   const storage = allBuyable
     .filter((p) => isStorage(p) && getPrice(p) >= 30)
-    .sort((a, b) => getPrice(a) - getPrice(b));
+    .sort(compareShowcaseProducts);
 
   const topDeals = uniqueFamilies(allBuyable)
     .filter((p) => getPrice(p) >= 250 && !isAccessory(p))
-    .sort((a, b) => getPrice(a) - getPrice(b));
+    .sort(compareShowcaseProducts);
 
   const accessories = allBuyable
     .filter((p) => isAccessory(p) && getPrice(p) <= 300)

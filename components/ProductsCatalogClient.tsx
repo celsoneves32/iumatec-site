@@ -36,7 +36,7 @@ const PRODUCTS_PER_PAGE = 24;
 
 const quickCategories = [
   { label: "Laptops", category: "Computer", subcategory: "Laptops" },
-  { label: "Monitore", category: "Peripherie", subcategory: "Monitors" },
+  { label: "Monitore", category: "Peripherie", subcategory: "Monitore" },
   { label: "Smartphones", category: "Mobile", subcategory: "Smartphones" },
   { label: "Tablets", category: "Mobile", subcategory: "Tablets" },
   {
@@ -80,8 +80,72 @@ function getSafePrice(price: number | null | undefined) {
   return typeof price === "number" && !Number.isNaN(price) ? price : 0;
 }
 
+function compareTextStable(a?: string | null, b?: string | null) {
+  const left = normalize(a);
+  const right = normalize(b);
+
+  if (left < right) return -1;
+  if (left > right) return 1;
+  return 0;
+}
+
+function formatSwissInteger(value: number) {
+  const rounded = Math.trunc(Number.isFinite(value) ? value : 0);
+  const sign = rounded < 0 ? "-" : "";
+  const digits = String(Math.abs(rounded));
+
+  return `${sign}${digits.replace(/\B(?=(\d{3})+(?!\d))/g, "’")}`;
+}
+
 function isAvailable(product: CatalogProduct) {
   return Boolean(product.inStock || (product.stockQty ?? 0) > 0);
+}
+
+function getFeaturedScore(product: CatalogProduct) {
+  let score = 0;
+
+  if (isAvailable(product)) score += 10_000;
+  if (product.image) score += 250;
+  if (product.merchandiseId) score += 200;
+  if (product.shopifyProductHandle || product.productHandle) score += 150;
+
+  const stock = Math.max(0, Number(product.stockQty || 0));
+  score += Math.min(stock, 50) * 8;
+
+  const brand = normalize(product.brand);
+  const brandIndex = priorityBrands.findIndex((item) =>
+    brand.includes(normalize(item))
+  );
+
+  if (brandIndex >= 0) {
+    score += (priorityBrands.length - brandIndex) * 35;
+  }
+
+  const category = normalize(product.category);
+  const subcategory = normalize(product.subcategory);
+
+  if (subcategory === normalize("Laptops")) score += 650;
+  else if (subcategory === normalize("Smartphones")) score += 625;
+  else if (subcategory === normalize("Monitore")) score += 600;
+  else if (subcategory === normalize("Tablets")) score += 550;
+  else if (subcategory === normalize("Grafikkarten")) score += 400;
+  else if (category === normalize("Computer")) score += 350;
+  else if (category === normalize("Peripherie")) score += 300;
+  else if (category === normalize("Mobile")) score += 275;
+  else if (category === normalize("Zubehör")) score += 225;
+
+  const price = getSafePrice(product.price);
+
+  if (price <= 0) score -= 10_000;
+  else if (price <= 100) score += 350;
+  else if (price <= 300) score += 550;
+  else if (price <= 700) score += 700;
+  else if (price <= 1_500) score += 650;
+  else if (price <= 3_000) score += 300;
+  else if (price <= 5_000) score -= 250;
+  else score -= 2_000;
+
+  return score;
 }
 
 function countItems(
@@ -102,7 +166,7 @@ function countItems(
 
   return Array.from(map.entries())
     .map(([label, count]) => ({ label, count }))
-    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+    .sort((a, b) => b.count - a.count || compareTextStable(a.label, b.label));
 }
 
 function sortBrandCounts(items: { label: string; count: number }[]) {
@@ -124,7 +188,7 @@ function sortBrandCounts(items: { label: string; count: number }[]) {
     if (!aPriority && bPriority) return 1;
     if (aPriority && bPriority && aIndex !== bIndex) return aIndex - bIndex;
 
-    return b.count - a.count || a.label.localeCompare(b.label);
+    return b.count - a.count || compareTextStable(a.label, b.label);
   });
 }
 
@@ -350,24 +414,24 @@ export default function ProductsCatalogClient({ products }: Props) {
           return getSafePrice(a.price) - getSafePrice(b.price);
 
         case "title-asc":
-          return a.title.localeCompare(b.title);
+          return compareTextStable(a.title, b.title);
 
         case "brand-asc":
-          return (a.brand || "").localeCompare(b.brand || "");
+          return compareTextStable(a.brand, b.brand);
 
         case "featured":
         default: {
-          const aStock = isAvailable(a) ? 1 : 0;
-          const bStock = isAvailable(b) ? 1 : 0;
+          const scoreDifference =
+            getFeaturedScore(b) - getFeaturedScore(a);
 
-          if (bStock !== aStock) return bStock - aStock;
+          if (scoreDifference !== 0) return scoreDifference;
 
-          const aHasImage = a.image ? 1 : 0;
-          const bHasImage = b.image ? 1 : 0;
+          const stockDifference =
+            Number(b.stockQty || 0) - Number(a.stockQty || 0);
 
-          if (bHasImage !== aHasImage) return bHasImage - aHasImage;
+          if (stockDifference !== 0) return stockDifference;
 
-          return getSafePrice(b.price) - getSafePrice(a.price);
+          return getSafePrice(a.price) - getSafePrice(b.price);
         }
       }
     });
@@ -404,7 +468,7 @@ export default function ProductsCatalogClient({ products }: Props) {
           <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
             <div>
               <div className="inline-flex rounded-full bg-red-50 px-4 py-2 text-sm font-extrabold text-red-700">
-                {products.length.toLocaleString("de-CH")} Produkte im Katalog
+                {formatSwissInteger(products.length)} Produkte im Katalog
               </div>
 
               <h1 className="mt-4 text-4xl font-black tracking-tight text-neutral-950 md:text-5xl">
@@ -413,12 +477,12 @@ export default function ProductsCatalogClient({ products }: Props) {
 
               <div className="mt-2 flex flex-wrap gap-4 text-sm text-neutral-600">
                 <span>
-                  {filteredProducts.length.toLocaleString("de-CH")} Produkte
+                  {formatSwissInteger(filteredProducts.length)} Produkte
                   gefunden
                 </span>
 
                 <span>
-                  {shownProducts.length.toLocaleString("de-CH")} aktuell
+                  {formatSwissInteger(shownProducts.length)} aktuell
                   angezeigt
                 </span>
               </div>
@@ -492,7 +556,7 @@ export default function ProductsCatalogClient({ products }: Props) {
             <div>
               <h2 className="text-lg font-black text-neutral-950">Filter</h2>
               <p className="mt-1 text-xs font-semibold text-neutral-500">
-                {filteredProducts.length.toLocaleString("de-CH")} Treffer
+                {formatSwissInteger(filteredProducts.length)} Treffer
               </p>
             </div>
 
@@ -718,13 +782,13 @@ export default function ProductsCatalogClient({ products }: Props) {
           <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 className="text-2xl font-black text-neutral-950">
-                {filteredProducts.length.toLocaleString("de-CH")} Produkte
+                {formatSwissInteger(filteredProducts.length)} Produkte
                 gefunden
               </h2>
 
               <p className="mt-1 text-sm text-neutral-500">
-                {shownProducts.length.toLocaleString("de-CH")} von{" "}
-                {filteredProducts.length.toLocaleString("de-CH")} Produkten
+                {formatSwissInteger(shownProducts.length)} von{" "}
+                {formatSwissInteger(filteredProducts.length)} Produkten
                 angezeigt.
               </p>
             </div>
@@ -786,8 +850,8 @@ export default function ProductsCatalogClient({ products }: Props) {
               {filteredProducts.length > visibleProducts ? (
                 <div className="mt-10 flex flex-col items-center justify-center gap-3">
                   <p className="text-sm font-semibold text-neutral-500">
-                    {shownProducts.length.toLocaleString("de-CH")} von{" "}
-                    {filteredProducts.length.toLocaleString("de-CH")} geladen
+                    {formatSwissInteger(shownProducts.length)} von{" "}
+                    {formatSwissInteger(filteredProducts.length)} geladen
                   </p>
 
                   <button

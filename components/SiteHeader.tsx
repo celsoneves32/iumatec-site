@@ -2,71 +2,123 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { useCart } from "@/context/CartContext";
+import { FormEvent, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  Search,
+  Heart,
+  GitCompare,
+  ShoppingCart,
+  Menu,
+  X,
+  ChevronDown,
+  Laptop,
+  Monitor,
+  Smartphone,
+  Gamepad2,
+  Wifi,
+  HardDrive,
+  Printer,
+  House,
+} from "lucide-react";
 
-const ACCOUNT_URL = process.env.NEXT_PUBLIC_SHOPIFY_CUSTOMER_ACCOUNTS_URL;
+import HeaderAccount from "@/components/HeaderAccount";
+import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
+import { useCompare } from "@/context/CompareContext";
 
 type CategoryGroup = {
   name: string;
   subcategories: string[];
 };
 
+const categories = [
+  {
+    label: "Computer",
+    href: "/produkte?category=Computer",
+    icon: Laptop,
+  },
+  {
+    label: "Monitore",
+    href: "/produkte?category=Peripherie&subcategory=Monitore",
+    icon: Monitor,
+  },
+  {
+    label: "Gaming",
+    href: "/produkte?q=gaming",
+    icon: Gamepad2,
+  },
+  {
+    label: "Mobile",
+    href: "/produkte?category=Mobile",
+    icon: Smartphone,
+  },
+  {
+    label: "Netzwerk",
+    href: "/produkte?category=Netzwerk",
+    icon: Wifi,
+  },
+  {
+    label: "Speicher",
+    href: "/produkte?category=Datenspeicher",
+    icon: HardDrive,
+  },
+  {
+    label: "Office",
+    href: "/produkte?q=office",
+    icon: Printer,
+  },
+  {
+    label: "Smart Home",
+    href: "/produkte?category=Smart%20Home",
+    icon: House,
+  },
+];
+
 function categoryHref(category: string, subcategory?: string) {
   const params = new URLSearchParams();
   params.set("category", category);
-  if (subcategory) params.set("subcategory", subcategory);
+
+  if (subcategory) {
+    params.set("subcategory", subcategory);
+  }
+
   return `/produkte?${params.toString()}`;
 }
 
-function CartIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5">
-      <path
-        d="M3 4h2l1.2 6.2A2 2 0 0 0 8.2 12H17a2 2 0 0 0 2-1.6L20 6H7"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <circle cx="9" cy="19" r="1.4" fill="currentColor" />
-      <circle cx="17" cy="19" r="1.4" fill="currentColor" />
-    </svg>
-  );
-}
+function CounterBadge({
+  value,
+  tone = "red",
+}: {
+  value: number;
+  tone?: "red" | "black";
+}) {
+  if (value <= 0) return null;
 
-function TopBar() {
   return (
-    <div className="hidden border-b border-neutral-200 bg-neutral-50 lg:block">
-      <div className="mx-auto flex h-10 max-w-7xl items-center justify-between px-4 text-xs text-neutral-600">
-        <div className="flex items-center gap-6">
-          <span>✅ Schnelle Lieferung in der Schweiz</span>
-          <span>✅ Support innerhalb 24h</span>
-          <span>✅ Sichere Bezahlung</span>
-        </div>
-
-        <div className="flex items-center gap-5">
-          <Link href="/versand-lieferung" className="hover:text-neutral-900">
-            Versand & Lieferung
-          </Link>
-          <Link href="/retouren" className="hover:text-neutral-900">
-            Retouren
-          </Link>
-          <Link href="/kontakt" className="hover:text-neutral-900">
-            Kontakt
-          </Link>
-        </div>
-      </div>
-    </div>
+    <span
+      className={`absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] font-black text-white ${
+        tone === "red" ? "bg-red-600" : "bg-neutral-950"
+      }`}
+    >
+      {value > 99 ? "99+" : value}
+    </span>
   );
 }
 
 export default function SiteHeader() {
+  const router = useRouter();
+
   const { totalQuantity, openDrawer } = useCart();
+  const { items: wishlistItems } = useWishlist();
+  const { items: compareItems } = useCompare();
+
+  const [query, setQuery] = useState("");
   const [megaOpen, setMegaOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
-  const categories = useMemo<CategoryGroup[]>(
+  const megaCategories = useMemo<CategoryGroup[]>(
     () => [
       {
         name: "Computer",
@@ -84,7 +136,7 @@ export default function SiteHeader() {
       {
         name: "Peripherie",
         subcategories: [
-          "Monitors",
+          "Monitore",
           "Tastaturen",
           "Mäuse",
           "Headsets",
@@ -118,186 +170,302 @@ export default function SiteHeader() {
         subcategories: ["Notebook-Zubehör", "Sonstiges Zubehör"],
       },
     ],
-    []
+    [],
   );
 
+  function submitSearch(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const cleanQuery = query.trim();
+
+    router.push(
+      cleanQuery
+        ? `/produkte?q=${encodeURIComponent(cleanQuery)}`
+        : "/produkte",
+    );
+
+    setMobileSearchOpen(false);
+    setMobileOpen(false);
+  }
+
   return (
-    <header className="sticky top-0 z-50 bg-white">
-      <TopBar />
+    <header className="sticky top-0 z-50 border-b border-neutral-200 bg-white shadow-sm">
+      <div className="border-b border-neutral-200 bg-neutral-950 text-white">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-2 text-xs">
+          <div className="flex items-center gap-4 text-white/80">
+            <span className="font-bold text-white">
+              🇨🇭 Schweizer Tech-Shop
+            </span>
+            <span className="hidden sm:inline">Lieferung in der Schweiz</span>
+            <span className="hidden lg:inline">MWST inklusive</span>
+          </div>
 
-      <div className="border-b border-neutral-200 bg-white">
-        <div className="mx-auto max-w-7xl px-4">
-          <div className="flex h-20 items-center gap-4">
-            <button
-              type="button"
-              onClick={() => setMobileOpen((v) => !v)}
-              className="inline-flex rounded-xl border border-neutral-300 p-2 xl:hidden"
-              aria-label="Menü öffnen"
-            >
-              ☰
-            </button>
-
-            <Link href="/" className="flex shrink-0 items-center">
-              <Image
-                src="/logo-iumatec.svg"
-                alt="IUMATEC"
-                width={150}
-                height={38}
-                className="h-9 w-auto"
-                priority
-              />
+          <div className="flex items-center gap-4 font-semibold text-white/80">
+            <Link href="/produkte?sort=price-asc" className="hover:text-white">
+              Angebote
             </Link>
-
-            <form action="/produkte" method="GET" className="hidden flex-1 lg:block">
-              <div className="relative">
-                <input
-                  type="text"
-                  name="q"
-                  placeholder="Suche nach Produkt, Marke oder SKU"
-                  className="w-full rounded-2xl border border-neutral-300 bg-white px-5 py-3 pr-28 text-sm outline-none focus:border-neutral-900"
-                />
-                <button
-                  type="submit"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-xl bg-neutral-950 px-5 py-2 text-sm font-bold text-white"
-                >
-                  Suchen
-                </button>
-              </div>
-            </form>
-
-            <nav className="ml-auto hidden items-center gap-6 xl:flex">
-              <Link
-                href="/athletes"
-                className="text-sm font-bold text-neutral-800 hover:text-red-600"
-              >
-                Athletes
-              </Link>
-
-              <div
-                className="relative"
-                onMouseEnter={() => setMegaOpen(true)}
-                onMouseLeave={() => setMegaOpen(false)}
-              >
-                <button
-                  type="button"
-                  className="text-sm font-bold text-neutral-800 hover:text-red-600"
-                >
-                  Kategorien
-                </button>
-
-                {megaOpen ? (
-                  <div className="absolute right-[-260px] top-full z-50 w-[1120px] pt-5">
-                    <div className="rounded-3xl border border-neutral-200 bg-white p-7 shadow-2xl">
-                      <div className="grid grid-cols-5 gap-8">
-                        {categories.map((group) => (
-                          <div key={group.name}>
-                            <Link
-                              href={categoryHref(group.name)}
-                              className="mb-3 block text-sm font-extrabold text-neutral-950 hover:text-red-600"
-                            >
-                              {group.name}
-                            </Link>
-
-                            <ul className="space-y-2">
-                              {group.subcategories.map((sub) => (
-                                <li key={sub}>
-                                  <Link
-                                    href={categoryHref(group.name, sub)}
-                                    className="text-sm text-neutral-600 hover:text-red-600"
-                                  >
-                                    {sub}
-                                  </Link>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                ) : null}
-              </div>
-
-              {ACCOUNT_URL ? (
-                <a
-                  href={ACCOUNT_URL}
-                  className="text-sm font-bold text-neutral-800 hover:text-red-600"
-                >
-                  Mein Konto
-                </a>
-              ) : (
-                <Link
-                  href="/konto"
-                  className="text-sm font-bold text-neutral-800 hover:text-red-600"
-                >
-                  Mein Konto
-                </Link>
-              )}
-            </nav>
-
-            <button
-              type="button"
-              onClick={openDrawer}
-              className="relative inline-flex h-12 w-12 items-center justify-center rounded-full border border-neutral-300 text-neutral-800 hover:border-red-600 hover:text-red-600"
-              aria-label="Warenkorb öffnen"
-            >
-              <CartIcon />
-              {totalQuantity > 0 ? (
-                <span className="absolute -right-1 -top-1 rounded-full bg-red-600 px-1.5 py-0.5 text-xs font-bold text-white">
-                  {totalQuantity}
-                </span>
-              ) : null}
-            </button>
+            <Link href="/versand" className="hidden hover:text-white sm:inline">
+              Versand
+            </Link>
+            <Link href="/kontakt" className="hidden hover:text-white sm:inline">
+              Support
+            </Link>
           </div>
         </div>
       </div>
 
-      {mobileOpen ? (
-        <div className="border-b border-neutral-200 bg-white xl:hidden">
-          <div className="mx-auto max-w-7xl px-4 py-5">
-            <form action="/produkte" method="GET" className="mb-5">
-              <input
-                type="text"
-                name="q"
-                placeholder="Suche nach Produkt, Marke oder SKU"
-                className="w-full rounded-2xl border border-neutral-300 px-4 py-3 text-sm outline-none"
-              />
-            </form>
+      <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 lg:gap-5 lg:py-4">
+        <button
+          type="button"
+          onClick={() => setMobileOpen((open) => !open)}
+          className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-neutral-200 text-neutral-900 transition hover:bg-neutral-50 lg:hidden"
+          aria-label={mobileOpen ? "Menü schliessen" : "Menü öffnen"}
+          aria-expanded={mobileOpen}
+        >
+          {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+        </button>
 
-            <Link
-              href="/athletes"
-              onClick={() => setMobileOpen(false)}
-              className="mb-6 block rounded-2xl bg-neutral-950 px-4 py-3 text-sm font-extrabold text-white"
+        <Link href="/" className="shrink-0" aria-label="IUMATEC Startseite">
+          <Image
+            src="/logo-iumatec.svg"
+            alt="IUMATEC"
+            width={180}
+            height={44}
+            priority
+            className="h-auto w-[145px] sm:w-[165px] lg:w-[180px]"
+          />
+        </Link>
+
+        <div
+          className="relative hidden xl:block"
+          onMouseEnter={() => setMegaOpen(true)}
+          onMouseLeave={() => setMegaOpen(false)}
+        >
+          <button
+            type="button"
+            className="flex h-12 items-center gap-2 rounded-xl bg-neutral-950 px-4 text-sm font-black text-white transition hover:bg-neutral-800"
+          >
+            <Menu size={18} />
+            Kategorien
+            <ChevronDown size={16} className="text-white/60" />
+          </button>
+
+          {megaOpen ? (
+            <div className="absolute left-0 top-full z-50 w-[1120px] pt-4">
+              <div className="rounded-3xl border border-neutral-200 bg-white p-7 shadow-2xl">
+                <div className="grid grid-cols-5 gap-8">
+                  {megaCategories.map((group) => (
+                    <div key={group.name}>
+                      <Link
+                        href={categoryHref(group.name)}
+                        className="mb-3 block text-sm font-extrabold text-neutral-950 hover:text-red-600"
+                      >
+                        {group.name}
+                      </Link>
+
+                      <ul className="space-y-2">
+                        {group.subcategories.map((subcategory) => (
+                          <li key={subcategory}>
+                            <Link
+                              href={categoryHref(group.name, subcategory)}
+                              className="text-sm text-neutral-600 hover:text-red-600"
+                            >
+                              {subcategory}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : null}
+        </div>
+
+        <form onSubmit={submitSearch} className="hidden min-w-0 flex-1 md:block">
+          <div className="flex h-12 overflow-hidden rounded-xl border-2 border-neutral-950 bg-white transition focus-within:border-red-600">
+            <input
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Über 200'000 Produkte durchsuchen..."
+              className="min-w-0 flex-1 px-5 text-sm text-neutral-950 outline-none placeholder:text-neutral-400"
+              aria-label="Produkte suchen"
+            />
+
+            <button
+              type="submit"
+              className="flex w-14 shrink-0 items-center justify-center bg-red-600 text-white transition hover:bg-red-700"
+              aria-label="Suche starten"
             >
-              Team IUMATEC Athletes →
+              <Search size={20} />
+            </button>
+          </div>
+        </form>
+
+        <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
+          <button
+            type="button"
+            onClick={() => setMobileSearchOpen((open) => !open)}
+            className="inline-flex h-11 w-11 items-center justify-center rounded-xl text-neutral-900 transition hover:bg-neutral-100 md:hidden"
+            aria-label="Suche öffnen"
+          >
+            <Search size={22} />
+          </button>
+
+          <div className="hidden sm:block">
+            <HeaderAccount />
+          </div>
+
+          <Link
+            href="/merken"
+            className="relative inline-flex h-11 w-11 items-center justify-center rounded-xl text-neutral-900 transition hover:bg-neutral-100"
+            aria-label="Merkliste"
+          >
+            <Heart size={22} />
+            <CounterBadge value={wishlistItems.length} />
+          </Link>
+
+          <Link
+            href="/compare"
+            className="relative hidden h-11 w-11 items-center justify-center rounded-xl text-neutral-900 transition hover:bg-neutral-100 sm:inline-flex"
+            aria-label="Produkte vergleichen"
+          >
+            <GitCompare size={22} />
+            <CounterBadge value={compareItems.length} tone="black" />
+          </Link>
+
+          <button
+            type="button"
+            onClick={openDrawer}
+            className="relative inline-flex h-11 w-11 items-center justify-center rounded-xl bg-neutral-950 text-white transition hover:bg-neutral-800"
+            aria-label="Warenkorb öffnen"
+          >
+            <ShoppingCart size={22} />
+            <CounterBadge value={totalQuantity} />
+          </button>
+        </div>
+      </div>
+
+      {mobileSearchOpen ? (
+        <div className="border-t border-neutral-200 bg-white px-4 py-3 md:hidden">
+          <form onSubmit={submitSearch}>
+            <div className="flex h-12 overflow-hidden rounded-xl border-2 border-neutral-950">
+              <input
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Produkte suchen..."
+                className="min-w-0 flex-1 px-4 text-sm outline-none"
+                autoFocus
+              />
+
+              <button
+                type="submit"
+                className="flex w-14 items-center justify-center bg-red-600 text-white"
+                aria-label="Suche starten"
+              >
+                <Search size={20} />
+              </button>
+            </div>
+          </form>
+        </div>
+      ) : null}
+
+      <div className="hidden border-t border-neutral-200 bg-white lg:block">
+        <nav
+          className="mx-auto flex max-w-7xl items-center gap-1 overflow-x-auto px-4 py-2"
+          aria-label="Hauptkategorien"
+        >
+          {categories.map((category) => {
+            const Icon = category.icon;
+
+            return (
+              <Link
+                key={category.href}
+                href={category.href}
+                className="inline-flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-sm font-bold text-neutral-700 transition hover:bg-neutral-100 hover:text-neutral-950"
+              >
+                <Icon size={17} />
+                {category.label}
+              </Link>
+            );
+          })}
+
+          <Link
+            href="/produkte?sort=price-asc"
+            className="ml-auto inline-flex shrink-0 items-center rounded-xl bg-red-50 px-4 py-2 text-sm font-black text-red-700 transition hover:bg-red-100"
+          >
+            Aktionen
+          </Link>
+        </nav>
+      </div>
+
+      {mobileOpen ? (
+        <div className="border-t border-neutral-200 bg-white px-4 py-4 shadow-xl lg:hidden">
+          <div className="grid gap-2 sm:grid-cols-2">
+            <Link
+              href="/produkte"
+              onClick={() => setMobileOpen(false)}
+              className="flex items-center justify-between rounded-xl bg-neutral-950 px-4 py-3 font-black text-white"
+            >
+              Alle Produkte
+              <span>→</span>
             </Link>
 
-            <div className="grid gap-6 sm:grid-cols-2">
-              {categories.map((group) => (
-                <div key={group.name}>
-                  <Link
-                    href={categoryHref(group.name)}
-                    onClick={() => setMobileOpen(false)}
-                    className="mb-2 block font-extrabold text-neutral-950"
-                  >
-                    {group.name}
-                  </Link>
+            <Link
+              href="/produkte?sort=price-asc"
+              onClick={() => setMobileOpen(false)}
+              className="flex items-center justify-between rounded-xl bg-red-600 px-4 py-3 font-black text-white"
+            >
+              Angebote
+              <span>→</span>
+            </Link>
+          </div>
 
-                  <div className="space-y-1">
-                    {group.subcategories.map((sub) => (
-                      <Link
-                        key={sub}
-                        href={categoryHref(group.name, sub)}
-                        onClick={() => setMobileOpen(false)}
-                        className="block text-sm text-neutral-600"
-                      >
-                        {sub}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
+          <nav className="mt-3 grid gap-2 sm:grid-cols-2">
+            {categories.map((category) => {
+              const Icon = category.icon;
+
+              return (
+                <Link
+                  key={category.href}
+                  href={category.href}
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center gap-3 rounded-xl border border-neutral-200 px-4 py-3 font-bold text-neutral-800 transition hover:bg-neutral-50"
+                >
+                  <Icon size={19} />
+                  {category.label}
+                </Link>
+              );
+            })}
+          </nav>
+
+          <div className="mt-4 grid gap-2 border-t border-neutral-200 pt-4 sm:grid-cols-3">
+            <Link
+              href="/konto"
+              onClick={() => setMobileOpen(false)}
+              className="rounded-xl px-4 py-3 text-sm font-bold text-neutral-700 hover:bg-neutral-50"
+            >
+              Mein Konto
+            </Link>
+
+            <Link
+              href="/compare"
+              onClick={() => setMobileOpen(false)}
+              className="rounded-xl px-4 py-3 text-sm font-bold text-neutral-700 hover:bg-neutral-50"
+            >
+              Vergleichen
+            </Link>
+
+            <Link
+              href="/kontakt"
+              onClick={() => setMobileOpen(false)}
+              className="rounded-xl px-4 py-3 text-sm font-bold text-neutral-700 hover:bg-neutral-50"
+            >
+              Kontakt
+            </Link>
           </div>
         </div>
       ) : null}

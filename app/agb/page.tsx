@@ -29,19 +29,37 @@ export default function AGBPage() {
       </p>
 
       <h2 className="text-xl font-semibold mt-6 mb-2">3. Preise & Versand</h2>
-      <p className="text-gray-600 dark:text-gray-400 mb-4">
-        Alle Preise verstehen sich in Schweizer Franken (CHF). Versandkosten
-        werden im Bestellprozess separat ausgewiesen. Wir liefern innerhalb der
-        Schweiz und Liechtenstein.
-      </p>
+      <div className="text-gray-600 dark:text-gray-400 mb-4 space-y-3">
+        <p>
+          Alle Preise verstehen sich in Schweizer Franken (CHF). Die Lieferung
+          erfolgt ausschliesslich innerhalb der Schweiz.
+        </p>
+        <p>
+          Für den Standardversand berechnen wir bei einem Bestellwert unter
+          CHF 49.– Versandkosten von CHF 9.90. Ab einem Bestellwert von
+          CHF 49.– ist der Standardversand kostenlos.
+        </p>
+        <p>
+          Von dieser Versandkostenfreiheit ausgenommen sind Sperrgut,
+          besonders schwere oder voluminöse Artikel sowie Lieferungen per
+          Spedition. Für solche Artikel gelten besondere Versandkosten, die vor
+          Abschluss der Bestellung im Checkout angezeigt werden.
+        </p>
+      </div>
 
       <h2 className="text-xl font-semibold mt-6 mb-2">4. Lieferung</h2>
-      <p className="text-gray-600 dark:text-gray-400 mb-4">
-        Die Lieferung erfolgt in der Regel innerhalb von 2 bis 5 Werktagen,
-        sofern beim Produkt nichts anderes angegeben ist. Lieferverzögerungen
-        können in Ausnahmefällen vorkommen und berechtigen nicht automatisch zu
-        Schadenersatz.
-      </p>
+      <div className="text-gray-600 dark:text-gray-400 mb-4 space-y-3">
+        <p>
+          Der Standardversand erfolgt in der Regel innerhalb von 3 bis 5
+          Werktagen, sofern beim Produkt oder im Checkout nichts anderes
+          angegeben ist. Bei Sperrgut- und Speditionslieferungen beträgt die
+          Lieferzeit in der Regel 3 bis 7 Werktage.
+        </p>
+        <p>
+          Lieferverzögerungen können in Ausnahmefällen vorkommen und
+          berechtigen nicht automatisch zu Schadenersatz.
+        </p>
+      </div>
 
       <h2 className="text-xl font-semibold mt-6 mb-2">5. Zahlung</h2>
       <p className="text-gray-600 dark:text-gray-400 mb-4">
@@ -85,7 +103,7 @@ export default function AGBPage() {
       </p>
 
       <p className="mt-10 text-gray-500 text-sm">
-        Stand: März 2026 – IUMATEC Schweiz
+        Stand: Juli 2026 – IUMATEC Schweiz
       </p>
     </main>
   );

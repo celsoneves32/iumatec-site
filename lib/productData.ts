@@ -39,7 +39,7 @@ const STOREFRONT_CLEAN_PATH = path.join(
   "integrations",
   "alltron",
   "out",
-  "iumatec-storefront-clean.json"
+  "iumatec-storefront-clean.json",
 );
 
 const CATALOG_PATHS = [STOREFRONT_CLEAN_PATH];
@@ -71,7 +71,8 @@ function pickString(record: CatalogRecord, keys: string[]): string | undefined {
   for (const key of keys) {
     const value = getNestedValue(record, key);
     if (typeof value === "string" && value.trim()) return value.trim();
-    if (typeof value === "number" && Number.isFinite(value)) return String(value);
+    if (typeof value === "number" && Number.isFinite(value))
+      return String(value);
   }
 
   return undefined;
@@ -167,7 +168,10 @@ function resolveMerchandiseId(record: CatalogRecord): string | null {
   return normalizeProductVariantGid(variantId);
 }
 
-function resolveImages(record: CatalogRecord, mainImage?: string | null): string[] {
+function resolveImages(
+  record: CatalogRecord,
+  mainImage?: string | null,
+): string[] {
   const images = [
     ...(mainImage ? [mainImage] : []),
     ...toStringArray(getNestedValue(record, "images")),
@@ -190,37 +194,6 @@ function readJsonArray(filePath: string): CatalogRecord[] {
   }
 }
 
-function getRawText(record: CatalogRecord) {
-  return normalize(
-    [
-      record.title,
-      record.fullTitle,
-      record.name,
-      record.productTitle,
-      record.shopifyProductTitle,
-      record.description,
-      record.description2,
-      record.shortDescription,
-      record.longDescription,
-      record.brand,
-      record.vendor,
-      record.manufacturer,
-      record.rawCategory?.cat1,
-      record.rawCategory?.cat2,
-      record.rawCategory?.cat3,
-      record.rawCategory?.cat4,
-      record.iumatecCategory?.main,
-      record.iumatecCategory?.sub,
-      record.category,
-      record.subcategory,
-      record.cat1,
-      record.cat2,
-      record.cat3,
-      record.cat4,
-    ].join(" ")
-  );
-}
-
 function mapCategoryFromRaw(record: CatalogRecord) {
   const existingCategory =
     cleanupText(record.category) || cleanupText(record.iumatecCategory?.main);
@@ -238,25 +211,197 @@ function mapCategoryFromRaw(record: CatalogRecord) {
       record.fullTitle ||
       record.name ||
       record.productTitle ||
-      record.shopifyProductTitle
+      record.shopifyProductTitle,
   );
-
-  const text = getRawText(record);
-
-  const has = (terms: string[]) =>
-    terms.some((term) => text.includes(normalize(term)));
 
   const titleHas = (terms: string[]) =>
     terms.some((term) => title.includes(normalize(term)));
 
   const rawHas = (terms: string[]) =>
     terms.some((term) =>
-      [cat1, cat2, cat3, cat4].some((cat) => cat.includes(normalize(term)))
+      [cat1, cat2, cat3, cat4].some((cat) => cat.includes(normalize(term))),
     );
+
+  const titleOrRawHas = (terms: string[]) => titleHas(terms) || rawHas(terms);
+
+  /*
+   * Classify specific product families before generic accessories.
+   * Descriptions often mention compatible devices, so product-family rules
+   * intentionally rely on the title and the supplier category path.
+   */
+  if (
+    titleOrRawHas([
+      "netzwerkkabel",
+      "patchkabel",
+      "ethernet kabel",
+      "ethernet-kabel",
+      "lan kabel",
+      "lan-kabel",
+      "rj45 kabel",
+      "rj45-kabel",
+      "cat5e",
+      "cat6",
+      "cat 6",
+      "cat7",
+      "cat 7",
+      "cat8",
+      "cat 8",
+    ])
+  ) {
+    return { category: "Netzwerk", subcategory: "Netzwerk-Kabel" };
+  }
+
+  if (
+    titleOrRawHas([
+      "externe ssd",
+      "external ssd",
+      "portable ssd",
+      "portable solid state",
+    ])
+  ) {
+    return { category: "Datenspeicher", subcategory: "Externe SSD" };
+  }
+
+  if (
+    titleOrRawHas([
+      "externe festplatte",
+      "external hard drive",
+      "portable hard drive",
+      "portable hdd",
+    ])
+  ) {
+    return { category: "Datenspeicher", subcategory: "Externe HDD" };
+  }
+
+  if (
+    titleOrRawHas([
+      "digitalkamera",
+      "systemkamera",
+      "spiegelreflexkamera",
+      "kompaktkamera",
+      "dslr",
+      "mirrorless",
+      "camcorder",
+      "action cam",
+      "actioncam",
+    ])
+  ) {
+    return { category: "Foto & Video", subcategory: "Kameras" };
+  }
+
+  if (
+    titleOrRawHas([
+      "objektiv",
+      "camera lens",
+      "kameraobjektiv",
+      "teleobjektiv",
+      "weitwinkelobjektiv",
+    ])
+  ) {
+    return { category: "Foto & Video", subcategory: "Objektive" };
+  }
+
+  if (
+    titleOrRawHas([
+      "kamerastativ",
+      "camera tripod",
+      "fotostativ",
+      "gimbal",
+      "smallrig",
+      "kameratasche",
+      "camera bag",
+      "blitzgerat",
+      "blitzgerät",
+      "studioleuchte",
+      "ringlicht",
+    ])
+  ) {
+    return { category: "Foto & Video", subcategory: "Foto-Zubehör" };
+  }
+
+  if (
+    titleOrRawHas([
+      "dab radio",
+      "dab+ radio",
+      "internetradio",
+      "uhrenradio",
+      "radiowecker",
+      "kofferradio",
+      "tischradio",
+      "radio tuner",
+    ])
+  ) {
+    return { category: "Audio & Hi-Fi", subcategory: "Radios" };
+  }
+
+  if (
+    titleOrRawHas([
+      "bluetooth lautsprecher",
+      "bluetooth speaker",
+      "portable speaker",
+      "party speaker",
+      "partybox",
+      "soundbar",
+      "subwoofer",
+      "regallautsprecher",
+      "standlautsprecher",
+      "lautsprecher",
+      "speaker",
+    ])
+  ) {
+    return { category: "Audio & Hi-Fi", subcategory: "Lautsprecher" };
+  }
+
+  if (
+    titleOrRawHas([
+      "in-ear kopfhorer",
+      "in-ear kopfhörer",
+      "over-ear kopfhorer",
+      "over-ear kopfhörer",
+      "true wireless",
+      "wireless earbuds",
+      "bluetooth kopfhorer",
+      "bluetooth kopfhörer",
+      "airpods",
+      "earbuds",
+    ])
+  ) {
+    return { category: "Audio & Hi-Fi", subcategory: "Kopfhörer" };
+  }
+
+  if (
+    titleOrRawHas([
+      "plattenspieler",
+      "turntable",
+      "stereoanlage",
+      "hi-fi anlage",
+      "hifi anlage",
+      "av receiver",
+      "audio receiver",
+      "verstarker",
+      "verstärker",
+    ])
+  ) {
+    return { category: "Audio & Hi-Fi", subcategory: "Hi-Fi" };
+  }
+
+  if (
+    titleOrRawHas([
+      "smartwatch",
+      "fitness tracker",
+      "fitnesstracker",
+      "sportuhr",
+      "apple watch",
+      "galaxy watch",
+      "pixel watch",
+    ])
+  ) {
+    return { category: "Mobile", subcategory: "Smartwatches" };
+  }
 
   if (
     rawHas(["kabel", "adapter", "video-kabel", "audio-kabel", "usb-kabel"]) ||
-    has([
+    titleHas([
       "displayport kabel",
       "hdmi kabel",
       "usb-c kabel",
@@ -284,7 +429,7 @@ function mapCategoryFromRaw(record: CatalogRecord) {
 
   if (
     rawHas(["docking", "dock", "port-replikator"]) ||
-    has([
+    titleHas([
       "dockingstation",
       "docking station",
       "dock ",
@@ -299,7 +444,7 @@ function mapCategoryFromRaw(record: CatalogRecord) {
 
   if (
     rawHas(["notebook-zubehor", "notebook zubehor", "taschen", "rucksack"]) ||
-    has([
+    titleHas([
       "laptop tasche",
       "notebook tasche",
       "notebook sleeve",
@@ -322,7 +467,7 @@ function mapCategoryFromRaw(record: CatalogRecord) {
   }
 
   if (
-    has([
+    titleHas([
       "panzerglass",
       "schutzglas",
       "displayschutz",
@@ -387,14 +532,21 @@ function mapCategoryFromRaw(record: CatalogRecord) {
   }
 
   if (
-    titleHas(["ipad", "galaxy tab", "surface pro", "tablet ", "tab s", "tab a"]) ||
+    titleHas([
+      "ipad",
+      "galaxy tab",
+      "surface pro",
+      "tablet ",
+      "tab s",
+      "tab a",
+    ]) ||
     rawHas(["tablet", "tablets"])
   ) {
     return { category: "Mobile", subcategory: "Tablets" };
   }
 
   if (
-    has([
+    titleHas([
       "mini pc",
       "minipc",
       "mini-pc",
@@ -409,7 +561,7 @@ function mapCategoryFromRaw(record: CatalogRecord) {
 
   if (
     rawHas(["desktop", "workstation", "pc-systeme", "pc systeme"]) ||
-    has([
+    titleHas([
       "workstation",
       "tower pc",
       "desktop pc",
@@ -439,8 +591,28 @@ function mapCategoryFromRaw(record: CatalogRecord) {
   }
 
   if (
+    titleOrRawHas([
+      "monitorhalterung",
+      "monitor halterung",
+      "monitorarm",
+      "monitor arm",
+      "displayhalterung",
+      "display halterung",
+      "bildschirmhalterung",
+      "vesa halterung",
+      "monitor stand",
+      "monitorstander",
+      "monitorständer",
+      "privacy filter",
+      "blickschutzfilter",
+    ])
+  ) {
+    return { category: "Zubehör", subcategory: "Monitor-Zubehör" };
+  }
+
+  if (
     rawHas(["monitore", "display", "bildschirm"]) ||
-    has([
+    titleHas([
       "gaming monitor",
       "business monitor",
       "lcd monitor",
@@ -467,117 +639,133 @@ function mapCategoryFromRaw(record: CatalogRecord) {
 
   if (
     rawHas(["tastatur", "keyboard"]) ||
-    has(["desktop set", "keyboard", "tastatur", "combo", "mk270", "mk470"])
+    titleHas(["desktop set", "keyboard", "tastatur", "combo", "mk270", "mk470"])
   ) {
     return { category: "Peripherie", subcategory: "Tastaturen" };
   }
 
-  if (rawHas(["maus", "mouse"]) || has(["maus", "mouse", "trackball"])) {
+  if (rawHas(["maus", "mouse"]) || titleHas(["maus", "mouse", "trackball"])) {
     return { category: "Peripherie", subcategory: "Mäuse" };
   }
 
   if (
     rawHas(["headset", "kopfhorer", "kopfhoerer"]) ||
-    has(["headset", "kopfhorer", "kopfhoerer", "headphone"])
+    titleHas(["headset", "kopfhorer", "kopfhoerer", "headphone", "earbuds"])
   ) {
     return { category: "Peripherie", subcategory: "Headsets" };
   }
 
-  if (rawHas(["webcam"]) || has(["webcam"])) {
+  if (rawHas(["webcam"]) || titleHas(["webcam"])) {
     return { category: "Peripherie", subcategory: "Webcams" };
   }
 
   if (
     rawHas(["mikrofon", "microphone"]) ||
-    has(["mikrofon", "microphon", "microphone"])
+    titleHas(["mikrofon", "microphon", "microphone"])
   ) {
     return { category: "Peripherie", subcategory: "Mikrofone" };
   }
 
   if (
     rawHas(["grafikkarte", "graphics card"]) ||
-    has(["grafikkarte", "graphics card", "gpu", "geforce", "rtx ", "radeon"])
+    titleHas([
+      "grafikkarte",
+      "graphics card",
+      "gpu",
+      "geforce",
+      "rtx ",
+      "radeon",
+    ])
   ) {
     return { category: "PC-Komponenten", subcategory: "Grafikkarten" };
   }
 
   if (
     rawHas(["arbeitsspeicher", "memory", "ram"]) ||
-    has(["arbeitsspeicher", "ram", "memory", "ddr4", "ddr5", "so-dimm", "sodimm"])
+    titleHas([
+      "arbeitsspeicher",
+      "ram",
+      "memory",
+      "ddr4",
+      "ddr5",
+      "so-dimm",
+      "sodimm",
+    ])
   ) {
     return { category: "PC-Komponenten", subcategory: "RAM" };
   }
 
-  if (rawHas(["mainboard", "motherboard"]) || has(["mainboard", "motherboard"])) {
+  if (
+    rawHas(["mainboard", "motherboard"]) ||
+    titleHas(["mainboard", "motherboard"])
+  ) {
     return { category: "PC-Komponenten", subcategory: "Mainboards" };
   }
 
-  if (rawHas(["netzteil", "power supply"]) || has(["netzteil", "power supply", "psu"])) {
+  if (
+    rawHas(["netzteil", "power supply"]) ||
+    titleHas(["netzteil", "power supply", "psu"])
+  ) {
     return { category: "PC-Komponenten", subcategory: "Netzteile" };
   }
 
   if (
     rawHas(["prozessor", "processor", "cpu"]) ||
-    has(["prozessor", "processor", "cpu ", "intel core", "ryzen"])
+    titleHas(["prozessor", "processor", "cpu ", "intel core", "ryzen"])
   ) {
     return { category: "PC-Komponenten", subcategory: "Prozessoren" };
   }
 
-  if (rawHas(["gehause", "gehaeuse", "case"]) || has(["pc gehause", "pc case"])) {
+  if (
+    rawHas(["gehause", "gehaeuse", "pc case"]) ||
+    titleHas(["pc gehause", "pc case"])
+  ) {
     return { category: "PC-Komponenten", subcategory: "Gehäuse" };
   }
 
-  if (rawHas(["kuhler", "kuehler", "cooler"]) || has(["cpu cooler", "kuhler", "kuehler"])) {
+  if (
+    rawHas(["kuhler", "kuehler", "cooler"]) ||
+    titleHas(["cpu cooler", "kuhler", "kuehler"])
+  ) {
     return { category: "PC-Komponenten", subcategory: "Kühlung" };
   }
 
-  if (rawHas(["router", "firewall"]) || has(["router", "firewall"])) {
+  if (rawHas(["router", "firewall"]) || titleHas(["router", "firewall"])) {
     return { category: "Netzwerk", subcategory: "Router" };
   }
 
-  if (rawHas(["switch", "switches"]) || has(["switch", "switches"])) {
+  if (rawHas(["switch", "switches"]) || titleHas(["switch", "switches"])) {
     return { category: "Netzwerk", subcategory: "Switches" };
   }
 
   if (
     rawHas(["wlan", "wifi", "mesh", "access point", "accesspoint"]) ||
-    has(["wlan", "wifi", "wi-fi", "mesh", "access point", "accesspoint"])
+    titleHas(["wlan", "wifi", "wi-fi", "mesh", "access point", "accesspoint"])
   ) {
     return { category: "Netzwerk", subcategory: "WLAN Mesh" };
   }
 
   if (
-    rawHas(["netzwerkkabel", "patchkabel", "rj45"]) ||
-    has(["rj45", "cat6", "cat 6", "cat7", "cat 7"])
-  ) {
-    return { category: "Netzwerk", subcategory: "Netzwerk Kabel" };
-  }
-
-  if (
     rawHas(["ssd", "solid state drive"]) ||
-    has(["ssd", "nvme", "m.2", "solid state"])
+    titleHas(["ssd", "nvme", "m.2", "solid state"])
   ) {
     return { category: "Datenspeicher", subcategory: "SSD" };
   }
 
   if (
     rawHas(["festplatte", "hard disk", "hdd"]) ||
-    has(["festplatte", "hard disk", "hdd"])
+    titleHas(["festplatte", "hard disk", "hdd"])
   ) {
     return { category: "Datenspeicher", subcategory: "HDD" };
   }
 
-  if (rawHas(["nas"]) || has(["nas", "synology", "qnap"])) {
+  if (rawHas(["nas"]) || titleHas(["nas", "synology", "qnap"])) {
     return { category: "Datenspeicher", subcategory: "NAS" };
-  }
-
-  if (has(["externe ssd", "external ssd", "portable ssd", "portable drive"])) {
-    return { category: "Datenspeicher", subcategory: "Externe SSD" };
   }
 
   if (
     rawHas(["drucker", "printer"]) ||
-    has([
+    titleHas([
       "drucker",
       "printer",
       "multifunktionsdrucker",
@@ -592,30 +780,63 @@ function mapCategoryFromRaw(record: CatalogRecord) {
 
   if (
     rawHas(["toner", "tinte", "patrone"]) ||
-    has(["toner", "tinte", "patrone", "cartridge", "druckerpatrone", "ink cartridge"])
+    titleHas([
+      "toner",
+      "tinte",
+      "patrone",
+      "cartridge",
+      "druckerpatrone",
+      "ink cartridge",
+    ])
   ) {
     return { category: "Office & Business", subcategory: "Tinte & Toner" };
   }
 
   if (
     rawHas(["papier", "etikett", "etiketten"]) ||
-    has(["papier", "etikett", "labels", "label", "etikettenrolle", "fotopapier"])
+    titleHas([
+      "papier",
+      "etikett",
+      "labels",
+      "label",
+      "etikettenrolle",
+      "fotopapier",
+    ])
   ) {
     return { category: "Office & Business", subcategory: "Papier & Etiketten" };
   }
 
   if (
-    rawHas(["kamera", "camera", "uberwachung", "ueberwachung"]) ||
-    has(["kamera", "camera", "security cam", "überwachungskamera", "ueberwachungskamera"])
+    rawHas(["uberwachung", "ueberwachung", "security camera", "ip-kamera"]) ||
+    titleHas([
+      "security cam",
+      "uberwachungskamera",
+      "ueberwachungskamera",
+      "überwachungskamera",
+      "ip kamera",
+      "ip-kamera",
+      "outdoor camera",
+      "indoor camera",
+      "video doorbell",
+      "videoturklingel",
+    ])
   ) {
     return { category: "Smart Home", subcategory: "Kameras" };
   }
 
-  if (has(["steckdose", "smart plug", "plug"])) {
+  if (titleOrRawHas(["steckdose", "smart plug", "wlan stecker"])) {
     return { category: "Smart Home", subcategory: "Steckdosen" };
   }
 
-  if (has(["beleuchtung", "light", "led stripe", "led strip", "lampe"])) {
+  if (
+    titleOrRawHas([
+      "smart light",
+      "smart bulb",
+      "led stripe",
+      "led strip",
+      "lampe",
+    ])
+  ) {
     return { category: "Smart Home", subcategory: "Beleuchtung" };
   }
 
@@ -630,7 +851,9 @@ function mapCategoryFromRaw(record: CatalogRecord) {
 }
 
 function makeEnergyKey(value?: string | null) {
-  return String(value || "").trim().toLowerCase();
+  return String(value || "")
+    .trim()
+    .toLowerCase();
 }
 
 function buildEnergyMap(records: CatalogRecord[]) {
@@ -662,7 +885,7 @@ function buildEnergyMap(records: CatalogRecord[]) {
 
 function mapRecordToProduct(
   record: CatalogRecord,
-  energyMap: Map<string, Product["energyLabel"]>
+  energyMap: Map<string, Product["energyLabel"]>,
 ): Product | null {
   const title =
     pickString(record, [
@@ -747,19 +970,26 @@ function mapRecordToProduct(
     images,
     category: mappedCategory.category,
     subcategory: mappedCategory.subcategory,
-    description: cleanupText(pickString(record, ["description", "shortDescription"])),
-    description2: cleanupText(pickString(record, ["description2", "longDescription"])),
+    description: cleanupText(
+      pickString(record, ["description", "shortDescription"]),
+    ),
+    description2: cleanupText(
+      pickString(record, ["description2", "longDescription"]),
+    ),
     ean: cleanupText(pickString(record, ["ean", "gtin"])),
     internalNumber: cleanupText(
-      pickString(record, ["internalNumber", "articleNumber", "articleNo"])
+      pickString(record, ["internalNumber", "articleNumber", "articleNo"]),
     ),
     inStock,
     stockQty,
-    deliveryDate: pickString(record, ["deliveryDate", "eta", "availableFrom"]) || null,
+    deliveryDate:
+      pickString(record, ["deliveryDate", "eta", "availableFrom"]) || null,
     merchandiseId,
     shopifyProductHandle,
     shopifyProductId: cleanupText(pickString(record, ["shopifyProductId"])),
-    shopifyVariantId: cleanupText(pickString(record, ["shopifyVariantId", "variantId"])),
+    shopifyVariantId: cleanupText(
+      pickString(record, ["shopifyVariantId", "variantId"]),
+    ),
     shopifySyncStatus: cleanupText(pickString(record, ["shopifySyncStatus"])),
     energyLabel,
   };
@@ -772,21 +1002,12 @@ export function isValidMerchandiseId(value?: string | null) {
   );
 }
 
-function isSyncedProduct(product: Product) {
-  const status = String(product.shopifySyncStatus || "").trim();
-
-  if (!status) return true;
-
-  return status === "synced" || status === "updated-existing" || status === "ok";
-}
-
 export function isSellableProduct(product: Product) {
   return Boolean(
-    isSyncedProduct(product) &&
-      isValidMerchandiseId(product.merchandiseId) &&
+    isValidMerchandiseId(product.merchandiseId) &&
       product.price > 0 &&
       product.image &&
-      ((product.stockQty ?? 0) > 0 || product.inStock)
+      ((product.stockQty ?? 0) > 0 || product.inStock),
   );
 }
 
@@ -801,7 +1022,7 @@ function isBlockedProduct(product: Product) {
       product.subcategory,
       product.description,
       product.description2,
-    ].join(" ")
+    ].join(" "),
   );
 
   const allowedOffice =
@@ -853,6 +1074,100 @@ export function scoreProduct(product: Product): number {
   return score;
 }
 
+function categoryRelevanceScore(
+  product: Product,
+  category?: string,
+  subcategory?: string,
+): number {
+  let score = scoreProduct(product);
+  const title = normalize(product.title);
+  const wantedCategory = normalize(category);
+  const wantedSubcategory = normalize(subcategory);
+
+  if (wantedCategory && normalize(product.category) === wantedCategory) {
+    score += 2000;
+  }
+
+  if (
+    wantedSubcategory &&
+    normalize(product.subcategory) === wantedSubcategory
+  ) {
+    score += 3500;
+  }
+
+  const strongTitleTerms: Record<string, string[]> = {
+    laptops: [
+      "laptop",
+      "notebook",
+      "macbook",
+      "thinkpad",
+      "elitebook",
+      "probook",
+      "latitude",
+      "chromebook",
+    ],
+    monitore: [
+      "monitor",
+      "bildschirm",
+      "gaming display",
+      "business display",
+    ],
+    smartphones: [
+      "smartphone",
+      "iphone",
+      "galaxy s",
+      "galaxy a",
+      "galaxy z",
+      "google pixel",
+      "xiaomi",
+      "redmi",
+      "oppo",
+      "motorola",
+      "fairphone",
+    ],
+    tablets: [
+      "tablet",
+      "ipad",
+      "galaxy tab",
+      "surface pro",
+      "lenovo tab",
+      "matepad",
+    ],
+    grafikkarten: ["grafikkarte", "graphics card", "geforce", "rtx", "radeon"],
+    ssd: ["ssd", "nvme", "solid state"],
+    hdd: ["hdd", "festplatte", "hard drive"],
+    nas: ["nas", "synology", "qnap"],
+  };
+
+  for (const term of strongTitleTerms[wantedSubcategory] || []) {
+    if (title.includes(term)) {
+      score += 1200;
+      break;
+    }
+  }
+
+  return score;
+}
+
+function sortForCategory(
+  products: Product[],
+  category?: string,
+  subcategory?: string,
+) {
+  return [...products].sort((a, b) => {
+    const relevanceDifference =
+      categoryRelevanceScore(b, category, subcategory) -
+      categoryRelevanceScore(a, category, subcategory);
+
+    if (relevanceDifference !== 0) return relevanceDifference;
+
+    const stockDifference = (b.stockQty ?? 0) - (a.stockQty ?? 0);
+    if (stockDifference !== 0) return stockDifference;
+
+    return a.price - b.price;
+  });
+}
+
 const loadAllProducts = cache((): Product[] => {
   const allRecords = CATALOG_PATHS.flatMap(readJsonArray);
   const energyMap = buildEnergyMap(allRecords);
@@ -879,17 +1194,25 @@ const loadAllProducts = cache((): Product[] => {
     }
   }
 
-  return Array.from(unique.values()).sort(
-    (a, b) => scoreProduct(b) - scoreProduct(a)
-  );
+  return Array.from(unique.values());
 });
+
+const loadCleanProducts = cache((): Product[] =>
+  loadAllProducts().filter((product) => !isBlockedProduct(product)),
+);
+
+const loadPurchasableProducts = cache((): Product[] =>
+  loadCleanProducts()
+    .filter(isSellableProduct)
+    .sort((a, b) => scoreProduct(b) - scoreProduct(a)),
+);
 
 export function getAllProducts(): Product[] {
   return loadAllProducts();
 }
 
 export function getCleanProducts(): Product[] {
-  return loadAllProducts().filter((product) => !isBlockedProduct(product));
+  return loadCleanProducts();
 }
 
 export function getAllProductSlugs(): string[] {
@@ -920,9 +1243,7 @@ export function getFeaturedProducts(limit = 8): Product[] {
 }
 
 export function getPurchasableProducts(limit?: number): Product[] {
-  const items = getCleanProducts()
-    .filter(isSellableProduct)
-    .sort((a, b) => scoreProduct(b) - scoreProduct(a));
+  const items = loadPurchasableProducts();
 
   return typeof limit === "number" ? items.slice(0, limit) : items;
 }
@@ -956,23 +1277,30 @@ export function getProductsByCategory(category?: string): Product[] {
 
   const c = normalize(category);
 
-  return getPurchasableProducts().filter(
-    (product) => normalize(product.category) === c
+  return sortForCategory(
+    getPurchasableProducts().filter(
+      (product) => normalize(product.category) === c,
+    ),
+    category,
   );
 }
 
 export function getProductsBySubcategory(
   category?: string,
-  subcategory?: string
+  subcategory?: string,
 ): Product[] {
   const c = normalize(category);
   const s = normalize(subcategory);
 
-  return getPurchasableProducts().filter((product) => {
-    const matchesCategory = !c || normalize(product.category) === c;
-    const matchesSubcategory = !s || normalize(product.subcategory) === s;
-    return matchesCategory && matchesSubcategory;
-  });
+  return sortForCategory(
+    getPurchasableProducts().filter((product) => {
+      const matchesCategory = !c || normalize(product.category) === c;
+      const matchesSubcategory = !s || normalize(product.subcategory) === s;
+      return matchesCategory && matchesSubcategory;
+    }),
+    category,
+    subcategory,
+  );
 }
 
 export function searchProducts(query?: string): Product[] {
@@ -989,7 +1317,7 @@ export function searchProducts(query?: string): Product[] {
         product.category,
         product.subcategory,
         product.shopifyProductHandle,
-      ].join(" ")
+      ].join(" "),
     );
 
     return text.includes(q);
@@ -1000,10 +1328,10 @@ export function getRelatedProducts(
   currentSlug: string,
   category?: string,
   subcategory?: string,
-  limit = 4
+  limit = 4,
 ): Product[] {
   const all = getPurchasableProducts().filter(
-    (product) => product.slug !== currentSlug
+    (product) => product.slug !== currentSlug,
   );
 
   const c = normalize(category);
@@ -1013,7 +1341,7 @@ export function getRelatedProducts(
     ? all.filter(
         (product) =>
           normalize(product.category) === c &&
-          normalize(product.subcategory) === s
+          normalize(product.subcategory) === s,
       )
     : [];
 
