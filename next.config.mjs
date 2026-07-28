@@ -1,6 +1,16 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   staticPageGenerationTimeout: 300,
+
+  experimental: {
+    outputFileTracingIncludes: {
+      "/*": [
+        "./integrations/alltron/out/iumatec-storefront-clean-1.json",
+        "./integrations/alltron/out/iumatec-storefront-clean-2.json",
+      ],
+    },
+  },
+
   images: {
     remotePatterns: [
       {
