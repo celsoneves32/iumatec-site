@@ -1,7 +1,7 @@
 import "server-only";
-import fs from "node:fs";
-import path from "node:path";
 import { cache } from "react";
+import catalogPart1 from "../integrations/alltron/out/iumatec-storefront-clean-1.json";
+import catalogPart2 from "../integrations/alltron/out/iumatec-storefront-clean-2.json";
 
 export type Product = {
   sku: string;
@@ -33,16 +33,6 @@ export type Product = {
 };
 
 type CatalogRecord = Record<string, any>;
-
-const STOREFRONT_CLEAN_PATH = path.join(
-  process.cwd(),
-  "integrations",
-  "alltron",
-  "out",
-  "iumatec-storefront-clean.json",
-);
-
-const CATALOG_PATHS = [STOREFRONT_CLEAN_PATH];
 
 function normalize(value?: string | null) {
   return String(value || "")
@@ -182,16 +172,6 @@ function resolveImages(
   ].filter((url) => url.startsWith("http"));
 
   return [...new Set(images)];
-}
-
-function readJsonArray(filePath: string): CatalogRecord[] {
-  try {
-    if (!fs.existsSync(filePath)) return [];
-    const raw = JSON.parse(fs.readFileSync(filePath, "utf8"));
-    return Array.isArray(raw) ? raw : [];
-  } catch {
-    return [];
-  }
 }
 
 function mapCategoryFromRaw(record: CatalogRecord) {
@@ -1169,7 +1149,10 @@ function sortForCategory(
 }
 
 const loadAllProducts = cache((): Product[] => {
-  const allRecords = CATALOG_PATHS.flatMap(readJsonArray);
+  const allRecords = [
+    ...(catalogPart1 as CatalogRecord[]),
+    ...(catalogPart2 as CatalogRecord[]),
+  ];
   const energyMap = buildEnergyMap(allRecords);
 
   const mapped = allRecords
