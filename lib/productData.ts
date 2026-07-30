@@ -1235,6 +1235,13 @@ export function getTopProducts(limit = 8): Product[] {
   return getPurchasableProducts(limit);
 }
 
+export function getCatalogRecordCount(): number {
+  return (
+    (catalogPart1 as CatalogRecord[]).length +
+    (catalogPart2 as CatalogRecord[]).length
+  );
+}
+
 export function getImmediatelyAvailableProducts(limit = 8): Product[] {
   const items = getPurchasableProducts()
     .filter((product) => (product.stockQty ?? 0) >= 6)
@@ -1345,4 +1352,116 @@ export function getRelatedProducts(
   }
 
   return all.sort((a, b) => scoreProduct(b) - scoreProduct(a)).slice(0, limit);
+}
+
+export type CatalogQuery = {
+  q?: string;
+  category?: string;
+  subcategory?: string;
+  brands?: string[];
+  minPrice?: number;
+  maxPrice?: number;
+  inStock?: boolean;
+  sort?: "featured" | "price-desc" | "price-asc" | "title-asc" | "brand-asc";
+  offset?: number;
+  limit?: number;
+};
+
+export type CatalogFacet = { label: string; count: number };
+
+function facet(
+  products: Product[],
+  getter: (product: Product) => string | undefined,
+): CatalogFacet[] {
+  const counts = new Map<string, number>();
+  for (const product of products) {
+    const label = String(getter(product) || "").trim();
+    if (label) counts.set(label, (counts.get(label) || 0) + 1);
+  }
+  return [...counts.entries()]
+    .map(([label, count]) => ({ label, count }))
+    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label, "de"));
+}
+
+export function queryCatalog(query: CatalogQuery = {}) {
+  const all = getPurchasableProducts();
+  const q = normalize(query.q);
+  const category = normalize(query.category === "Alle" ? "" : query.category);
+  const subcategory = normalize(
+    query.subcategory === "Alle" ? "" : query.subcategory,
+  );
+  const wantedBrands = new Set((query.brands || []).map(normalize));
+  const minPrice = Number.isFinite(query.minPrice) ? Number(query.minPrice) : 0;
+  const maxPrice = Number.isFinite(query.maxPrice)
+    ? Number(query.maxPrice)
+    : Number.POSITIVE_INFINITY;
+
+  const searched = all.filter((product) => {
+    if (!q) return true;
+    return normalize(
+      [
+        product.title,
+        product.brand,
+        product.sku,
+        product.ean,
+        product.category,
+        product.subcategory,
+      ].join(" "),
+    ).includes(q);
+  });
+
+  const categoryBase = searched.filter(
+    (product) => !category || normalize(product.category) === category,
+  );
+  const subcategoryBase = categoryBase.filter(
+    (product) => !subcategory || normalize(product.subcategory) === subcategory,
+  );
+
+  const filtered = subcategoryBase.filter((product) => {
+    const price = Number(product.price || 0);
+    const brandMatch =
+      wantedBrands.size === 0 || wantedBrands.has(normalize(product.brand));
+    const stockMatch =
+      !query.inStock ||
+      Boolean(product.inStock || Number(product.stockQty || 0) > 0);
+    return brandMatch && stockMatch && price >= minPrice && price <= maxPrice;
+  });
+
+  const sorted = [...filtered].sort((a, b) => {
+    switch (query.sort) {
+      case "price-desc":
+        return b.price - a.price;
+      case "price-asc":
+        return a.price - b.price;
+      case "title-asc":
+        return a.title.localeCompare(b.title, "de");
+      case "brand-asc":
+        return String(a.brand || "").localeCompare(String(b.brand || ""), "de");
+      default:
+        return scoreProduct(b) - scoreProduct(a);
+    }
+  });
+
+  const offset = Math.max(0, Number(query.offset || 0));
+  const limit = Math.min(48, Math.max(1, Number(query.limit || 24)));
+  const prices = searched.map((product) => product.price).filter(Number.isFinite);
+
+  return {
+    products: sorted.slice(offset, offset + limit),
+    total: sorted.length,
+    catalogTotal: all.length,
+    offset,
+    limit,
+    hasMore: offset + limit < sorted.length,
+    facets: {
+      categories: facet(searched, (product) => product.category),
+      subcategories: facet(categoryBase, (product) => product.subcategory),
+      brands: facet(subcategoryBase, (product) => product.brand).slice(0, 40),
+      available: subcategoryBase.filter(
+        (product) => product.inStock || Number(product.stockQty || 0) > 0,
+      ).length,
+      minPrice: prices.length ? Math.floor(Math.min(...prices)) : 0,
+      maxPrice: prices.length ? Math.ceil(Math.max(...prices)) : 10000,
+    },
+  };
 }

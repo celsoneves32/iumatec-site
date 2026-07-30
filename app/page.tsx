@@ -3,8 +3,8 @@ import ProductCard from "@/components/ProductCard";
 import HomepageCarousel from "@/components/HomepageCarousel";
 import { classifyProduct } from "@/lib/categoryRules";
 import {
+  getCatalogRecordCount,
   getPurchasableProducts,
-  getTopProducts,
   type Product,
 } from "@/lib/productData";
 
@@ -600,6 +600,14 @@ function isNetwork(product: Product) {
 
 function isStorage(product: Product) {
   const result = classifyProduct(product as any);
+  const strictStorageSubcategories = new Set([
+    "ssd",
+    "hdd",
+    "nas",
+    "externe speicher",
+    "usb-sticks",
+    "speicherkarten",
+  ]);
   const hasStorageDeviceName = hasProductWords(product, [
     " ssd",
     "ssd ",
@@ -620,6 +628,7 @@ function isStorage(product: Product) {
 
   return (
     result.main === "Datenspeicher" &&
+    strictStorageSubcategories.has(normalize(result.sub)) &&
     hasStorageDeviceName &&
     !hasBlockedWords(product, nonStorageDeviceWords)
   );
@@ -1063,11 +1072,15 @@ function CategoryCard({
 }
 
 export default function HomePage() {
-  const purchasable = getPurchasableProducts();
-  const fallback = getTopProducts(1000);
-  const rawProducts = purchasable.length ? purchasable : fallback;
-
-  const allBuyable = uniqueBySlug(rawProducts.filter(isBuyable));
+  /*
+   * The catalog stays complete on the server and in /produkte. The homepage
+   * only needs a representative pool to choose its few visible cards.
+   * Limiting that pool prevents repeated classification and sorting of all
+   * 52k products during static generation.
+   */
+  const homepagePool = getPurchasableProducts(4000);
+  const allBuyable = uniqueBySlug(homepagePool.filter(isBuyable));
+  const catalogCount = getCatalogRecordCount();
 
   const laptops = allBuyable
     .filter((p) => isLaptop(p) && getPrice(p) >= 300)
@@ -1155,7 +1168,7 @@ export default function HomePage() {
   return (
     <main className="bg-white">
       <PremiumHero
-        count={allBuyable.length}
+        count={catalogCount}
         mainProduct={heroMainProduct}
         sideProducts={heroSideProducts}
       />

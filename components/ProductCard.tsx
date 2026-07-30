@@ -126,6 +126,10 @@ export default function ProductCard({ product }: Props) {
             <img
               src={imageSrc}
               alt={product.title}
+              loading="lazy"
+              decoding="async"
+              width={320}
+              height={288}
               onError={() => setImageFailed(true)}
               className="max-h-full max-w-full object-contain transition duration-300 group-hover:scale-105"
             />
