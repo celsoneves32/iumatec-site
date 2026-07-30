@@ -8,8 +8,8 @@ import ProductSpecs from "@/components/product/ProductSpecs";
 import RelatedCarousel from "@/components/product/RelatedCarousel";
 
 import {
-  getAllProducts,
   getProductBySlug,
+  getProductVariants,
   getRelatedProducts,
   type Product,
 } from "@/lib/productData";
@@ -66,44 +66,6 @@ function getProductImages(product: Product) {
   return Array.from(new Set(images));
 }
 
-function normalize(value: unknown) {
-  return String(value || "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .replace(/ä/g, "a")
-    .replace(/ö/g, "o")
-    .replace(/ü/g, "u")
-    .replace(/ß/g, "ss")
-    .trim();
-}
-
-function getFamilyKey(product: Product) {
-  const productData = product as any;
-
-  let title = normalize(productData.title);
-
-  title = title
-    .replace(
-      /\b(midnight|mitternacht|sky blue|sky-blue|silber|silver|schwarz|black|grau|gray|grey|blau|blue|weiss|white|gold|rose|rot|red|grun|green|starlight|space schwarz|space black)\b/g,
-      "",
-    )
-    .replace(
-      /\b(64gb|128gb|256gb|512gb|1tb|2tb|4tb|8gb|16gb|24gb|32gb)\b/g,
-      "",
-    )
-    .replace(
-      /\b(8 gb|16 gb|24 gb|32 gb|64 gb|128 gb|256 gb|512 gb|1 tb|2 tb|4 tb)\b/g,
-      "",
-    )
-    .replace(/\b(wifi|wi-fi|5g|cellular|lte)\b/g, "")
-    .replace(/[,/()-]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-
-  return `${normalize(productData.brand)}-${title}`;
-}
-
 function getVariantLabel(product: Product) {
   const productData = product as any;
 
@@ -136,52 +98,6 @@ function getVariantLabel(product: Product) {
     : String(productData.title || "Variante");
 }
 
-function getVariantProducts(product: Product) {
-  const currentFamilyKey = getFamilyKey(product);
-  const currentSlug = getProductSlug(product);
-  const allProducts = getAllProducts();
-
-  const variants = allProducts
-    .filter((item) => {
-      const itemSlug = getProductSlug(item);
-      const itemPrice = Number((item as any).price || 0);
-
-      if (!itemSlug) return false;
-      if (itemPrice <= 0) return false;
-
-      return getFamilyKey(item) === currentFamilyKey;
-    })
-    .sort((firstProduct, secondProduct) => {
-      const firstIsActive =
-        getProductSlug(firstProduct) === currentSlug ? -1 : 0;
-
-      const secondIsActive =
-        getProductSlug(secondProduct) === currentSlug ? -1 : 0;
-
-      if (firstIsActive !== secondIsActive) {
-        return firstIsActive - secondIsActive;
-      }
-
-      return (
-        Number((firstProduct as any).price || 0) -
-        Number((secondProduct as any).price || 0)
-      );
-    });
-
-  const seenSlugs = new Set<string>();
-
-  return variants.filter((item) => {
-    const itemSlug = getProductSlug(item);
-
-    if (!itemSlug || seenSlugs.has(itemSlug)) {
-      return false;
-    }
-
-    seenSlugs.add(itemSlug);
-    return true;
-  });
-}
-
 export default function ProductPage({ params }: Props) {
   const product = getProductBySlug(params.slug);
 
@@ -197,7 +113,7 @@ export default function ProductPage({ params }: Props) {
   const inStock = stockQty > 0 || Boolean(product.inStock);
   const price = Number(productData.price || 0);
 
-  const variantProducts = getVariantProducts(product);
+  const variantProducts = getProductVariants(product);
 
   const relatedProducts = getRelatedProducts(
     currentSlug,

@@ -1190,6 +1190,89 @@ const loadPurchasableProducts = cache((): Product[] =>
     .sort((a, b) => scoreProduct(b) - scoreProduct(a)),
 );
 
+function productLookupKeys(product: Product): string[] {
+  return [
+    product.slug,
+    product.shopifyProductHandle,
+    product.sku,
+    product.internalNumber,
+    product.ean,
+    product.title,
+  ]
+    .filter(Boolean)
+    .map((value) => slugifyValue(String(value)));
+}
+
+const loadProductBySlugIndex = cache(() => {
+  const index = new Map<string, Product>();
+
+  for (const product of loadAllProducts()) {
+    for (const key of productLookupKeys(product)) {
+      if (key && !index.has(key)) index.set(key, product);
+    }
+  }
+
+  return index;
+});
+
+function productFamilyKey(product: Product): string {
+  let title = normalize(product.title)
+    .replace(
+      /\b(midnight|mitternacht|sky blue|sky-blue|silber|silver|schwarz|black|grau|gray|grey|blau|blue|weiss|white|gold|rose|rot|red|grun|green|starlight|space schwarz|space black)\b/g,
+      "",
+    )
+    .replace(
+      /\b(64gb|128gb|256gb|512gb|1tb|2tb|4tb|8gb|16gb|24gb|32gb|64 gb|128 gb|256 gb|512 gb|1 tb|2 tb|4 tb|8 gb|16 gb|24 gb|32 gb)\b/g,
+      "",
+    )
+    .replace(/\b(wifi|wi-fi|5g|cellular|lte)\b/g, "")
+    .replace(/[,/()-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return `${normalize(product.brand)}-${title}`;
+}
+
+const loadProductFamilyIndex = cache(() => {
+  const index = new Map<string, Product[]>();
+
+  for (const product of loadPurchasableProducts()) {
+    const key = productFamilyKey(product);
+    if (!key) continue;
+
+    const family = index.get(key);
+    if (family) family.push(product);
+    else index.set(key, [product]);
+  }
+
+  return index;
+});
+
+const loadCategoryIndex = cache(() => {
+  const byCategory = new Map<string, Product[]>();
+  const bySubcategory = new Map<string, Product[]>();
+
+  for (const product of loadPurchasableProducts()) {
+    const category = normalize(product.category);
+    const subcategory = normalize(product.subcategory);
+
+    if (category) {
+      const categoryItems = byCategory.get(category);
+      if (categoryItems) categoryItems.push(product);
+      else byCategory.set(category, [product]);
+    }
+
+    if (category && subcategory) {
+      const key = `${category}\u0000${subcategory}`;
+      const subcategoryItems = bySubcategory.get(key);
+      if (subcategoryItems) subcategoryItems.push(product);
+      else bySubcategory.set(key, [product]);
+    }
+  }
+
+  return { byCategory, bySubcategory };
+});
+
 export function getAllProducts(): Product[] {
   return loadAllProducts();
 }
@@ -1204,21 +1287,30 @@ export function getAllProductSlugs(): string[] {
 
 export function getProductBySlug(slug: string): Product | undefined {
   const wanted = slugifyValue(decodeURIComponent(slug || ""));
+  return loadProductBySlugIndex().get(wanted);
+}
 
-  return getAllProducts().find((product) => {
-    const candidates = [
-      product.slug,
-      product.shopifyProductHandle,
-      product.sku,
-      product.internalNumber,
-      product.ean,
-      product.title,
-    ]
-      .filter(Boolean)
-      .map((value) => slugifyValue(String(value)));
+export function getProductVariants(
+  product: Product,
+  limit = 24,
+): Product[] {
+  const currentSlug = product.slug;
+  const family =
+    loadProductFamilyIndex().get(productFamilyKey(product)) || [product];
+  const seen = new Set<string>();
 
-    return candidates.includes(wanted);
-  });
+  return [...family]
+    .filter((item) => {
+      if (!item.slug || seen.has(item.slug)) return false;
+      seen.add(item.slug);
+      return true;
+    })
+    .sort((a, b) => {
+      if (a.slug === currentSlug) return -1;
+      if (b.slug === currentSlug) return 1;
+      return a.price - b.price;
+    })
+    .slice(0, Math.max(1, limit));
 }
 
 export function getFeaturedProducts(limit = 8): Product[] {
@@ -1320,38 +1412,22 @@ export function getRelatedProducts(
   subcategory?: string,
   limit = 4,
 ): Product[] {
-  const all = getPurchasableProducts().filter(
-    (product) => product.slug !== currentSlug,
-  );
-
   const c = normalize(category);
   const s = normalize(subcategory);
+  const { byCategory, bySubcategory } = loadCategoryIndex();
+  const sameSubcategory =
+    c && s ? bySubcategory.get(`${c}\u0000${s}`) || [] : [];
+  const sameCategory = c ? byCategory.get(c) || [] : [];
+  const candidates =
+    sameSubcategory.length > 1
+      ? sameSubcategory
+      : sameCategory.length > 1
+        ? sameCategory
+        : getPurchasableProducts();
 
-  const sameSubcategory = s
-    ? all.filter(
-        (product) =>
-          normalize(product.category) === c &&
-          normalize(product.subcategory) === s,
-      )
-    : [];
-
-  if (sameSubcategory.length > 0) {
-    return sameSubcategory
-      .sort((a, b) => scoreProduct(b) - scoreProduct(a))
-      .slice(0, limit);
-  }
-
-  const sameCategory = c
-    ? all.filter((product) => normalize(product.category) === c)
-    : [];
-
-  if (sameCategory.length > 0) {
-    return sameCategory
-      .sort((a, b) => scoreProduct(b) - scoreProduct(a))
-      .slice(0, limit);
-  }
-
-  return all.sort((a, b) => scoreProduct(b) - scoreProduct(a)).slice(0, limit);
+  return candidates
+    .filter((product) => product.slug !== currentSlug)
+    .slice(0, limit);
 }
 
 export type CatalogQuery = {
