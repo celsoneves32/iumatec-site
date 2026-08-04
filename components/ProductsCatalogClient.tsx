@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import ProductCard from "@/components/ProductCard";
 
 export type CatalogProduct = {
@@ -54,8 +54,13 @@ const quickCategories = [
   ["Zubehör", "Mobile", "Zubehör"],
 ];
 
-const formatCount = (value: number) =>
-  Math.trunc(value).toLocaleString("de-CH").replace(/\./g, "’");
+const formatCount = (value: number) => {
+  const integer = Math.trunc(Number.isFinite(value) ? value : 0);
+  const sign = integer < 0 ? "-" : "";
+  const digits = Math.abs(integer).toString();
+
+  return `${sign}${digits.replace(/\B(?=(\d{3})+(?!\d))/g, "’")}`;
+};
 
 export default function ProductsCatalogClient({
   initialData,
@@ -66,6 +71,7 @@ export default function ProductsCatalogClient({
   const [data, setData] = useState(initialData);
   const [products, setProducts] = useState(initialData.products);
   const [query, setQuery] = useState(initialQuery);
+  const [debouncedQuery, setDebouncedQuery] = useState(initialQuery);
   const [category, setCategory] = useState(initialCategory);
   const [subcategory, setSubcategory] = useState(initialSubcategory);
   const [brands, setBrands] = useState<string[]>([]);
@@ -74,10 +80,16 @@ export default function ProductsCatalogClient({
   const [minPrice, setMinPrice] = useState<number | undefined>();
   const [maxPrice, setMaxPrice] = useState<number | undefined>();
   const [loading, setLoading] = useState(false);
+  const requestId = useRef(0);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedQuery(query.trim()), 400);
+    return () => window.clearTimeout(timer);
+  }, [query]);
 
   const requestUrl = useMemo(() => {
     const params = new URLSearchParams();
-    if (query.trim()) params.set("q", query.trim());
+    if (debouncedQuery) params.set("q", debouncedQuery);
     if (category !== "Alle") params.set("category", category);
     if (subcategory !== "Alle") params.set("subcategory", subcategory);
     brands.forEach((brand) => params.append("brand", brand));
@@ -87,26 +99,47 @@ export default function ProductsCatalogClient({
     if (maxPrice !== undefined) params.set("maxPrice", String(maxPrice));
     params.set("limit", "24");
     return `/api/products?${params}`;
-  }, [query, category, subcategory, brands, inStock, sort, minPrice, maxPrice]);
+  }, [debouncedQuery, category, subcategory, brands, inStock, sort, minPrice, maxPrice]);
 
   useEffect(() => {
     const controller = new AbortController();
-    const timer = window.setTimeout(async () => {
+    const currentRequest = ++requestId.current;
+    const run = async () => {
       setLoading(true);
+      setProducts([]);
       try {
         const response = await fetch(requestUrl, { signal: controller.signal });
         if (!response.ok) throw new Error("Katalog konnte nicht geladen werden");
         const next: CatalogResponse = await response.json();
-        setData(next);
+        if (currentRequest !== requestId.current) return;
+        setData((current) => ({ ...next, catalogTotal: current.catalogTotal, facets: current.facets }));
         setProducts(next.products);
+        setLoading(false);
+
+        const url = new URL(window.location.href);
+        const requestParams = new URL(requestUrl, window.location.origin).searchParams;
+        ["q", "category", "subcategory"].forEach((name) => {
+          const value = requestParams.get(name);
+          if (value) url.searchParams.set(name, value); else url.searchParams.delete(name);
+        });
+        window.history.replaceState(null, "", `${url.pathname}${url.search}`);
+
+        // Counters are deliberately loaded afterwards so they never block products.
+        const facetsUrl = new URL(requestUrl, window.location.origin);
+        facetsUrl.searchParams.set("facets", "1");
+        const facetsResponse = await fetch(`${facetsUrl.pathname}${facetsUrl.search}`, { signal: controller.signal });
+        if (facetsResponse.ok && currentRequest === requestId.current) {
+          const full: CatalogResponse = await facetsResponse.json();
+          setData((current) => ({ ...current, catalogTotal: full.catalogTotal, facets: full.facets }));
+        }
       } catch (error) {
         if ((error as Error).name !== "AbortError") console.error(error);
       } finally {
-        if (!controller.signal.aborted) setLoading(false);
+        if (!controller.signal.aborted && currentRequest === requestId.current) setLoading(false);
       }
-    }, 250);
+    };
+    void run();
     return () => {
-      window.clearTimeout(timer);
       controller.abort();
     };
   }, [requestUrl]);
@@ -116,6 +149,7 @@ export default function ProductsCatalogClient({
     try {
       const url = new URL(requestUrl, window.location.origin);
       url.searchParams.set("offset", String(products.length));
+      url.searchParams.delete("facets");
       const response = await fetch(`${url.pathname}${url.search}`);
       const next: CatalogResponse = await response.json();
       setProducts((current) => [...current, ...next.products]);
@@ -258,7 +292,12 @@ export default function ProductsCatalogClient({
 
         <section>
           <h2 className="mb-5 text-2xl font-black">{formatCount(data.total)} Produkte gefunden</h2>
-          {products.length ? (
+          {loading && products.length === 0 ? (
+            <div className="rounded-3xl border bg-white p-10 text-center">
+              <div className="mx-auto h-9 w-9 animate-spin rounded-full border-4 border-neutral-200 border-t-red-600" />
+              <p className="mt-4 font-bold text-neutral-600">Produkte werden gesucht…</p>
+            </div>
+          ) : products.length ? (
             <>
               <div className={`grid gap-6 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 ${loading ? "opacity-70" : ""}`}>
                 {products.map((product) => (

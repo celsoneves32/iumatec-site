@@ -1,26 +1,18 @@
 import ProductsCatalogClient from "@/components/ProductsCatalogClient";
-import { queryCatalog } from "@/lib/productData";
+import { queryCatalog } from "@/lib/supabaseCatalog";
 
 export const revalidate = 300;
+type ProdukteSearchParams = { q?: string | string[]; category?: string | string[]; subcategory?: string | string[] };
+const firstValue = (value?: string | string[]) => Array.isArray(value) ? value[0] || "" : value || "";
 
-export default function ProduktePage({
-  searchParams,
-}: {
-  searchParams?: { q?: string; category?: string; subcategory?: string };
-}) {
-  const initial = queryCatalog({
-    q: searchParams?.q,
-    category: searchParams?.category,
-    subcategory: searchParams?.subcategory,
-    limit: 24,
-  });
-
-  return (
-    <ProductsCatalogClient
-      initialData={initial}
-      initialQuery={searchParams?.q || ""}
-      initialCategory={searchParams?.category || "Alle"}
-      initialSubcategory={searchParams?.subcategory || "Alle"}
-    />
-  );
+export default async function ProduktePage({ searchParams }: { searchParams?: Promise<ProdukteSearchParams> }) {
+  const params = (await searchParams) || {};
+  const query = firstValue(params.q).trim();
+  const category = firstValue(params.category) || "Alle";
+  const subcategory = firstValue(params.subcategory) || "Alle";
+  const initial = await queryCatalog({ q: query || undefined,
+    category: category === "Alle" ? undefined : category,
+    subcategory: subcategory === "Alle" ? undefined : subcategory, limit: 24 });
+  return <ProductsCatalogClient initialData={initial} initialQuery={query}
+    initialCategory={category} initialSubcategory={subcategory} />;
 }
