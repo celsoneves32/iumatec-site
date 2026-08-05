@@ -12,7 +12,7 @@ import {
   getProductVariants,
   getRelatedProducts,
   type Product,
-} from "@/lib/productData";
+} from "@/lib/supabaseCatalog";
 
 type Props = {
   params: {
@@ -98,8 +98,8 @@ function getVariantLabel(product: Product) {
     : String(productData.title || "Variante");
 }
 
-export default function ProductPage({ params }: Props) {
-  const product = getProductBySlug(params.slug);
+export default async function ProductPage({ params }: Props) {
+  const product = await getProductBySlug(params.slug);
 
   if (!product) {
     return notFound();
@@ -113,14 +113,10 @@ export default function ProductPage({ params }: Props) {
   const inStock = stockQty > 0 || Boolean(product.inStock);
   const price = Number(productData.price || 0);
 
-  const variantProducts = getProductVariants(product);
-
-  const relatedProducts = getRelatedProducts(
-    currentSlug,
-    product.category,
-    product.subcategory,
-    8,
-  );
+  const [variantProducts, relatedProducts] = await Promise.all([
+    getProductVariants(product),
+    getRelatedProducts(product, 8),
+  ]);
 
   return (
     <main className="bg-white">

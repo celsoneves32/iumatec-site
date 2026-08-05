@@ -2,77 +2,284 @@ import "server-only";
 import { createClient } from "@supabase/supabase-js";
 
 export type Product = {
-  sku: string; slug: string; title: string; brand?: string; price: number;
-  image?: string | null; images?: string[]; category?: string; subcategory?: string;
-  description?: string; description2?: string; ean?: string; internalNumber?: string;
-  inStock?: boolean; stockQty?: number; deliveryDate?: string | null;
-  merchandiseId?: string | null; shopifyProductHandle?: string | null;
-  shopifyProductId?: string | null; shopifyVariantId?: string | null;
-  shopifySyncStatus?: string | null; energyLabel?: unknown;
+  sku: string;
+  slug: string;
+  title: string;
+  brand?: string;
+  price: number;
+  image?: string | null;
+  images?: string[];
+  category?: string;
+  subcategory?: string;
+  description?: string;
+  description2?: string;
+  ean?: string;
+  internalNumber?: string;
+  inStock?: boolean;
+  stockQty?: number;
+  deliveryDate?: string | null;
+  merchandiseId?: string | null;
+  shopifyProductHandle?: string | null;
+  shopifyProductId?: string | null;
+  shopifyVariantId?: string | null;
+  shopifySyncStatus?: string | null;
+  energyLabel?: {
+    class?: string | null;
+    labelUrl?: string | null;
+    productDataSheetUrl?: string | null;
+  } | null;
 };
 
 export type CatalogQuery = {
-  q?: string; category?: string; subcategory?: string; brands?: string[];
-  minPrice?: number; maxPrice?: number; inStock?: boolean;
+  q?: string;
+  category?: string;
+  subcategory?: string;
+  brands?: string[];
+  minPrice?: number;
+  maxPrice?: number;
+  inStock?: boolean;
   sort?: "featured" | "price-desc" | "price-asc" | "title-asc" | "brand-asc";
-  offset?: number; limit?: number;
+  offset?: number;
+  limit?: number;
 };
 
 export type CatalogFacet = { label: string; count: number };
+
 export type CatalogResponse = {
-  products: Product[]; total: number; catalogTotal: number; offset: number;
-  limit: number; hasMore: boolean;
-  facets: { categories: CatalogFacet[]; subcategories: CatalogFacet[];
-    brands: CatalogFacet[]; available: number; minPrice: number; maxPrice: number };
+  products: Product[];
+  total: number;
+  catalogTotal: number;
+  offset: number;
+  limit: number;
+  hasMore: boolean;
+  facets: {
+    categories: CatalogFacet[];
+    subcategories: CatalogFacet[];
+    brands: CatalogFacet[];
+    available: number;
+    minPrice: number;
+    maxPrice: number;
+  };
 };
 
 const EMPTY_FACETS: CatalogResponse["facets"] = {
-  categories: [], subcategories: [], brands: [], available: 0, minPrice: 0, maxPrice: 0,
+  categories: [],
+  subcategories: [],
+  brands: [],
+  available: 0,
+  minPrice: 0,
+  maxPrice: 0,
 };
 
 function getSupabase() {
   const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
   const secret = process.env.SUPABASE_SECRET_KEY;
+
   if (!url) throw new Error("Missing env var: SUPABASE_URL");
   if (!secret) throw new Error("Missing env var: SUPABASE_SECRET_KEY");
-  return createClient(url, secret, { auth: { persistSession: false, autoRefreshToken: false } });
+
+  return createClient(url, secret, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
 }
 
 function cleanSearch(value: string) {
-  return value.replace(/[,%()]/g, " ").replace(/\s+/g, " ").trim().slice(0, 120);
+  return value
+    .replace(/[,%()]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 120);
 }
 
-function mapProduct(row: Record<string, any>): Product {
+type ProductRow = Record<string, unknown>;
+
+function stringValue(row: ProductRow, ...keys: string[]): string | undefined {
+  for (const key of keys) {
+    const value = row[key];
+    if (typeof value === "string" && value.trim()) return value.trim();
+    if (typeof value === "number" && Number.isFinite(value)) return String(value);
+  }
+  return undefined;
+}
+
+function numberValue(row: ProductRow, ...keys: string[]): number {
+  for (const key of keys) {
+    const value = row[key];
+    const parsed = typeof value === "number" ? value : Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return 0;
+}
+
+function mapProduct(row: ProductRow): Product {
+  const rawImages = row.images;
+  const images = Array.isArray(rawImages)
+    ? rawImages.map(String).filter((url) => url.startsWith("http"))
+    : [];
+  const image =
+    stringValue(row, "image", "image_url", "imageUrl") || images[0] || null;
+  const stockQty = numberValue(row, "stock_qty", "stockQty", "stock");
+
   return {
-    ...row,
-    sku: String(row.sku ?? ""),
-    slug: String(row.slug ?? ""),
-    title: String(row.title ?? ""),
-    stockQty: Number(row.stock_qty ?? row.stockQty ?? 0),
-    inStock: Boolean(row.in_stock ?? row.inStock ?? Number(row.stock_qty ?? row.stockQty ?? 0) > 0),
-    merchandiseId: row.merchandise_id ?? row.merchandiseId ?? null,
-    shopifyProductHandle: row.shopify_product_handle ?? row.shopifyProductHandle ?? null,
-    shopifyProductId: row.shopify_product_id ?? row.shopifyProductId ?? null,
-    shopifyVariantId: row.shopify_variant_id ?? row.shopifyVariantId ?? null,
-    shopifySyncStatus: row.shopify_sync_status ?? row.shopifySyncStatus ?? null,
-    internalNumber: row.internal_number ?? row.internalNumber,
-    deliveryDate: row.delivery_date ?? row.deliveryDate ?? null,
-    energyLabel: row.energy_label ?? row.energyLabel,
-    price: Number(row.price ?? 0),
+    sku: stringValue(row, "sku") || "",
+    slug: stringValue(row, "slug", "shopify_product_handle", "shopifyProductHandle") || "",
+    title: stringValue(row, "title") || "Produkt",
+    brand: stringValue(row, "brand"),
+    price: numberValue(row, "price"),
+    image,
+    images: Array.from(new Set([...(image ? [image] : []), ...images])),
+    category: stringValue(row, "category"),
+    subcategory: stringValue(row, "subcategory"),
+    description: stringValue(row, "description"),
+    description2: stringValue(row, "description2", "description_2"),
+    ean: stringValue(row, "ean"),
+    internalNumber: stringValue(row, "internal_number", "internalNumber"),
+    inStock:
+      typeof row.in_stock === "boolean"
+        ? row.in_stock
+        : typeof row.inStock === "boolean"
+          ? row.inStock
+          : stockQty > 0,
+    stockQty,
+    deliveryDate:
+      stringValue(row, "delivery_date", "deliveryDate") || null,
+    merchandiseId:
+      stringValue(row, "merchandise_id", "merchandiseId") || null,
+    shopifyProductHandle:
+      stringValue(row, "shopify_product_handle", "shopifyProductHandle") || null,
+    shopifyProductId:
+      stringValue(row, "shopify_product_id", "shopifyProductId") || null,
+    shopifyVariantId:
+      stringValue(row, "shopify_variant_id", "shopifyVariantId") || null,
+    shopifySyncStatus:
+      stringValue(row, "shopify_sync_status", "shopifySyncStatus") || null,
+    energyLabel:
+      (row.energy_label as Product["energyLabel"]) ||
+      (row.energyLabel as Product["energyLabel"]) ||
+      null,
   };
 }
 
-/** Fast path: fetches only the visible page and its exact result count. */
-export async function queryCatalogProducts(query: CatalogQuery = {}): Promise<CatalogResponse> {
+function normalize(value?: string | null) {
+  return String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/ß/g, "ss")
+    .trim();
+}
+
+function productFamilyKey(product: Product): string {
+  const title = normalize(product.title)
+    .replace(/\b(midnight|mitternacht|sky blue|sky-blue|silber|silver|schwarz|black|grau|gray|grey|blau|blue|weiss|white|gold|rose|rot|red|grun|green|starlight|space schwarz|space black)\b/g, "")
+    .replace(/\b(64gb|128gb|256gb|512gb|1tb|2tb|4tb|8gb|16gb|24gb|32gb|64 gb|128 gb|256 gb|512 gb|1 tb|2 tb|4 tb|8 gb|16 gb|24 gb|32 gb)\b/g, "")
+    .replace(/\b(wifi|wi-fi|5g|cellular|lte)\b/g, "")
+    .replace(/[,/()-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return `${normalize(product.brand)}-${title}`;
+}
+
+function sellable(query: any) {
+  return query
+    .or("shopify_sync_status.is.null,shopify_sync_status.neq.unmatched_shopify")
+    .not("merchandise_id", "is", null)
+    .gt("price", 0);
+}
+
+export async function getProductBySlug(slug: string): Promise<Product | null> {
+  const wanted = decodeURIComponent(String(slug || "")).trim();
+  if (!wanted) return null;
+
+  const { data, error } = await getSupabase()
+    .from("products")
+    .select("*")
+    .eq("slug", wanted)
+    .maybeSingle();
+
+  if (error) throw new Error(`Produkt konnte nicht geladen werden: ${error.message}`);
+  return data ? mapProduct(data as ProductRow) : null;
+}
+
+export async function getProductVariants(
+  product: Product,
+  limit = 24,
+): Promise<Product[]> {
+  if (!product.brand) return [product];
+
+  let query = getSupabase()
+    .from("products")
+    .select("*")
+    .eq("brand", product.brand)
+    .limit(120);
+  query = sellable(query);
+  const { data, error } = await query;
+
+  if (error) {
+    console.error("Supabase variants query failed:", error);
+    return [product];
+  }
+
+  const key = productFamilyKey(product);
+  const variants = (data || [])
+    .map((row) => mapProduct(row as ProductRow))
+    .filter((item) => productFamilyKey(item) === key);
+
+  if (!variants.some((item) => item.slug === product.slug)) variants.push(product);
+  return variants
+    .sort((a, b) => a.slug === product.slug ? -1 : b.slug === product.slug ? 1 : a.price - b.price)
+    .slice(0, Math.max(1, limit));
+}
+
+export async function getRelatedProducts(
+  product: Product,
+  limit = 8,
+): Promise<Product[]> {
+  const client = getSupabase();
+  const run = async (useSubcategory: boolean) => {
+    let query = client
+      .from("products")
+      .select("*")
+      .neq("slug", product.slug)
+      .eq("category", product.category || "")
+      .order("stock_qty", { ascending: false })
+      .limit(Math.max(limit, 12));
+    if (useSubcategory && product.subcategory) {
+      query = query.eq("subcategory", product.subcategory);
+    }
+    query = sellable(query);
+    return query;
+  };
+
+  let { data, error } = await run(Boolean(product.subcategory));
+  if (!error && (data?.length || 0) < limit && product.subcategory) {
+    ({ data, error } = await run(false));
+  }
+  if (error) {
+    console.error("Supabase related products query failed:", error);
+    return [];
+  }
+  return (data || []).map((row) => mapProduct(row as ProductRow)).slice(0, limit);
+}
+
+/** Fast path used by /api/products so visible results do not wait for facets. */
+export async function queryCatalogProducts(
+  query: CatalogQuery = {},
+): Promise<CatalogResponse> {
   const offset = Math.max(0, Math.trunc(Number(query.offset || 0)));
   const limit = Math.min(48, Math.max(1, Math.trunc(Number(query.limit || 24))));
   let request = getSupabase().from("products").select("*", { count: "exact" });
   const search = cleanSearch(query.q || "");
+
   if (search) {
     const pattern = `*${search}*`;
     request = request.or([
-      `title.ilike.${pattern}`, `brand.ilike.${pattern}`, `sku.ilike.${pattern}`,
-      `ean.ilike.${pattern}`, `category.ilike.${pattern}`, `subcategory.ilike.${pattern}`,
+      `title.ilike.${pattern}`,
+      `brand.ilike.${pattern}`,
+      `sku.ilike.${pattern}`,
+      `ean.ilike.${pattern}`,
+      `category.ilike.${pattern}`,
+      `subcategory.ilike.${pattern}`,
     ].join(","));
   }
   if (query.category && query.category !== "Alle") request = request.eq("category", query.category);
@@ -93,24 +300,47 @@ export async function queryCatalogProducts(query: CatalogQuery = {}): Promise<Ca
   const { data, error, count } = await request.range(offset, offset + limit - 1);
   if (error) throw new Error(`Supabase fast catalog query failed: ${error.message}`);
   const total = count || 0;
-  return { products: (data || []).map(mapProduct), total, catalogTotal: total,
-    offset, limit, hasMore: offset + limit < total, facets: EMPTY_FACETS };
+
+  return {
+    products: (data || []).map((row) => mapProduct(row as ProductRow)),
+    total,
+    catalogTotal: total,
+    offset,
+    limit,
+    hasMore: offset + limit < total,
+    facets: EMPTY_FACETS,
+  };
 }
 
-/** Full path used for initial SSR and for refreshing filter counters. */
-export async function queryCatalog(query: CatalogQuery = {}): Promise<CatalogResponse> {
+export async function queryCatalog(
+  query: CatalogQuery = {},
+): Promise<CatalogResponse> {
   const offset = Math.max(0, Math.trunc(Number(query.offset || 0)));
   const limit = Math.min(48, Math.max(1, Math.trunc(Number(query.limit || 24))));
+  const minPrice = Number.isFinite(query.minPrice) ? Number(query.minPrice) : null;
+  const maxPrice = Number.isFinite(query.maxPrice) ? Number(query.maxPrice) : null;
+
   const { data, error } = await getSupabase().rpc("query_products_catalog", {
     p_q: query.q?.trim() || null,
-    p_category: query.category && query.category !== "Alle" ? query.category : null,
-    p_subcategory: query.subcategory && query.subcategory !== "Alle" ? query.subcategory : null,
+    p_category:
+      query.category && query.category !== "Alle" ? query.category : null,
+    p_subcategory:
+      query.subcategory && query.subcategory !== "Alle"
+        ? query.subcategory
+        : null,
     p_brands: query.brands?.filter(Boolean) || [],
-    p_min_price: Number.isFinite(query.minPrice) ? Number(query.minPrice) : null,
-    p_max_price: Number.isFinite(query.maxPrice) ? Number(query.maxPrice) : null,
-    p_in_stock: Boolean(query.inStock), p_sort: query.sort || "featured",
-    p_offset: offset, p_limit: limit,
+    p_min_price: minPrice,
+    p_max_price: maxPrice,
+    p_in_stock: Boolean(query.inStock),
+    p_sort: query.sort || "featured",
+    p_offset: offset,
+    p_limit: limit,
   });
-  if (error) throw new Error(`Supabase catalog query failed: ${error.message}`);
+
+  if (error) {
+    console.error("Supabase catalog query failed:", error);
+    throw new Error("Der Produktkatalog konnte nicht geladen werden.");
+  }
+
   return data as CatalogResponse;
 }
