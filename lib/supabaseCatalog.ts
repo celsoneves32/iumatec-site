@@ -1,5 +1,6 @@
 import "server-only";
 import { createClient } from "@supabase/supabase-js";
+import { unstable_cache } from "next/cache";
 
 export type Product = {
   sku: string;
@@ -70,6 +71,22 @@ const EMPTY_FACETS: CatalogResponse["facets"] = {
   minPrice: 0,
   maxPrice: 0,
 };
+
+const PRODUCT_CACHE_SECONDS = 300;
+const SECONDARY_CACHE_SECONDS = 600;
+
+const VARIANT_COLUMNS = [
+  "sku", "slug", "title", "brand", "price", "image", "images",
+  "category", "subcategory", "description", "description2", "in_stock",
+  "stock_qty", "merchandise_id", "shopify_product_handle",
+  "shopify_variant_id", "shopify_sync_status",
+].join(",");
+
+const RELATED_COLUMNS = [
+  "sku", "slug", "title", "brand", "price", "image", "images",
+  "category", "subcategory", "in_stock", "stock_qty", "merchandise_id",
+  "shopify_product_handle", "shopify_variant_id", "shopify_sync_status",
+].join(",");
 
 function getSupabase() {
   const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -187,10 +204,7 @@ function sellable(query: any) {
     .gt("price", 0);
 }
 
-export async function getProductBySlug(slug: string): Promise<Product | null> {
-  const wanted = decodeURIComponent(String(slug || "")).trim();
-  if (!wanted) return null;
-
+const getProductBySlugCached = unstable_cache(async (wanted: string) => {
   const { data, error } = await getSupabase()
     .from("products")
     .select("*")
@@ -199,17 +213,23 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
 
   if (error) throw new Error(`Produkt konnte nicht geladen werden: ${error.message}`);
   return data ? mapProduct(data as ProductRow) : null;
+}, ["iumatec-product-by-slug-v1"], { revalidate: PRODUCT_CACHE_SECONDS });
+
+export async function getProductBySlug(slug: string): Promise<Product | null> {
+  const wanted = decodeURIComponent(String(slug || "")).trim();
+  if (!wanted) return null;
+  return getProductBySlugCached(wanted);
 }
 
-export async function getProductVariants(
+const getProductVariantsCached = unstable_cache(async (
   product: Product,
   limit = 24,
-): Promise<Product[]> {
+): Promise<Product[]> => {
   if (!product.brand) return [product];
 
   let query = getSupabase()
     .from("products")
-    .select("*")
+    .select(VARIANT_COLUMNS)
     .eq("brand", product.brand)
     .limit(120);
   query = sellable(query);
@@ -222,24 +242,31 @@ export async function getProductVariants(
 
   const key = productFamilyKey(product);
   const variants = (data || [])
-    .map((row) => mapProduct(row as ProductRow))
+    .map((row) => mapProduct(row as unknown as ProductRow))
     .filter((item) => productFamilyKey(item) === key);
 
   if (!variants.some((item) => item.slug === product.slug)) variants.push(product);
   return variants
     .sort((a, b) => a.slug === product.slug ? -1 : b.slug === product.slug ? 1 : a.price - b.price)
     .slice(0, Math.max(1, limit));
+}, ["iumatec-product-variants-v1"], { revalidate: SECONDARY_CACHE_SECONDS });
+
+export async function getProductVariants(
+  product: Product,
+  limit = 24,
+): Promise<Product[]> {
+  return getProductVariantsCached(product, limit);
 }
 
-export async function getRelatedProducts(
+const getRelatedProductsCached = unstable_cache(async (
   product: Product,
   limit = 8,
-): Promise<Product[]> {
+): Promise<Product[]> => {
   const client = getSupabase();
   const run = async (useSubcategory: boolean) => {
     let query = client
       .from("products")
-      .select("*")
+      .select(RELATED_COLUMNS)
       .neq("slug", product.slug)
       .eq("category", product.category || "")
       .order("stock_qty", { ascending: false })
@@ -259,7 +286,14 @@ export async function getRelatedProducts(
     console.error("Supabase related products query failed:", error);
     return [];
   }
-  return (data || []).map((row) => mapProduct(row as ProductRow)).slice(0, limit);
+  return (data || []).map((row) => mapProduct(row as unknown as ProductRow)).slice(0, limit);
+}, ["iumatec-related-products-v1"], { revalidate: SECONDARY_CACHE_SECONDS });
+
+export async function getRelatedProducts(
+  product: Product,
+  limit = 8,
+): Promise<Product[]> {
+  return getRelatedProductsCached(product, limit);
 }
 
 /** Fast path used by /api/products so visible results do not wait for facets. */
@@ -302,7 +336,7 @@ export async function queryCatalogProducts(
   const total = count || 0;
 
   return {
-    products: (data || []).map((row) => mapProduct(row as ProductRow)),
+    products: (data || []).map((row) => mapProduct(row as unknown as ProductRow)),
     total,
     catalogTotal: total,
     offset,
