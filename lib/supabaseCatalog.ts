@@ -75,6 +75,14 @@ const EMPTY_FACETS: CatalogResponse["facets"] = {
 const PRODUCT_CACHE_SECONDS = 300;
 const SECONDARY_CACHE_SECONDS = 600;
 
+// Product cards only need these fields. Avoid transferring descriptions,
+// specifications and full image galleries for every catalog result.
+const CATALOG_COLUMNS = [
+  "sku", "slug", "title", "brand", "price", "image", "category",
+  "subcategory", "in_stock", "stock_qty", "merchandise_id",
+  "shopify_product_handle", "shopify_variant_id", "shopify_sync_status",
+].join(",");
+
 const VARIANT_COLUMNS = [
   "sku", "slug", "title", "brand", "price", "image", "images",
   "category", "subcategory", "description", "description2", "in_stock",
@@ -269,7 +277,8 @@ const getRelatedProductsCached = unstable_cache(async (
       .select(RELATED_COLUMNS)
       .neq("slug", product.slug)
       .eq("category", product.category || "")
-      .order("stock_qty", { ascending: false })
+      .order("in_stock", { ascending: false })
+      .order("price", { ascending: true })
       .limit(Math.max(limit, 12));
     if (useSubcategory && product.subcategory) {
       query = query.eq("subcategory", product.subcategory);
@@ -302,7 +311,7 @@ export async function queryCatalogProducts(
 ): Promise<CatalogResponse> {
   const offset = Math.max(0, Math.trunc(Number(query.offset || 0)));
   const limit = Math.min(48, Math.max(1, Math.trunc(Number(query.limit || 24))));
-  let request = getSupabase().from("products").select("*", { count: "exact" });
+  let request = getSupabase().from("products").select(CATALOG_COLUMNS, { count: "exact" });
   const search = cleanSearch(query.q || "");
 
   if (search) {
@@ -328,7 +337,10 @@ export async function queryCatalogProducts(
     case "price-asc": request = request.order("price", { ascending: true }); break;
     case "title-asc": request = request.order("title", { ascending: true }); break;
     case "brand-asc": request = request.order("brand", { ascending: true }).order("title", { ascending: true }); break;
-    default: request = request.order("stock_qty", { ascending: false }).order("title", { ascending: true });
+    default: request = request
+      .order("in_stock", { ascending: false })
+      .order("price", { ascending: true })
+      .order("title", { ascending: true });
   }
 
   const { data, error, count } = await request.range(offset, offset + limit - 1);
