@@ -1,5 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
+import Script from "next/script";
 import { CartProvider } from "@/context/CartContext";
 import { WishlistProvider } from "@/context/WishlistContext";
 import { CompareProvider } from "@/context/CompareContext";
@@ -37,6 +38,13 @@ export default function RootLayout({
             </CartProvider>
           </WishlistProvider>
         </CompareProvider>
+        <Script
+          id="tawk-to-widget"
+          src="https://embed.tawk.to/6a764afa5f56bb1d4bf61839/1jvf19oeo"
+          strategy="lazyOnload"
+          charSet="UTF-8"
+          crossOrigin="anonymous"
+        />
       </body>
     </html>
   );

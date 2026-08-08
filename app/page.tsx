@@ -3,8 +3,8 @@ import ProductCard from "@/components/ProductCard";
 import HomepageCarousel from "@/components/HomepageCarousel";
 import { classifyProduct } from "@/lib/categoryRules";
 import {
-  getCatalogRecordCount,
   getPurchasableProducts,
+  getTopProducts,
   type Product,
 } from "@/lib/productData";
 
@@ -45,24 +45,6 @@ const mainCategories = [
     href: "/produkte?category=Datenspeicher",
     icon: "💾",
   },
-];
-
-const quickLinks = [
-  { label: "Laptops", href: "/produkte?category=Computer&subcategory=Laptops" },
-  {
-    label: "Monitore",
-    href: "/produkte?category=Peripherie&subcategory=Monitore",
-  },
-  {
-    label: "Smartphones",
-    href: "/produkte?category=Mobile&subcategory=Smartphones",
-  },
-  {
-    label: "Grafikkarten",
-    href: "/produkte?category=PC-Komponenten&subcategory=Grafikkarten",
-  },
-  { label: "SSD", href: "/produkte?category=Datenspeicher&subcategory=SSD" },
-  { label: "Zubehör", href: "/produkte?category=Zubehör" },
 ];
 
 function getProductSlug(product: Product) {
@@ -393,6 +375,20 @@ const completeComputerWords = [
   "elitedesk",
   "thinkcentre",
   "windows 11",
+  "win11",
+  "omnistudio",
+  "pavilion desktop",
+  "inspiron desktop",
+  "vivobook",
+  "zenbook",
+  "aspire ",
+  "travelmate",
+  "probook",
+  "elitebook",
+  "thinkpad",
+  "latitude",
+  "precision ",
+  "macbook",
 ];
 
 const nonGpuWords = [
@@ -439,22 +435,6 @@ const nonNetworkDeviceWords = [
 const nonStorageDeviceWords = [
   ...completeComputerWords,
   ...nonStorageWords,
-  "monitor",
-  "bildschirm",
-  "display",
-  "all-in-one pc",
-  "all in one pc",
-  "all-in-one computer",
-  "all in one computer",
-  "aio computer",
-  "core i3",
-  "core i5",
-  "core i7",
-  "core ultra",
-  "ryzen 3",
-  "ryzen 5",
-  "ryzen 7",
-  "windows 10",
   "gehäuse",
   "gehause",
   "enclosure",
@@ -616,30 +596,12 @@ function isNetwork(product: Product) {
 
 function isStorage(product: Product) {
   const result = classifyProduct(product as any);
-  const strictStorageSubcategories = new Set([
-    "ssd",
-    "hdd",
-    "nas",
-    "externe speicher",
-    "usb-sticks",
-    "speicherkarten",
-  ]);
   const hasStorageDeviceName = hasProductWords(product, [
-    "externe ssd",
-    "external ssd",
-    "portable ssd",
-    "nvme ssd",
-    "m.2 ssd",
-    "2.5 ssd",
-    "2,5 ssd",
+    " ssd",
+    "ssd ",
     "solid state",
-    "externe hdd",
-    "external hdd",
-    "portable hdd",
-    "3.5 hdd",
-    "3,5 hdd",
-    "2.5 hdd",
-    "2,5 hdd",
+    " hdd",
+    "hdd ",
     "hard disk",
     "harddrive",
     "festplatte",
@@ -654,7 +616,6 @@ function isStorage(product: Product) {
 
   return (
     result.main === "Datenspeicher" &&
-    strictStorageSubcategories.has(normalize(result.sub)) &&
     hasStorageDeviceName &&
     !hasBlockedWords(product, nonStorageDeviceWords)
   );
@@ -893,15 +854,16 @@ function PremiumHero({
   const mainSlug = mainProduct ? getProductSlug(mainProduct) : "";
 
   return (
-    <section className="relative overflow-hidden border-b border-neutral-200 bg-gradient-to-br from-white via-neutral-50 to-red-50/60 text-neutral-950">
-      <div className="absolute -right-40 -top-40 h-[34rem] w-[34rem] rounded-full bg-red-100/70 blur-3xl" />
-      <div className="absolute -bottom-48 left-0 h-[30rem] w-[30rem] rounded-full bg-neutral-200/50 blur-3xl" />
+    <section className="relative overflow-hidden border-b border-neutral-200 bg-neutral-950 text-white">
+      <div className="absolute -right-40 -top-40 h-[34rem] w-[34rem] rounded-full bg-red-600/30 blur-3xl" />
+      <div className="absolute -bottom-48 left-0 h-[30rem] w-[30rem] rounded-full bg-white/10 blur-3xl" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.16),transparent_36%),linear-gradient(135deg,rgba(255,255,255,0.08),transparent_45%)]" />
 
       <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-12 lg:grid-cols-[1.02fr_0.98fr] lg:items-center lg:py-16">
         <div>
-          <div className="inline-flex flex-wrap gap-2 rounded-full bg-white px-4 py-2 text-sm font-black text-neutral-900 shadow-sm ring-1 ring-neutral-200">
+          <div className="inline-flex flex-wrap gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-black text-white ring-1 ring-white/15">
             <span>🇨🇭 Schweizer Tech-Shop</span>
-            <span className="text-neutral-400">•</span>
+            <span className="text-white/50">•</span>
             <span>
               {count.toLocaleString("de-CH")} sofort kaufbare Produkte
             </span>
@@ -911,10 +873,10 @@ function PremiumHero({
             Technik für dein Business, Gaming und Zuhause.
           </h1>
 
-          <p className="mt-6 max-w-2xl text-lg leading-8 text-neutral-600">
+          <p className="mt-6 max-w-2xl text-lg leading-8 text-white/75">
             Laptops, Komponenten, Monitore, Smartphones, Netzwerk und Zubehör.
-            Direkt aus der Schweiz – mit fairen Preisen, schneller Lieferung
-            und sicherer Bezahlung.
+            Direkt aus der Schweiz, mit klaren Preisen und sicherem Shopify
+            Checkout.
           </p>
 
           <div className="mt-8 flex flex-wrap gap-4">
@@ -927,46 +889,30 @@ function PremiumHero({
 
             <Link
               href="/produkte?sort=price-asc"
-              className="rounded-2xl border border-neutral-300 bg-white px-8 py-4 text-base font-black text-neutral-900 shadow-sm transition hover:border-neutral-400 hover:bg-neutral-50"
+              className="rounded-2xl border border-white/20 bg-white/10 px-8 py-4 text-base font-black text-white transition hover:bg-white/15"
             >
               Angebote entdecken
             </Link>
           </div>
 
-          <div className="mt-8 grid max-w-3xl gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              "CH Versand",
-              "MWST inklusive",
-              "Sichere Zahlung",
-              "Support 24h",
-            ].map((item) => (
+          <div className="mt-8 grid max-w-3xl gap-3 sm:grid-cols-3">
+            {["CH Versand", "MWST inklusive", "Sichere Zahlung"].map((item) => (
               <div
                 key={item}
-                className="rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-black text-neutral-700 shadow-sm"
+                className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm font-black text-white/90"
               >
                 ✓ {item}
               </div>
             ))}
           </div>
 
-          <div className="mt-8 flex flex-wrap gap-3">
-            {quickLinks.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-black text-neutral-700 transition hover:border-red-200 hover:bg-red-50 hover:text-red-700"
-              >
-                {item.label}
-              </Link>
-            ))}
-          </div>
         </div>
 
         <div className="grid gap-5">
           {mainProduct ? (
             <Link
               href={`/produkte/${mainSlug}`}
-              className="group overflow-hidden rounded-[2.2rem] border border-neutral-200 bg-white text-neutral-950 shadow-xl shadow-neutral-300/60 transition hover:-translate-y-1 hover:shadow-2xl"
+              className="group overflow-hidden rounded-[2.2rem] border border-white/15 bg-white text-neutral-950 shadow-2xl shadow-black/30 transition hover:-translate-y-1 hover:shadow-black/40"
             >
               <div className="grid gap-6 p-6 sm:grid-cols-[1fr_0.95fr] sm:items-center">
                 <div>
@@ -1017,7 +963,7 @@ function PremiumHero({
                 <Link
                   key={slug}
                   href={`/produkte/${slug}`}
-                  className="group overflow-hidden rounded-[1.7rem] border border-neutral-200 bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+                  className="group overflow-hidden rounded-[1.7rem] border border-white/15 bg-white/10 p-4 transition hover:-translate-y-1 hover:bg-white/15"
                 >
                   <div className="flex h-28 items-center justify-center rounded-2xl bg-white p-3">
                     {item.image ? (
@@ -1029,11 +975,11 @@ function PremiumHero({
                     ) : null}
                   </div>
 
-                  <div className="mt-3 line-clamp-2 text-sm font-black text-neutral-900">
+                  <div className="mt-3 line-clamp-2 text-sm font-black text-white">
                     {item.title}
                   </div>
 
-                  <div className="mt-2 text-sm font-black text-neutral-600">
+                  <div className="mt-2 text-sm font-black text-white/80">
                     {formatPrice(getPrice(product))}
                   </div>
                 </Link>
@@ -1098,15 +1044,11 @@ function CategoryCard({
 }
 
 export default function HomePage() {
-  /*
-   * The catalog stays complete on the server and in /produkte. The homepage
-   * only needs a representative pool to choose its few visible cards.
-   * Limiting that pool prevents repeated classification and sorting of all
-   * 52k products during static generation.
-   */
-  const homepagePool = getPurchasableProducts(4000);
-  const allBuyable = uniqueBySlug(homepagePool.filter(isBuyable));
-  const catalogCount = getCatalogRecordCount();
+  const purchasable = getPurchasableProducts();
+  const fallback = getTopProducts(1000);
+  const rawProducts = purchasable.length ? purchasable : fallback;
+
+  const allBuyable = uniqueBySlug(rawProducts.filter(isBuyable));
 
   const laptops = allBuyable
     .filter((p) => isLaptop(p) && getPrice(p) >= 300)
@@ -1161,23 +1103,7 @@ export default function HomePage() {
     Peripherie: pickShowcaseProduct(allBuyable, isMonitor),
     Netzwerk: pickShowcaseProduct(allBuyable, isNetwork),
     Mobile: pickShowcaseProduct(allBuyable, isSmartphone),
-    Datenspeicher: pickShowcaseProduct(
-      allBuyable,
-      (product) =>
-        isStorage(product) &&
-        hasProductWords(product, [
-          "ssd",
-          "solid state",
-          "hdd",
-          "hard disk",
-          "harddrive",
-          "festplatte",
-          "usb stick",
-          "usb-stick",
-          "memory card",
-          "speicherkarte",
-        ]),
-    ),
+    Datenspeicher: pickShowcaseProduct(allBuyable, isStorage),
   };
 
   const heroMainProduct =
@@ -1194,7 +1120,7 @@ export default function HomePage() {
   return (
     <main className="bg-white">
       <PremiumHero
-        count={catalogCount}
+        count={allBuyable.length}
         mainProduct={heroMainProduct}
         sideProducts={heroSideProducts}
       />
@@ -1328,10 +1254,10 @@ export default function HomePage() {
         </section>
       )}
 
-      <section className="border-y border-neutral-200 bg-neutral-50 text-neutral-950">
+      <section className="bg-neutral-950 text-white">
         <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 lg:grid-cols-[1fr_1.4fr] lg:items-center">
           <div>
-            <div className="inline-flex rounded-full bg-white px-4 py-2 text-sm font-bold text-neutral-900 shadow-sm ring-1 ring-neutral-200">
+            <div className="inline-flex rounded-full bg-white/10 px-4 py-2 text-sm font-bold text-white">
               Sofort lieferbar
             </div>
 
@@ -1339,7 +1265,7 @@ export default function HomePage() {
               Technik mit Lagerbestand.
             </h2>
 
-            <p className="mt-4 max-w-xl text-neutral-600">
+            <p className="mt-4 max-w-xl text-neutral-300">
               Produkte mit verfügbarem Bestand, transparenter Preisstruktur und
               sicherem Checkout.
             </p>
@@ -1374,7 +1300,7 @@ export default function HomePage() {
             [
               "🔒",
               "Sichere Zahlung",
-              "Sichere Bezahlung mit Kreditkarte, TWINT und weiteren Optionen.",
+              "Checkout über Shopify mit Kreditkarte, TWINT und mehr.",
             ],
             [
               "✅",
