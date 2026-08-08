@@ -8,6 +8,9 @@ import {
   type Product,
 } from "@/lib/productData";
 
+// Revalidate hourly so the featured product can rotate once per calendar day.
+export const revalidate = 3600;
+
 const mainCategories = [
   {
     title: "Computer",
@@ -875,8 +878,7 @@ function PremiumHero({
 
           <p className="mt-6 max-w-2xl text-lg leading-8 text-white/75">
             Laptops, Komponenten, Monitore, Smartphones, Netzwerk und Zubehör.
-            Direkt aus der Schweiz, mit klaren Preisen und sicherem Shopify
-            Checkout.
+            Direkt aus der Schweiz, mit klaren Preisen und sicherer Bezahlung.
           </p>
 
           <div className="mt-8 flex flex-wrap gap-4">
@@ -1097,6 +1099,14 @@ export default function HomePage() {
     gpus[0],
   ].filter(Boolean) as Product[];
 
+  const dayNumber = Math.floor(Date.now() / 86_400_000);
+  const heroMainProduct = heroProducts.length
+    ? heroProducts[dayNumber % heroProducts.length]
+    : undefined;
+  const heroMainSlug = heroMainProduct
+    ? getProductSlug(heroMainProduct)
+    : "";
+
   const categoryShowcase: Record<string, Product | undefined> = {
     Computer: pickShowcaseProduct(allBuyable, isLaptop),
     "PC-Komponenten": pickShowcaseProduct(allBuyable, isGpu),
@@ -1106,16 +1116,14 @@ export default function HomePage() {
     Datenspeicher: pickShowcaseProduct(allBuyable, isStorage),
   };
 
-  const heroMainProduct =
-    pickShowcaseProduct(allBuyable, isGpu) ||
-    pickShowcaseProduct(allBuyable, isLaptop) ||
-    pickShowcaseProduct(allBuyable, isSmartphone);
-
   const heroSideProducts = [
     pickShowcaseProduct(allBuyable, isLaptop),
     pickShowcaseProduct(allBuyable, isMonitor),
     pickShowcaseProduct(allBuyable, isSmartphone),
-  ].filter(Boolean) as Product[];
+  ].filter(
+    (product): product is Product =>
+      Boolean(product) && getProductSlug(product as Product) !== heroMainSlug,
+  );
 
   return (
     <main className="bg-white">
