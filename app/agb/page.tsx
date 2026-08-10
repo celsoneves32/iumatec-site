@@ -36,8 +36,8 @@ export default function AGBPage() {
         </p>
         <p>
           Für den Standardversand berechnen wir bei einem Bestellwert unter
-          CHF 49.– Versandkosten von CHF 9.90. Ab einem Bestellwert von
-          CHF 49.– ist der Standardversand kostenlos.
+          CHF 99.– Versandkosten von CHF 9.90. Ab einem Bestellwert von
+          CHF 99.– ist der Standardversand kostenlos.
         </p>
         <p>
           Von dieser Versandkostenfreiheit ausgenommen sind Sperrgut,
