@@ -1,0 +1,65 @@
+name: IUMATEC safe Shopify price and stock sync
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Execution mode
+        required: true
+        default: audit
+        type: choice
+        options:
+          - audit
+          - apply
+  schedule:
+    - cron: "17 */2 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: iumatec-safe-shopify-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    if: github.event_name == 'workflow_dispatch' || vars.IUMATEC_AUTO_SYNC_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      SHOPIFY_STORE_DOMAIN: ${{ secrets.SHOPIFY_STORE_DOMAIN }}
+      SHOPIFY_ADMIN_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ADMIN_ACCESS_TOKEN }}
+      SHOPIFY_ADMIN_API_VERSION: "2025-04"
+      SHOPIFY_LOCATION_ID: ${{ secrets.SHOPIFY_LOCATION_ID }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Audit 25 protected variants
+        if: github.event_name == 'workflow_dispatch' && inputs.mode == 'audit'
+        run: node scripts/auto-sync.mjs --limit=25
+
+      - name: Apply complete protected sync
+        if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'apply')
+        run: node scripts/auto-sync.mjs --apply --all
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: iumatec-shopify-sync-report
+          path: integrations/alltron/out/shopify-price-stock-sync/
+          if-no-files-found: warn
+          retention-days: 30

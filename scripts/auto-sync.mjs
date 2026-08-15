@@ -1,78 +1,103 @@
-import cron from "node-cron";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { spawn } from "node:child_process";
 
-const RUN_NOW = process.argv.includes("--run-now");
-let syncRunning = false;
+const ROOT = process.cwd();
+const ARGS = process.argv.slice(2);
+const APPLY = ARGS.includes("--apply");
+const ALL = ARGS.includes("--all");
+const LIMIT_ARG = ARGS.find((arg) => arg.startsWith("--limit="));
+const LOCK_PATH = path.join(os.tmpdir(), "iumatec-safe-shopify-sync.lock");
+const LOG_DIR = path.join(
+  ROOT,
+  "integrations",
+  "alltron",
+  "out",
+  "shopify-price-stock-sync",
+);
+const LOG_PATH = path.join(LOG_DIR, "auto-sync.log");
+const MAX_LOCK_AGE_MS = 8 * 60 * 60 * 1_000;
 
-function run(command, args) {
+function appendLog(message) {
+  fs.mkdirSync(LOG_DIR, { recursive: true });
+  const line = `[${new Date().toISOString()}] ${message}`;
+  fs.appendFileSync(LOG_PATH, `${line}\n`, "utf8");
+  console.log(line);
+}
+
+function acquireLock() {
+  if (fs.existsSync(LOCK_PATH)) {
+    const age = Date.now() - fs.statSync(LOCK_PATH).mtimeMs;
+    if (age < MAX_LOCK_AGE_MS) {
+      appendLog("Execução ignorada: existe outra sincronização ativa.");
+      return false;
+    }
+    fs.unlinkSync(LOCK_PATH);
+    appendLog("Lock antigo removido.");
+  }
+  fs.writeFileSync(
+    LOCK_PATH,
+    JSON.stringify({ pid: process.pid, startedAt: new Date().toISOString() }),
+    { flag: "wx" },
+  );
+  return true;
+}
+
+function releaseLock() {
+  try {
+    if (fs.existsSync(LOCK_PATH)) fs.unlinkSync(LOCK_PATH);
+  } catch (error) {
+    appendLog(`Aviso ao remover lock: ${error?.message || error}`);
+  }
+}
+
+function runSync() {
+  const script = path.join(ROOT, "scripts", "sync-shopify-price-stock.mjs");
+  const childArgs = [script];
+
+  if (APPLY) {
+    childArgs.push("--apply");
+    if (ALL || !LIMIT_ARG) {
+      childArgs.push("--all", "--confirm=IUMATEC-SUPABASE-SOURCE");
+    } else {
+      childArgs.push(LIMIT_ARG);
+    }
+  } else {
+    childArgs.push("--dry-run", LIMIT_ARG || "--limit=25");
+  }
+
   return new Promise((resolve, reject) => {
-    console.log(`\n▶ ${command} ${args.join(" ")}`);
-
-    const child = spawn(command, args, {
-      cwd: process.cwd(),
+    appendLog(`Comando: node ${childArgs.slice(1).join(" ")}`);
+    const child = spawn(process.execPath, childArgs, {
+      cwd: ROOT,
       env: process.env,
       stdio: "inherit",
-      shell: true,
+      shell: false,
     });
-
     child.once("error", reject);
     child.once("exit", (code, signal) => {
       if (code === 0) return resolve();
-      reject(new Error(
-        signal
-          ? `${command} terminou com o sinal ${signal}`
-          : `${command} terminou com o código ${code}`,
-      ));
+      reject(
+        new Error(
+          signal
+            ? `Sincronização terminou com sinal ${signal}`
+            : `Sincronização terminou com código ${code}`,
+        ),
+      );
     });
   });
 }
 
-async function sync() {
-  if (syncRunning) {
-    console.log("⏭ Sincronização ignorada: a execução anterior ainda está ativa.");
-    return;
-  }
+if (!acquireLock()) process.exit(0);
 
-  syncRunning = true;
-  const startedAt = new Date();
-  console.log(`\n🔄 Sincronização iniciada: ${startedAt.toLocaleString("pt-PT")}`);
-
-  try {
-    // 1. Atualiza preço e stock com os dados atuais do fornecedor.
-    await run("npm", ["run", "shopify:sync-price-stock"]);
-
-    // 2. Reconstrói/sincroniza o catálogo que cumpre as regras de venda.
-    await run("npm", ["run", "sync:sellable"]);
-
-    // 3. Gera unmatched.json e os restantes relatórios sem alterar IDs.
-    await run("node", [
-      "integrations/alltron/repair-shopify-ids-supabase-safe-apply-retry.mjs",
-    ]);
-
-    // 4. Bloqueia no Supabase apenas os unmatched confirmados pelo relatório.
-    // O próprio script recusa aplicar se encontrar mais de 2.000 candidatos.
-    await run("node", [
-      "integrations/alltron/block-unmatched-shopify-products.mjs",
-      "--apply",
-    ]);
-
-    const seconds = Math.round((Date.now() - startedAt.getTime()) / 1000);
-    console.log(`\n✅ Sincronização concluída em ${seconds}s.`);
-  } catch (error) {
-    console.error("\n❌ Sincronização interrompida:", error?.message || error);
-    process.exitCode = 1;
-  } finally {
-    syncRunning = false;
-  }
-}
-
-console.log("🚀 Auto sync iniciado.");
-console.log("⏰ Agenda: a cada 2 horas, ao minuto 0.");
-
-cron.schedule("0 */2 * * *", sync, {
-  timezone: "Europe/Zurich",
-});
-
-if (RUN_NOW) {
-  await sync();
+try {
+  appendLog(`Sincronização iniciada em modo ${APPLY ? "APPLY" : "AUDIT"}.`);
+  await runSync();
+  appendLog("Sincronização concluída sem erros.");
+} catch (error) {
+  appendLog(`Sincronização falhou: ${error?.message || error}`);
+  process.exitCode = 1;
+} finally {
+  releaseLock();
 }

@@ -1,14 +1,24 @@
-
+import fs from "node:fs";
+import path from "node:path";
 import dotenv from "dotenv";
+
 dotenv.config({ path: ".env.local" });
+dotenv.config();
 
-import fs from "fs";
-import path from "path";
-
+const ROOT = process.cwd();
 const ARGS = process.argv.slice(2);
 const APPLY = ARGS.includes("--apply");
+const APPLY_ALL = ARGS.includes("--all");
 const EXPLICIT_DRY_RUN = ARGS.includes("--dry-run");
 const DRY_RUN = !APPLY;
+const FULL_CONFIRMATION = "IUMATEC-SUPABASE-SOURCE";
+const MIN_EXPECTED_ELIGIBLE = 50_000;
+const MAX_EXPECTED_ELIGIBLE = 60_000;
+const MAX_LIMITED_APPLY = 1_000;
+const SUPABASE_PAGE_SIZE = 1_000;
+const SHOPIFY_NODE_BATCH_SIZE = 100;
+const PRICE_TOLERANCE = 0.009;
+const MAX_RETRIES = 7;
 
 function argValue(name) {
   const prefix = `${name}=`;
@@ -16,37 +26,67 @@ function argValue(name) {
   return found ? found.slice(prefix.length).trim() : "";
 }
 
-const rawProcessLimit = argValue("--limit");
-const PROCESS_LIMIT = rawProcessLimit ? Number(rawProcessLimit) : 0;
-const MAX_APPLY_LIMIT = 250;
-if (
-  rawProcessLimit &&
-  (!Number.isInteger(PROCESS_LIMIT) || PROCESS_LIMIT < 1)
-) {
-  throw new Error("--limit must be a positive integer");
+function integerArg(name, fallback = 0) {
+  const raw = argValue(name);
+  if (!raw) return fallback;
+  const parsed = Number(raw);
+  if (!Number.isInteger(parsed) || parsed < 0) {
+    throw new Error(`${name} must be a non-negative integer`);
+  }
+  return parsed;
 }
+
+const OFFSET = integerArg("--offset", 0);
+const LIMIT = integerArg("--limit", 0);
+const REPORT_ARG = argValue("--report");
+const CONFIRMATION = argValue("--confirm");
+const REPORT_PATH = path.resolve(
+  ROOT,
+  REPORT_ARG ||
+    path.join(
+      "integrations",
+      "alltron",
+      "out",
+      "shopify-price-stock-sync",
+      "latest.json",
+    ),
+);
+
 if (APPLY && EXPLICIT_DRY_RUN) {
   throw new Error("Use either --dry-run or --apply, not both");
 }
-if (APPLY && (!PROCESS_LIMIT || PROCESS_LIMIT > MAX_APPLY_LIMIT)) {
+if (APPLY_ALL && !APPLY) {
+  throw new Error("--all can only be used together with --apply");
+}
+if (APPLY_ALL && LIMIT) {
+  throw new Error("Use --all or --limit, not both");
+}
+if (APPLY_ALL && CONFIRMATION !== FULL_CONFIRMATION) {
   throw new Error(
-    `--apply requires --limit between 1 and ${MAX_APPLY_LIMIT}`
+    `Full apply requires --confirm=${FULL_CONFIRMATION}`,
+  );
+}
+if (APPLY && !APPLY_ALL && (!LIMIT || LIMIT > MAX_LIMITED_APPLY)) {
+  throw new Error(
+    `Limited apply requires --limit between 1 and ${MAX_LIMITED_APPLY}`,
   );
 }
 
-const domain = process.env.SHOPIFY_STORE_DOMAIN;
-const token = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
-const apiVersion = process.env.SHOPIFY_ADMIN_API_VERSION || "2025-04";
-const locationId = process.env.SHOPIFY_LOCATION_ID;
+const domain = String(process.env.SHOPIFY_STORE_DOMAIN || "").trim();
+const token = String(process.env.SHOPIFY_ADMIN_ACCESS_TOKEN || "").trim();
+const apiVersion = String(
+  process.env.SHOPIFY_ADMIN_API_VERSION || "2025-04",
+).trim();
+const locationId = String(process.env.SHOPIFY_LOCATION_ID || "").trim();
 const supabaseUrl = String(
-  process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || ""
+  process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "",
 )
   .trim()
   .replace(/\/$/, "");
 const supabaseKey = String(
   process.env.SUPABASE_SECRET_KEY ||
     process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    ""
+    "",
 ).trim();
 
 if (!domain) throw new Error("Missing SHOPIFY_STORE_DOMAIN");
@@ -59,84 +99,6 @@ if (!supabaseKey) {
   throw new Error("Missing SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY");
 }
 
-const catalogPaths = [
-  path.join(
-    process.cwd(),
-    "integrations",
-    "alltron",
-    "out",
-    "iumatec-storefront-clean.json"
-  ),
-  path.join(
-    process.cwd(),
-    "integrations",
-    "alltron",
-    "out",
-    "iumatec-master-catalog.json"
-  ),
-  path.join(
-    process.cwd(),
-    "data",
-    "catalog.json"
-  ),
-  path.join(
-    process.cwd(),
-    "integrations",
-    "alltron",
-    "out",
-    "winning-products.json"
-  ),
-  path.join(
-    process.cwd(),
-    "integrations",
-    "alltron",
-    "out",
-    "iumatec-catalog-live.json"
-  ),
-  path.join(
-    process.cwd(),
-    "integrations",
-    "alltron",
-    "out",
-    "iumatec-catalog-sellable.json"
-  ),
-  path.join(
-    process.cwd(),
-    "integrations",
-    "alltron",
-    "out",
-    "iumatec-catalog-filtered.json"
-  ),
-  path.join(
-    process.cwd(),
-    "integrations",
-    "alltron",
-    "out",
-    "iumatec-catalog-enriched.json"
-  ),
-];
-const existingCatalogPaths = catalogPaths.filter((filePath) =>
-  fs.existsSync(filePath)
-);
-
-if (existingCatalogPaths.length === 0) {
-  throw new Error("No catalog files found.");
-}
-
-const BATCH_PAUSE_MS = 600;
-const RETRY_PAUSE_MS = 1500;
-const MAX_RETRIES = 4;
-const SAVE_EVERY = 100;
-const SUPABASE_PAGE_SIZE = 1000;
-const PRICE_TOLERANCE = 0.009;
-const REPAIR_REPORT_DIR = path.join(
-  process.cwd(),
-  "integrations",
-  "alltron",
-  "out",
-  "shopify-id-repair"
-);
-
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -146,8 +108,15 @@ function text(value) {
 }
 
 function money(value) {
-  const parsed = Number(value);
+  const parsed = Number(String(value ?? "").replace(",", "."));
   return Number.isFinite(parsed) ? Number(parsed.toFixed(2)) : 0;
+}
+
+function stock(value) {
+  if (value === null || value === undefined || value === "") return null;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 0) return null;
+  return Math.trunc(parsed);
 }
 
 function variantGid(value) {
@@ -157,10 +126,33 @@ function variantGid(value) {
   return numeric ? `gid://shopify/ProductVariant/${numeric}` : "";
 }
 
+function chunk(values, size) {
+  const result = [];
+  for (let index = 0; index < values.length; index += size) {
+    result.push(values.slice(index, index + size));
+  }
+  return result;
+}
+
+function writeJson(filePath, value) {
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  const temporaryPath = `${filePath}.tmp`;
+  fs.writeFileSync(temporaryPath, JSON.stringify(value, null, 2), "utf8");
+  fs.renameSync(temporaryPath, filePath);
+}
+
 function loadInvalidCatalogKeys() {
+  const reportDirectory = path.join(
+    ROOT,
+    "integrations",
+    "alltron",
+    "out",
+    "shopify-id-repair",
+  );
   const keys = new Set();
+
   for (const fileName of ["unmatched.json", "ambiguous.json"]) {
-    const filePath = path.join(REPAIR_REPORT_DIR, fileName);
+    const filePath = path.join(reportDirectory, fileName);
     if (!fs.existsSync(filePath)) continue;
     const rows = JSON.parse(fs.readFileSync(filePath, "utf8"));
     if (!Array.isArray(rows)) {
@@ -171,47 +163,54 @@ function loadInvalidCatalogKeys() {
       if (key) keys.add(key);
     }
   }
+
   return keys;
 }
 
 function supabaseHeaders(extra = {}) {
-  return {
+  const headers = {
     apikey: supabaseKey,
-    Authorization: `Bearer ${supabaseKey}`,
     "Content-Type": "application/json",
     ...extra,
   };
+  if (supabaseKey.startsWith("eyJ")) {
+    headers.Authorization = `Bearer ${supabaseKey}`;
+  }
+  return headers;
 }
 
-async function fetchProtectedPrices() {
+async function fetchProtectedSource() {
   const invalidCatalogKeys = loadInvalidCatalogKeys();
-  const byVariant = new Map();
-  let read = 0;
+  const candidates = new Map();
+  let rowsRead = 0;
   let rejectedInvalidReport = 0;
   let rejectedInvalidPrice = 0;
+  let rejectedInvalidStock = 0;
   let rejectedInvalidVariant = 0;
 
   for (let from = 0; ; from += SUPABASE_PAGE_SIZE) {
     const to = from + SUPABASE_PAGE_SIZE - 1;
-    const url =
+    const endpoint =
       `${supabaseUrl}/rest/v1/products` +
-      "?select=catalog_key,price,merchandise_id,shopify_variant_id" +
+      "?select=catalog_key,title,sku,price,stock_qty,merchandise_id,shopify_variant_id" +
       "&order=catalog_key.asc";
-    const response = await fetch(url, {
+    const response = await fetch(endpoint, {
       headers: supabaseHeaders({
         Range: `${from}-${to}`,
         Prefer: "count=exact",
       }),
-      signal: AbortSignal.timeout(60000),
+      signal: AbortSignal.timeout(60_000),
     });
+
     if (!response.ok) {
       throw new Error(
-        `Supabase HTTP ${response.status}: ${(await response.text()).slice(0, 800)}`
+        `Supabase HTTP ${response.status}: ${(await response.text()).slice(0, 800)}`,
       );
     }
+
     const batch = await response.json();
-    read += batch.length;
-    console.log(`Supabase protected prices: ${read.toLocaleString("pt-PT")}`);
+    rowsRead += batch.length;
+    console.log(`Supabase: ${rowsRead.toLocaleString("pt-PT")} produtos lidos`);
 
     for (const row of batch) {
       const catalogKey = text(row?.catalog_key);
@@ -219,477 +218,430 @@ async function fetchProtectedPrices() {
         rejectedInvalidReport++;
         continue;
       }
-      const price = money(row?.price);
-      if (!(price > 0)) {
+
+      const protectedPrice = money(row?.price);
+      if (!(protectedPrice > 0)) {
         rejectedInvalidPrice++;
         continue;
       }
-      const id = variantGid(
-        row?.merchandise_id || row?.shopify_variant_id
-      );
+
+      const protectedStock = stock(row?.stock_qty);
+      if (protectedStock === null) {
+        rejectedInvalidStock++;
+        continue;
+      }
+
+      const id = variantGid(row?.merchandise_id || row?.shopify_variant_id);
       if (!id) {
         rejectedInvalidVariant++;
         continue;
       }
-      const prices = byVariant.get(id) || new Set();
-      prices.add(price.toFixed(2));
-      byVariant.set(id, prices);
+
+      const entries = candidates.get(id) || [];
+      entries.push({
+        variantId: id,
+        catalogKey,
+        title: text(row?.title),
+        sku: text(row?.sku),
+        price: protectedPrice,
+        stock: protectedStock,
+      });
+      candidates.set(id, entries);
     }
 
     if (batch.length < SUPABASE_PAGE_SIZE) break;
   }
 
-  const exact = new Map();
-  let ambiguous = 0;
-  for (const [id, prices] of byVariant) {
-    if (prices.size !== 1) {
-      ambiguous++;
+  const exact = [];
+  let ambiguousVariants = 0;
+  for (const entries of candidates.values()) {
+    const signatures = new Set(
+      entries.map((entry) => `${entry.price.toFixed(2)}|${entry.stock}`),
+    );
+    if (signatures.size !== 1) {
+      ambiguousVariants++;
       continue;
     }
-    exact.set(id, money([...prices][0]));
+    exact.push(entries[0]);
+  }
+  exact.sort((left, right) => left.variantId.localeCompare(right.variantId));
+
+  if (
+    exact.length < MIN_EXPECTED_ELIGIBLE ||
+    exact.length > MAX_EXPECTED_ELIGIBLE
+  ) {
+    throw new Error(
+      `Safety stop: expected ${MIN_EXPECTED_ELIGIBLE}-${MAX_EXPECTED_ELIGIBLE} protected variants, found ${exact.length}`,
+    );
   }
 
   return {
     exact,
     summary: {
-      rowsRead: read,
-      exactVariantPrices: exact.size,
-      ambiguousVariantPrices: ambiguous,
+      rowsRead,
+      exactVariants: exact.length,
+      ambiguousVariants,
       rejectedInvalidReport,
       rejectedInvalidPrice,
+      rejectedInvalidStock,
       rejectedInvalidVariant,
     },
   };
 }
 
-function loadBestProtectedCatalog(protectedPriceByVariant) {
-  let best = null;
+async function shopifyFetch(query, variables = {}) {
+  let lastError;
 
-  for (const filePath of existingCatalogPaths) {
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
-      const parsed = JSON.parse(fs.readFileSync(filePath, "utf8"));
-      if (!Array.isArray(parsed)) {
-        console.log(`- Catalog ignored (not an array): ${filePath}`);
-        continue;
-      }
-
-      const seen = new Set();
-      const eligible = [];
-      for (const product of parsed) {
-        const id = variantGid(
-          product?.merchandiseId ||
-            product?.shopifyVariantId ||
-            product?.variantId
-        );
-        if (!id || seen.has(id) || !protectedPriceByVariant.has(id)) continue;
-        seen.add(id);
-        eligible.push(product);
-      }
-
-      console.log(
-        `Catalog candidate: ${path.basename(filePath)} | rows=${parsed.length.toLocaleString("pt-PT")} | protected=${eligible.length.toLocaleString("pt-PT")}`
-      );
-
-      if (!best || eligible.length > best.eligible.length) {
-        best = { filePath, products: parsed, eligible };
-      }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      console.log(`- Catalog ignored (${path.basename(filePath)}): ${message}`);
-    }
-  }
-
-  if (!best || best.eligible.length === 0) {
-    throw new Error(
-      "No catalog contains variants with a unique protected Supabase price."
-    );
-  }
-
-  return best;
-}
-
-async function shopifyFetch(query, variables = {}, retries = MAX_RETRIES) {
-  try {
-    const res = await fetch(
-      `https://${domain}/admin/api/${apiVersion}/graphql.json`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Shopify-Access-Token": token,
+      const response = await fetch(
+        `https://${domain}/admin/api/${apiVersion}/graphql.json`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Shopify-Access-Token": token,
+          },
+          body: JSON.stringify({ query, variables }),
+          signal: AbortSignal.timeout(60_000),
         },
-        body: JSON.stringify({ query, variables }),
+      );
+      const raw = await response.text();
+      let json;
+      try {
+        json = JSON.parse(raw);
+      } catch {
+        throw new Error(
+          `Shopify returned non-JSON (${response.status}): ${raw.slice(0, 300)}`,
+        );
       }
-    );
 
-    const text = await res.text();
+      if (!response.ok) {
+        throw new Error(`Shopify HTTP ${response.status}: ${raw.slice(0, 800)}`);
+      }
 
-    let json;
-    try {
-      json = JSON.parse(text);
-    } catch {
-      throw new Error(
-        `Shopify returned non-JSON response (${res.status}): ${text.slice(
-          0,
-          300
-        )}`
-      );
-    }
+      if (json.errors?.length) {
+        const message = json.errors
+          .map((error) => error?.message || JSON.stringify(error))
+          .join(" | ");
+        throw new Error(message);
+      }
 
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}: ${JSON.stringify(json, null, 2)}`);
-    }
+      const throttle = json?.extensions?.cost?.throttleStatus;
+      if (
+        throttle &&
+        throttle.currentlyAvailable < 100 &&
+        throttle.restoreRate > 0
+      ) {
+        const waitMs = Math.ceil(
+          ((100 - throttle.currentlyAvailable) / throttle.restoreRate) * 1_000,
+        );
+        await sleep(Math.min(10_000, Math.max(250, waitMs)));
+      }
 
-    if (json.errors?.length) {
-      throw new Error(JSON.stringify(json.errors, null, 2));
-    }
-
-    return json.data;
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-
-    if (retries > 0) {
+      return json.data;
+    } catch (error) {
+      lastError = error;
+      if (attempt === MAX_RETRIES) break;
+      const delay = Math.min(30_000, 1_000 * 2 ** (attempt - 1));
       console.log(
-        `- RETRY Shopify request (${MAX_RETRIES - retries + 1}/${MAX_RETRIES}): ${message.slice(
-          0,
-          180
-        )}`
+        `Shopify retry ${attempt}/${MAX_RETRIES - 1} in ${delay / 1_000}s: ${error?.message || error}`,
       );
-      await sleep(RETRY_PAUSE_MS);
-      return shopifyFetch(query, variables, retries - 1);
+      await sleep(delay);
     }
-
-    throw error;
   }
+
+  throw lastError;
 }
 
-async function findVariantById(id) {
+async function readShopifyVariants(ids) {
   const query = `
-    query FindVariantById($id: ID!) {
-      node(id: $id) {
+    query ReadProtectedVariants($ids: [ID!]!, $locationId: ID!) {
+      nodes(ids: $ids) {
         ... on ProductVariant {
+          id
+          sku
+          price
+          product {
             id
-            sku
-            price
-            product {
+            title
+            handle
+          }
+          inventoryItem {
+            id
+            inventoryLevel(locationId: $locationId) {
               id
-              title
-              handle
+              quantities(names: ["available"]) {
+                name
+                quantity
+              }
             }
-            inventoryItem {
-              id
-              sku
-            }
+          }
         }
       }
     }
   `;
-
-  const data = await shopifyFetch(query, { id });
-  return data?.node || null;
+  const data = await shopifyFetch(query, { ids, locationId });
+  return data?.nodes || [];
 }
 
 async function updateVariantPrice(productId, variantId, price) {
   const mutation = `
-    mutation productVariantsBulkUpdate($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {
+    mutation UpdateProtectedPrice(
+      $productId: ID!
+      $variants: [ProductVariantsBulkInput!]!
+    ) {
       productVariantsBulkUpdate(productId: $productId, variants: $variants) {
-        productVariants {
-          id
-          price
-        }
-        userErrors {
-          field
-          message
-        }
+        productVariants { id price }
+        userErrors { field message }
       }
     }
   `;
-
-  const safePrice = Number.isFinite(Number(price)) ? Number(price) : 0;
-
   const data = await shopifyFetch(mutation, {
     productId,
-    variants: [
-      {
-        id: variantId,
-        price: String(safePrice.toFixed(2)),
-      },
-    ],
+    variants: [{ id: variantId, price: price.toFixed(2) }],
   });
-
-  const userErrors = data?.productVariantsBulkUpdate?.userErrors || [];
-
-  if (userErrors.length) {
-    throw new Error(JSON.stringify(userErrors, null, 2));
-  }
-
-  return data?.productVariantsBulkUpdate?.productVariants?.[0] || null;
+  const errors = data?.productVariantsBulkUpdate?.userErrors || [];
+  if (errors.length) throw new Error(JSON.stringify(errors));
 }
 
-async function ensureInventoryActive(inventoryItemId, locationId) {
+async function activateInventory(inventoryItemId, desiredStock) {
   const mutation = `
-    mutation inventoryActivate($inventoryItemId: ID!, $locationId: ID!) {
-      inventoryActivate(inventoryItemId: $inventoryItemId, locationId: $locationId) {
-        inventoryLevel {
-          id
-        }
-        userErrors {
-          field
-          message
-        }
+    mutation ActivateProtectedInventory(
+      $inventoryItemId: ID!
+      $locationId: ID!
+      $available: Int
+    ) {
+      inventoryActivate(
+        inventoryItemId: $inventoryItemId
+        locationId: $locationId
+        available: $available
+      ) {
+        inventoryLevel { id }
+        userErrors { field message }
       }
     }
   `;
-
   const data = await shopifyFetch(mutation, {
     inventoryItemId,
     locationId,
+    available: desiredStock,
   });
-
-  const userErrors = data?.inventoryActivate?.userErrors || [];
-
-  if (userErrors.length) {
-    const message = JSON.stringify(userErrors).toLowerCase();
-
-    if (
-      message.includes("already") ||
-      message.includes("active") ||
-      message.includes("stocked")
-    ) {
-      return null;
-    }
-
-    throw new Error(JSON.stringify(userErrors));
+  const errors = data?.inventoryActivate?.userErrors || [];
+  if (errors.length) {
+    return { ok: false, errors };
   }
-
-  return data?.inventoryActivate?.inventoryLevel || null;
+  return { ok: Boolean(data?.inventoryActivate?.inventoryLevel?.id), errors: [] };
 }
 
-async function setInventoryAbsolute(inventoryItemId, locationId, qty) {
+async function setInventoryAbsolute(
+  inventoryItemId,
+  desiredStock,
+  currentStock,
+) {
   const mutation = `
-    mutation inventorySetQuantities($input: InventorySetQuantitiesInput!) {
+    mutation SetProtectedInventory($input: InventorySetQuantitiesInput!) {
       inventorySetQuantities(input: $input) {
         inventoryAdjustmentGroup {
           reason
-          changes {
-            name
-            delta
-          }
+          changes { name delta }
         }
-        userErrors {
-          field
-          message
-        }
+        userErrors { field message }
       }
     }
   `;
-
-  const safeQty = Math.max(0, Number.isFinite(Number(qty)) ? Number(qty) : 0);
-
   const data = await shopifyFetch(mutation, {
     input: {
       name: "available",
       reason: "correction",
-      ignoreCompareQuantity: true,
       quantities: [
         {
           inventoryItemId,
           locationId,
-          quantity: safeQty,
+          quantity: desiredStock,
+          compareQuantity: currentStock,
         },
       ],
     },
   });
+  const errors = data?.inventorySetQuantities?.userErrors || [];
+  if (errors.length) throw new Error(JSON.stringify(errors));
+}
 
-  const userErrors = data?.inventorySetQuantities?.userErrors || [];
+function currentAvailable(inventoryLevel) {
+  const quantity = inventoryLevel?.quantities?.find(
+    (entry) => entry?.name === "available",
+  )?.quantity;
+  return Number.isInteger(quantity) ? quantity : null;
+}
 
-  if (userErrors.length) {
-    throw new Error(JSON.stringify(userErrors, null, 2));
+async function main() {
+  const startedAt = new Date();
+  const source = await fetchProtectedSource();
+  const selected = APPLY_ALL
+    ? source.exact
+    : LIMIT
+      ? source.exact.slice(OFFSET, OFFSET + LIMIT)
+      : source.exact.slice(OFFSET);
+
+  if (!selected.length) {
+    throw new Error(`No protected variants selected at offset ${OFFSET}`);
   }
 
-  return data?.inventorySetQuantities?.inventoryAdjustmentGroup || null;
-}
+  console.log("\n========== SAFE PRICE/STOCK SYNC ==========");
+  console.log(`Mode: ${DRY_RUN ? "AUDIT (0 changes)" : "APPLY"}`);
+  console.log(`Source: Supabase public.products`);
+  console.log(`Eligible protected variants: ${source.exact.length}`);
+  console.log(`Selected: ${selected.length}`);
+  console.log(`Offset: ${OFFSET}`);
+  console.log("Price formula recalculations: 0");
+  console.log("Product deletions: 0");
+  console.log(`Source validation: ${JSON.stringify(source.summary)}`);
+  console.log("===========================================\n");
 
-function getStockQty(product) {
-  if (typeof product.stockQty === "number") return product.stockQty;
-  if (typeof product.stock === "number") return product.stock;
+  const summary = {
+    generatedAt: new Date().toISOString(),
+    mode: DRY_RUN ? "audit" : "apply",
+    source: "supabase.public.products",
+    eligible: source.exact.length,
+    selected: selected.length,
+    offset: OFFSET,
+    checked: 0,
+    notFound: 0,
+    pricesAlreadyExact: 0,
+    pricesWouldUpdate: 0,
+    pricesApplied: 0,
+    stocksAlreadyExact: 0,
+    stocksWouldUpdate: 0,
+    stocksApplied: 0,
+    inventoryActivated: 0,
+    stockUnavailable: 0,
+    errors: 0,
+    priceFormulaRecalculations: 0,
+    productDeletions: 0,
+    sourceValidation: source.summary,
+    errorDetails: [],
+  };
 
-  const parsedStockQty = Number(product.stockQty);
-  if (Number.isFinite(parsedStockQty)) return parsedStockQty;
+  const sourceById = new Map(selected.map((entry) => [entry.variantId, entry]));
+  const batches = chunk(selected, SHOPIFY_NODE_BATCH_SIZE);
 
-  const parsedStock = Number(product.stock);
-  if (Number.isFinite(parsedStock)) return parsedStock;
-
-  return 0;
-}
-
-function getBasePrice(product) {
-  const candidates = [
-    product.basePrice,
-    product.purchasePrice,
-    product.buyPrice,
-    product.costPrice,
-    product.netPrice,
-    product.price,
-  ];
-
-  for (const value of candidates) {
-    const n = Number(value);
-    if (Number.isFinite(n) && n > 0) return n;
-  }
-
-  return 0;
-}
-
-async function run() {
-  const protectedPrices = await fetchProtectedPrices();
-  const selectedCatalog = loadBestProtectedCatalog(protectedPrices.exact);
-  const productsToProcess = PROCESS_LIMIT
-    ? selectedCatalog.eligible.slice(0, PROCESS_LIMIT)
-    : selectedCatalog.eligible;
-
-  console.log(`Shopify domain: ${domain}`);
-  console.log(`Location ID: ${locationId}`);
-  console.log(`Mode: ${DRY_RUN ? "DRY RUN (0 changes)" : "APPLY"}`);
-  console.log(`Primary catalog: ${selectedCatalog.filePath}`);
-  console.log(`Products in catalog: ${selectedCatalog.products.length}`);
-  console.log(
-    `Eligible protected variants: ${selectedCatalog.eligible.length.toLocaleString("pt-PT")}`
-  );
-  console.log(`Products to process: ${productsToProcess.length}`);
-  console.log(
-    `Protected Shopify prices: ${protectedPrices.exact.size.toLocaleString("pt-PT")}`
-  );
-  console.log("Pricing: exact protected Supabase price (no recalculation)");
-  console.log(
-    `Price protections: ${JSON.stringify(protectedPrices.summary)}`
-  );
-  console.log(
-    `Retry: ${MAX_RETRIES}x | Pause every 25 products: ${BATCH_PAUSE_MS}ms`
-  );
-
-  let processed = 0;
-  let notFound = 0;
-  let errors = 0;
-  let priceAlreadyExact = 0;
-  let pricesWouldUpdate = 0;
-  let pricesApplied = 0;
-  let stocksWouldSet = 0;
-  let stocksApplied = 0;
-
-  for (let i = 0; i < productsToProcess.length; i++) {
-    const product = productsToProcess[i];
-
-    const sku = String(product.sku || "").trim();
-    const basePrice = getBasePrice(product);
-    const stockQty = getStockQty(product);
-    const protectedVariantId = variantGid(
-      product?.merchandiseId ||
-        product?.shopifyVariantId ||
-        product?.variantId
-    );
-    const price = protectedPrices.exact.get(protectedVariantId);
-
-    console.log("");
-    console.log(
-      `[${i + 1}/${productsToProcess.length}] SKU: ${sku || "(empty)"} | Variant: ${protectedVariantId}`
-    );
-
+  for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+    const batch = batches[batchIndex];
+    let nodes;
     try {
-      const variant = await findVariantById(protectedVariantId);
+      nodes = await readShopifyVariants(batch.map((entry) => entry.variantId));
+    } catch (error) {
+      summary.errors += batch.length;
+      summary.errorDetails.push({
+        scope: "shopify-read-batch",
+        firstVariantId: batch[0]?.variantId,
+        count: batch.length,
+        error: error?.message || String(error),
+      });
+      continue;
+    }
 
-      if (!variant?.id || !variant?.inventoryItem?.id || !variant?.product?.id) {
-        console.log("- NOT FOUND BY VALIDATED VARIANT ID");
-        product.shopifySyncStatus = "not-found";
-        notFound++;
+    for (let index = 0; index < nodes.length; index++) {
+      const variant = nodes[index];
+      const fallbackSource = batch[index];
+      const desired = sourceById.get(variant?.id) || fallbackSource;
+
+      if (!variant?.id || !variant?.product?.id || !variant?.inventoryItem?.id) {
+        summary.notFound++;
         continue;
       }
 
-      const currentShopifyPrice = money(variant.price);
-      if (Math.abs(currentShopifyPrice - price) > PRICE_TOLERANCE) {
-        pricesWouldUpdate++;
-        console.log(
-          `- Protected price ${DRY_RUN ? "would update" : "updated"}: ${currentShopifyPrice.toFixed(2)} -> ${price.toFixed(2)}`
-        );
-        if (!DRY_RUN) {
-          await updateVariantPrice(variant.product.id, variant.id, price);
-          pricesApplied++;
+      summary.checked++;
+      try {
+        const currentPrice = money(variant.price);
+        if (Math.abs(currentPrice - desired.price) <= PRICE_TOLERANCE) {
+          summary.pricesAlreadyExact++;
+        } else {
+          summary.pricesWouldUpdate++;
+          if (!DRY_RUN) {
+            await updateVariantPrice(
+              variant.product.id,
+              variant.id,
+              desired.price,
+            );
+            summary.pricesApplied++;
+          }
         }
-      } else {
-        priceAlreadyExact++;
-        console.log(`- Protected price already exact: ${price.toFixed(2)}`);
+
+        const level = variant.inventoryItem.inventoryLevel;
+        const currentStock = currentAvailable(level);
+        if (currentStock === desired.stock) {
+          summary.stocksAlreadyExact++;
+        } else {
+          summary.stocksWouldUpdate++;
+          if (!DRY_RUN) {
+            if (!level?.id || currentStock === null) {
+              const activation = await activateInventory(
+                variant.inventoryItem.id,
+                desired.stock,
+              );
+              if (!activation.ok) {
+                summary.stockUnavailable++;
+              } else {
+                summary.inventoryActivated++;
+                summary.stocksApplied++;
+              }
+            } else {
+              await setInventoryAbsolute(
+                variant.inventoryItem.id,
+                desired.stock,
+                currentStock,
+              );
+              summary.stocksApplied++;
+            }
+          }
+        }
+      } catch (error) {
+        summary.errors++;
+        if (summary.errorDetails.length < 100) {
+          summary.errorDetails.push({
+            variantId: desired?.variantId,
+            sku: desired?.sku,
+            title: desired?.title,
+            error: error?.message || String(error),
+          });
+        }
       }
+    }
 
-      if (DRY_RUN) {
-        console.log(`- Stock would be set: ${stockQty}`);
-        stocksWouldSet++;
-      } else {
-        await ensureInventoryActive(variant.inventoryItem.id, locationId);
-        console.log("- Inventory active at location");
-
-        await setInventoryAbsolute(
-          variant.inventoryItem.id,
-          locationId,
-          stockQty
-        );
-        console.log(`- Stock set: ${stockQty}`);
-        stocksApplied++;
-      }
-
-      product.basePrice = basePrice;
-      product.price = price;
-      product.stockQty = stockQty;
-      product.stock = stockQty;
-      product.priceRule = "supabase_protected_price";
-      product.shopifyProductId = variant.product.id;
-      product.shopifyProductHandle = variant.product.handle;
-      product.shopifyVariantId = String(variant.id).replace(
-        "gid://shopify/ProductVariant/",
-        ""
+    if (
+      (batchIndex + 1) % 10 === 0 ||
+      batchIndex + 1 === batches.length
+    ) {
+      console.log(
+        `Shopify: ${Math.min((batchIndex + 1) * SHOPIFY_NODE_BATCH_SIZE, selected.length).toLocaleString("pt-PT")}/${selected.length.toLocaleString("pt-PT")} verificadas`,
       );
-      product.merchandiseId = variant.id;
-      product.shopifySyncStatus = "synced";
-      product.shopifySyncError = undefined;
-
-      processed++;
-    } catch (error) {
-      product.shopifySyncStatus = "error";
-      product.shopifySyncError =
-        error instanceof Error ? error.message : String(error);
-
-      console.log(`- ERROR: ${product.shopifySyncError}`);
-
-      errors++;
-    }
-
-    if (!DRY_RUN && (i + 1) % SAVE_EVERY === 0) {
-      console.log(`- Progress: ${i + 1}/${productsToProcess.length}`);
-    }
-
-    if ((i + 1) % 25 === 0) {
-      await sleep(BATCH_PAUSE_MS);
+      writeJson(REPORT_PATH, {
+        ...summary,
+        updatedAt: new Date().toISOString(),
+      });
     }
   }
 
-  console.log("");
-  console.log("========== DONE ==========");
-  console.log(`Eligible processed: ${processed}`);
-  console.log(`Not found: ${notFound}`);
-  console.log(`Prices already exact: ${priceAlreadyExact}`);
-  console.log(`Prices that would update: ${pricesWouldUpdate}`);
-  console.log(`Prices applied: ${pricesApplied}`);
-  console.log(`Stocks that would be set: ${stocksWouldSet}`);
-  console.log(`Stocks applied: ${stocksApplied}`);
-  console.log(`Errors: ${errors}`);
-  console.log("Price formula recalculations: 0");
-  console.log("Local catalog writes: 0");
-  console.log(
-    `Changes made: ${DRY_RUN ? 0 : pricesApplied + stocksApplied}`
+  summary.finishedAt = new Date().toISOString();
+  summary.durationSeconds = Math.round(
+    (Date.now() - startedAt.getTime()) / 1_000,
   );
-  console.log("==========================");
+  writeJson(REPORT_PATH, summary);
+
+  console.log("\n========== RESULTADO ==========");
+  for (const [key, value] of Object.entries(summary)) {
+    if (key === "errorDetails" || key === "sourceValidation") continue;
+    console.log(`${key}: ${value}`);
+  }
+  console.log(`report: ${REPORT_PATH}`);
+  console.log("================================\n");
+
+  if (summary.errors > 0) process.exitCode = 1;
 }
 
-run().catch((err) => {
-  console.error("FATAL ERROR:", err);
+main().catch((error) => {
+  console.error("FATAL ERROR:", error?.message || error);
   process.exit(1);
 });
