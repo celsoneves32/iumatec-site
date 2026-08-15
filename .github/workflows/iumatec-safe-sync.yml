@@ -1,4 +1,4 @@
-name: IUMATEC safe Shopify price and stock sync
+name: IUMATEC safe Alltron, Supabase and Shopify sync
 
 on:
   workflow_dispatch:
@@ -25,8 +25,11 @@ jobs:
   sync:
     if: github.event_name == 'workflow_dispatch' || vars.IUMATEC_AUTO_SYNC_ENABLED == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 180
     env:
+      ALLTRON_HOST: ${{ secrets.ALLTRON_HOST }}
+      ALLTRON_USER: ${{ secrets.ALLTRON_USER }}
+      ALLTRON_PASS: ${{ secrets.ALLTRON_PASS }}
       SHOPIFY_STORE_DOMAIN: ${{ secrets.SHOPIFY_STORE_DOMAIN }}
       SHOPIFY_ADMIN_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ADMIN_ACCESS_TOKEN }}
       SHOPIFY_ADMIN_API_VERSION: "2025-04"
@@ -47,19 +50,29 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Audit 25 protected variants
+      - name: Audit current Alltron feed against Supabase
+        if: github.event_name == 'workflow_dispatch' && inputs.mode == 'audit'
+        run: node scripts/sync-alltron-price-stock-to-supabase.mjs --limit=25
+
+      - name: Apply Alltron prices and stock to Supabase
+        if: vars.IUMATEC_ALLTRON_SYNC_ENABLED == 'true' && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'apply'))
+        run: node scripts/sync-alltron-price-stock-to-supabase.mjs --apply --all --confirm=IUMATEC-ALLTRON-SOURCE
+
+      - name: Audit 25 protected Shopify variants
         if: github.event_name == 'workflow_dispatch' && inputs.mode == 'audit'
         run: node scripts/auto-sync.mjs --limit=25
 
-      - name: Apply complete protected sync
+      - name: Apply complete protected Shopify sync
         if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'apply')
         run: node scripts/auto-sync.mjs --apply --all
 
-      - name: Upload report
+      - name: Upload reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: iumatec-shopify-sync-report
-          path: integrations/alltron/out/shopify-price-stock-sync/
+          name: iumatec-complete-sync-report
+          path: |
+            integrations/alltron/out/alltron-supabase-sync/
+            integrations/alltron/out/shopify-price-stock-sync/
           if-no-files-found: warn
           retention-days: 30
