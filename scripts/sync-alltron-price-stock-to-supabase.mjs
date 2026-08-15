@@ -203,40 +203,73 @@ async function downloadPriceFeed(targetPath) {
     };
   }
 
-  const client = new ftp.Client(60_000);
-  client.ftp.verbose = false;
-  try {
-    await client.access({
-      host: alltronHost,
-      port: 21,
-      user: alltronUser,
-      password: alltronPass,
-      secure: true,
-      secureOptions: { rejectUnauthorized: false },
-    });
-    await client.cd("/dataexport");
-    const files = await client.list();
-    const remote = files.find(
-      (entry) => entry.name.toLowerCase() === alltronFile.toLowerCase(),
-    );
-    if (!remote) {
-      throw new Error(`${alltronFile} was not found in /dataexport`);
-    }
-    if (!(remote.size > 10_000)) {
-      throw new Error(`${alltronFile} is abnormally small (${remote.size} bytes)`);
-    }
-    await client.downloadTo(targetPath, remote.name);
-    return {
-      source: `ftps://${alltronHost}/dataexport/${remote.name}`,
-      fileName: remote.name,
-      remoteSize: remote.size,
-      remoteModifiedAt: remote.modifiedAt?.toISOString?.() || null,
-    };
-  } finally {
-    client.close();
-  }
-}
+  const profiles = [
+    { label: "explicit FTPS on port 21", port: 21, secure: true },
+    { label: "implicit FTPS on port 990", port: 990, secure: "implicit" },
+  ];
+  const failures = [];
 
+  for (const profile of profiles) {
+    const client = new ftp.Client(60_000);
+    client.ftp.verbose = false;
+
+    try {
+      console.log(`Trying ${profile.label}...`);
+
+      await client.access({
+        host: alltronHost,
+        port: profile.port,
+        user: alltronUser,
+        password: alltronPass,
+        secure: profile.secure,
+        secureOptions: { rejectUnauthorized: false },
+      });
+
+      await client.cd("/dataexport");
+
+      const files = await client.list();
+      const remote = files.find(
+        (entry) => entry.name.toLowerCase() === alltronFile.toLowerCase(),
+      );
+
+      if (!remote) {
+        throw new Error(`${alltronFile} was not found in /dataexport`);
+      }
+
+      if (!(remote.size > 10_000)) {
+        throw new Error(
+          `${alltronFile} is abnormally small (${remote.size} bytes)`,
+        );
+      }
+
+      await client.downloadTo(targetPath, remote.name);
+
+      console.log(`Connected securely using ${profile.label}.`);
+
+      return {
+        source: `ftps://${alltronHost}:${profile.port}/dataexport/${remote.name}`,
+        connectionMode: profile.label,
+        fileName: remote.name,
+        remoteSize: remote.size,
+        remoteModifiedAt: remote.modifiedAt?.toISOString?.() || null,
+      };
+    } catch (error) {
+      const message = String(error?.message || error);
+      failures.push(`${profile.label}: ${message}`);
+      console.log(`${profile.label} failed: ${message}`);
+
+      if (fs.existsSync(targetPath)) {
+        fs.rmSync(targetPath, { force: true });
+      }
+    } finally {
+      client.close();
+    }
+  }
+
+  throw new Error(
+    `All secure Alltron FTPS connection modes failed: ${failures.join(" | ")}`,
+  );
+}
 function deepFind(object, wantedKeys, maxDepth = 7) {
   const wanted = new Set(wantedKeys.map((key) => key.toUpperCase()));
   const queue = [{ value: object, depth: 0 }];
