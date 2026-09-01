@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import { spawn } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -19,13 +20,23 @@ const SUPABASE_PAGE_SIZE = 1_000;
 const MAX_LIMITED_APPLY = 1_000;
 const MIN_SUPABASE_ROWS = 50_000;
 const MAX_SUPABASE_ROWS = 60_000;
-const MIN_MATCHED_ROWS = 50_000;
-const MAX_UNMATCHED_ROWS = 1_000;
+const MIN_FEED_ROWS = 100_000;
+const MAX_FEED_ROWS = 300_000;
+const MIN_MATCHED_ROWS = 40_000;
+const MIN_MATCHED_RATIO = 0.85;
+const MAX_UNMATCHED_ROWS = 7_000;
+const MAX_UNMATCHED_RATIO = 0.12;
+const MAX_INVALID_ROWS = 2_000;
+const MAX_INVALID_RATIO = 0.04;
 const MAX_AMBIGUOUS_ROWS = 25;
-const MAX_PRICE_CHANGES = 15_000;
+const MAX_PRICE_CHANGES = 30_000;
+const MAX_PRICE_CHANGE_RATIO = 0.6;
 const MAX_PRICE_RATIO_DEVIATION = 0.5;
+const MIN_INDIVIDUAL_PRICE_RATIO = 0.5;
+const MAX_INDIVIDUAL_PRICE_RATIO = 1.5;
 const MAX_RETRIES = 7;
 const PATCH_CONCURRENCY = 6;
+const PRICE_WRITES_ENABLED = false; // Safety invariant: prices are owned by iumatec-master-catalog.json
 
 function argValue(name) {
   const prefix = `${name}=`;
@@ -47,6 +58,8 @@ const LIMIT = integerArg("--limit", 0);
 const OFFSET = integerArg("--offset", 0);
 const CONFIRMATION = argValue("--confirm");
 const LOCAL_SOURCE = argValue("--source");
+const LOCAL_PRICE_SOURCE = argValue("--price-source") || LOCAL_SOURCE;
+const LOCAL_ARTICLE_SOURCE = argValue("--article-source");
 const REPORT_PATH = path.resolve(
   ROOT,
   argValue("--report") ||
@@ -87,13 +100,16 @@ const supabaseKey = String(
 const alltronHost = String(process.env.ALLTRON_HOST || "").trim();
 const alltronUser = String(process.env.ALLTRON_USER || "").trim();
 const alltronPass = String(process.env.ALLTRON_PASS || "").trim();
-const alltronFile = String(
+const alltronPriceFile = String(
   process.env.ALLTRON_PRICE_FILE || "PreisdatenV2.xml",
+).trim();
+const alltronArticleFile = String(
+  process.env.ALLTRON_ARTICLE_FILE || "ArtikeldatenV2.xml",
 ).trim();
 
 if (!supabaseUrl) throw new Error("Missing SUPABASE_URL");
 if (!supabaseKey) throw new Error("Missing SUPABASE_SECRET_KEY");
-if (!LOCAL_SOURCE) {
+if (!LOCAL_PRICE_SOURCE || !LOCAL_ARTICLE_SOURCE) {
   if (!alltronHost) throw new Error("Missing ALLTRON_HOST");
   if (!alltronUser) throw new Error("Missing ALLTRON_USER");
   if (!alltronPass) throw new Error("Missing ALLTRON_PASS");
@@ -109,6 +125,10 @@ function text(value) {
 
 function norm(value) {
   return text(value).toUpperCase().replace(/\s+/g, " ");
+}
+
+function normCatalogKey(value) {
+  return norm(value).replace(/^LITM\s*:\s*/, "");
 }
 
 function normEan(value) {
@@ -188,9 +208,9 @@ async function fetchWithRetry(label, endpoint, options) {
   });
 }
 
-async function downloadPriceFeed(targetPath) {
-  if (LOCAL_SOURCE) {
-    const sourcePath = path.resolve(ROOT, LOCAL_SOURCE);
+async function downloadFeedFile(fileName, targetPath, localSource = "") {
+  if (localSource) {
+    const sourcePath = path.resolve(ROOT, localSource);
     if (!fs.existsSync(sourcePath)) {
       throw new Error(`Local source does not exist: ${sourcePath}`);
     }
@@ -203,6 +223,13 @@ async function downloadPriceFeed(targetPath) {
     };
   }
 
+  if (
+    process.platform === "win32" ||
+    String(process.env.ALLTRON_TRANSPORT || "").trim().toLowerCase() === "curl"
+  ) {
+    return downloadFeedFileWithCurl(fileName, targetPath);
+  }
+
   const profiles = [
     { label: "explicit FTPS on port 21", port: 21, secure: true },
     { label: "implicit FTPS on port 990", port: 990, secure: "implicit" },
@@ -212,10 +239,8 @@ async function downloadPriceFeed(targetPath) {
   for (const profile of profiles) {
     const client = new ftp.Client(60_000);
     client.ftp.verbose = false;
-
     try {
       console.log(`Trying ${profile.label}...`);
-
       await client.access({
         host: alltronHost,
         port: profile.port,
@@ -224,28 +249,21 @@ async function downloadPriceFeed(targetPath) {
         secure: profile.secure,
         secureOptions: { rejectUnauthorized: false },
       });
-
       await client.cd("/dataexport");
-
       const files = await client.list();
       const remote = files.find(
-        (entry) => entry.name.toLowerCase() === alltronFile.toLowerCase(),
+        (entry) => entry.name.toLowerCase() === fileName.toLowerCase(),
       );
-
       if (!remote) {
-        throw new Error(`${alltronFile} was not found in /dataexport`);
+        throw new Error(`${fileName} was not found in /dataexport`);
       }
-
       if (!(remote.size > 10_000)) {
         throw new Error(
-          `${alltronFile} is abnormally small (${remote.size} bytes)`,
+          `${fileName} is abnormally small (${remote.size} bytes)`,
         );
       }
-
       await client.downloadTo(targetPath, remote.name);
-
       console.log(`Connected securely using ${profile.label}.`);
-
       return {
         source: `ftps://${alltronHost}:${profile.port}/dataexport/${remote.name}`,
         connectionMode: profile.label,
@@ -257,10 +275,7 @@ async function downloadPriceFeed(targetPath) {
       const message = String(error?.message || error);
       failures.push(`${profile.label}: ${message}`);
       console.log(`${profile.label} failed: ${message}`);
-
-      if (fs.existsSync(targetPath)) {
-        fs.rmSync(targetPath, { force: true });
-      }
+      if (fs.existsSync(targetPath)) fs.rmSync(targetPath, { force: true });
     } finally {
       client.close();
     }
@@ -270,6 +285,93 @@ async function downloadPriceFeed(targetPath) {
     `All secure Alltron FTPS connection modes failed: ${failures.join(" | ")}`,
   );
 }
+
+function curlConfigValue(value) {
+  return String(value)
+    .replace(/\\/g, "\\\\")
+    .replace(/"/g, '\\"')
+    .replace(/[\r\n]/g, "");
+}
+
+function downloadFeedFileWithCurl(fileName, targetPath) {
+  const curlBinary = process.platform === "win32" ? "curl.exe" : "curl";
+  const remoteUrl = `ftps://${alltronHost}:990/dataexport/${encodeURIComponent(fileName)}`;
+  const args = [
+    "--config",
+    "-",
+    "--fail",
+    "--silent",
+    "--show-error",
+    "--ssl-reqd",
+    "--connect-timeout",
+    "30",
+    "--retry",
+    "3",
+    "--retry-delay",
+    "5",
+    "--output",
+    targetPath,
+    remoteUrl,
+  ];
+
+  console.log("Trying implicit FTPS on port 990 using curl...");
+
+  return new Promise((resolve, reject) => {
+    const child = spawn(curlBinary, args, {
+      stdio: ["pipe", "ignore", "pipe"],
+      windowsHide: true,
+    });
+    let stderr = "";
+
+    child.stderr.setEncoding("utf8");
+    child.stderr.on("data", (chunk) => {
+      stderr += chunk;
+    });
+
+    child.on("error", (error) => {
+      reject(new Error(`Could not start ${curlBinary}: ${error.message}`));
+    });
+
+    child.on("close", (code) => {
+      if (code !== 0) {
+        if (fs.existsSync(targetPath)) fs.rmSync(targetPath, { force: true });
+        reject(
+          new Error(
+            `curl FTPS download failed with exit code ${code}: ${stderr.trim() || "unknown error"}`,
+          ),
+        );
+        return;
+      }
+
+      if (!fs.existsSync(targetPath)) {
+        reject(new Error("curl completed without creating the Alltron feed"));
+        return;
+      }
+
+      const stats = fs.statSync(targetPath);
+      if (!(stats.size > 10_000)) {
+        fs.rmSync(targetPath, { force: true });
+        reject(
+          new Error(`${fileName} is abnormally small (${stats.size} bytes)`),
+        );
+        return;
+      }
+
+      console.log("Connected securely using implicit FTPS on port 990 via curl.");
+      resolve({
+        source: remoteUrl,
+        connectionMode: "implicit FTPS on port 990 via curl",
+        fileName,
+        remoteSize: stats.size,
+        remoteModifiedAt: null,
+      });
+    });
+
+    const curlCredentials = `${curlConfigValue(alltronUser)}:${curlConfigValue(alltronPass)}`;
+    child.stdin.end(`user = "${curlCredentials}"\n`);
+  });
+}
+
 function deepFind(object, wantedKeys, maxDepth = 7) {
   const wanted = new Set(wantedKeys.map((key) => key.toUpperCase()));
   const queue = [{ value: object, depth: 0 }];
@@ -308,31 +410,49 @@ function collectItemArrays(parsed) {
   return candidates;
 }
 
-function extractFeedRow(row) {
-  const litm = deepFind(row, ["LITM"]);
-  const sku = deepFind(row, ["LITT", "SKU", "ARTNR", "PARTNUMBER"]);
-  const internalNumber = deepFind(row, ["MITM", "INTERNALNUMBER"]);
-  const ean = deepFind(row, ["EITM", "EAN", "GTIN"]);
-  const price = deepFind(row, ["ECPR", "PRICE", "VKPR", "RETAILPRICE"]);
-  const fallbackPrice = deepFind(row, ["EXPR", "INPR"]);
-  const available = deepFind(row, ["STQU", "STOCK", "QUANTITY", "AVAILABLE"]);
-  const selectedPrice = price.value !== null ? price : fallbackPrice;
-  return {
-    litm: norm(litm.value),
-    sku: norm(sku.value),
-    internalNumber: norm(internalNumber.value),
-    ean: normEan(ean.value),
-    price: money(selectedPrice.value),
-    stock: stock(available.value),
-    priceField: selectedPrice.key,
-    stockField: available.key,
-  };
+function normalizeArray(value) {
+  if (!value) return [];
+  return Array.isArray(value) ? value : [value];
 }
 
-function parseFeed(filePath) {
+function decodeXml(buffer) {
+  const beginning = buffer
+    .subarray(0, Math.min(buffer.length, 500))
+    .toString("ascii");
+  const declaredEncoding =
+    beginning.match(/encoding=["']([^"']+)["']/i)?.[1] || "";
+  if (/1252|windows-1252/i.test(declaredEncoding)) {
+    return iconv.decode(buffer, "windows-1252");
+  }
+  if (/8859-1|latin1/i.test(declaredEncoding)) {
+    return iconv.decode(buffer, "iso-8859-1");
+  }
+  return iconv.decode(buffer, "utf8");
+}
+
+function knownXmlItems(parsed) {
+  const known =
+    parsed?.items?.item ||
+    parsed?.prices?.item ||
+    parsed?.ITEMS?.item ||
+    parsed?.ITEMS?.ITEM ||
+    parsed?.PRICES?.item ||
+    parsed?.PRICES?.ITEM ||
+    parsed?.root?.items?.item ||
+    parsed?.root?.prices?.item ||
+    parsed?.root?.ITEMS?.ITEM ||
+    parsed?.root?.PRICES?.ITEM;
+  if (known) return { itemPath: "known Alltron item path", rows: normalizeArray(known) };
+  const fallback = collectItemArrays(parsed).sort(
+    (left, right) => right.rows.length - left.rows.length,
+  )[0];
+  return fallback || { itemPath: "", rows: [] };
+}
+
+function parseXmlFile(filePath) {
   const buffer = fs.readFileSync(filePath);
   const hash = crypto.createHash("sha256").update(buffer).digest("hex");
-  const xml = iconv.decode(buffer, "windows-1252");
+  const xml = decodeXml(buffer);
   const parser = new XMLParser({
     ignoreAttributes: false,
     attributeNamePrefix: "@_",
@@ -340,38 +460,75 @@ function parseFeed(filePath) {
     trimValues: true,
   });
   const parsed = parser.parse(xml);
-  const candidates = collectItemArrays(parsed)
-    .map((candidate) => {
-      const sample = candidate.rows.slice(0, 25).map(extractFeedRow);
-      const recognizable = sample.filter(
-        (row) =>
-          (row.litm || row.sku || row.internalNumber || row.ean) &&
-          (row.price !== null || row.stock !== null),
-      ).length;
-      return {
-        ...candidate,
-        recognizable,
-        recognizableRatio: sample.length ? recognizable / sample.length : 0,
-      };
-    })
-    .filter(
-      (candidate) =>
-        candidate.recognizableRatio >= 0.5 && candidate.rows.length >= 1_000,
-    )
-    .sort(
-      (left, right) =>
-        right.rows.length - left.rows.length ||
-        right.recognizableRatio - left.recognizableRatio,
-    );
-  const selected = candidates[0];
-  if (!selected) {
-    throw new Error("Could not locate Alltron price rows in the XML file");
-  }
-  const rows = selected.rows.map(extractFeedRow);
+  const selected = knownXmlItems(parsed);
+  if (!selected.rows.length) throw new Error(`Could not locate Alltron rows in ${path.basename(filePath)}`);
   return {
     hash,
     bytes: buffer.length,
-    itemPath: selected.path,
+    itemPath: selected.path || selected.itemPath,
+    rows: selected.rows,
+  };
+}
+
+function extractPriceRow(row) {
+  const litm = deepFind(row, ["LITM"]);
+  const primary = deepFind(row, ["ECPR"]);
+  const fallback = deepFind(row, ["EXPR", "INPR", "PRICE", "VKPR", "RETAILPRICE"]);
+  const selected = primary.value !== null ? primary : fallback;
+  return {
+    litm: norm(litm.value),
+    price: money(selected.value),
+    priceField: selected.key,
+  };
+}
+
+function extractArticleRow(row) {
+  const litm = deepFind(row, ["LITM"]);
+  const sku = deepFind(row, ["LITT", "SKU", "ARTNR", "PARTNUMBER"]);
+  const internalNumber = deepFind(row, ["MITM", "INTERNALNUMBER"]);
+  const ean = deepFind(row, ["EITM", "EAN", "GTIN"]);
+  const available = deepFind(row, ["STQU", "STOCK", "QUANTITY", "AVAILABLE"]);
+  const primary = deepFind(row, ["ECPR"]);
+  const fallback = deepFind(row, ["EXPR", "INPR", "PRICE", "VKPR", "RETAILPRICE"]);
+  const selected = primary.value !== null ? primary : fallback;
+  const normalizedLitm = norm(litm.value);
+  return {
+    litm: normalizedLitm,
+    sku: norm(sku.value) || normalizedLitm,
+    internalNumber: norm(internalNumber.value),
+    ean: normEan(ean.value),
+    price: money(selected.value),
+    stock: stock(available.value),
+    priceField: selected.key,
+    stockField: available.key,
+  };
+}
+
+function parseCombinedFeed(priceFilePath, articleFilePath) {
+  const priceFeed = parseXmlFile(priceFilePath);
+  const articleFeed = parseXmlFile(articleFilePath);
+  const pricesByLitm = new Map();
+
+  for (const rawRow of priceFeed.rows) {
+    const row = extractPriceRow(rawRow);
+    if (!row.litm || row.price === null) continue;
+    pricesByLitm.set(row.litm, row);
+  }
+
+  const rows = articleFeed.rows
+    .map(extractArticleRow)
+    .filter((row) => row.litm)
+    .map((row) => {
+      const currentPrice = pricesByLitm.get(row.litm);
+      return currentPrice
+        ? { ...row, price: currentPrice.price, priceField: currentPrice.priceField }
+        : row;
+    });
+
+  return {
+    priceFeed,
+    articleFeed,
+    priceRows: pricesByLitm.size,
     rows,
   };
 }
@@ -408,8 +565,10 @@ function addIndex(index, key, row) {
 
 function equivalentUnique(rows) {
   if (!rows?.length) return null;
+  // This synchronizer owns STOCK only. Price differences must never make
+  // an otherwise unambiguous stock match ambiguous.
   const signatures = new Set(
-    rows.map((row) => `${row.price ?? "null"}|${row.stock ?? "null"}`),
+    rows.map((row) => `${row.stock ?? "null"}`),
   );
   return signatures.size === 1 ? rows[0] : null;
 }
@@ -422,7 +581,7 @@ function buildFeedIndexes(rows) {
     ean: new Map(),
   };
   for (const row of rows) {
-    addIndex(indexes.catalog, row.litm, row);
+    addIndex(indexes.catalog, normCatalogKey(row.litm), row);
     addIndex(indexes.sku, row.sku, row);
     addIndex(indexes.internal, row.internalNumber, row);
     addIndex(indexes.ean, row.ean, row);
@@ -431,11 +590,17 @@ function buildFeedIndexes(rows) {
 }
 
 function matchFeedRow(product, indexes) {
+  const catalogKey = normCatalogKey(product.catalog_key);
+  const catalogMatches = catalogKey ? indexes.catalog.get(catalogKey) : null;
+  if (catalogMatches?.length) {
+    const row = equivalentUnique(catalogMatches);
+    return row ? { method: "catalog-key", row } : { ambiguous: true };
+  }
+
   const checks = [
     ["sku", norm(product.sku), indexes.sku],
     ["internal-number", norm(product.internal_number), indexes.internal],
     ["ean", normEan(product.ean), indexes.ean],
-    ["catalog-key", norm(product.catalog_key), indexes.catalog],
   ];
   const matches = [];
   for (const [method, key, index] of checks) {
@@ -445,7 +610,8 @@ function matchFeedRow(product, indexes) {
   }
   const signatures = new Map();
   for (const match of matches) {
-    const signature = `${match.row.price ?? "null"}|${match.row.stock ?? "null"}`;
+    // Price is intentionally excluded: master catalog is the sole price owner.
+    const signature = `${match.row.stock ?? "null"}`;
     if (!signatures.has(signature)) signatures.set(signature, match);
   }
   if (signatures.size === 1) return [...signatures.values()][0];
@@ -471,9 +637,11 @@ function buildPlan(products, feedRows) {
   const invalid = [];
   const exact = [];
   const changes = [];
+  const quarantinedPrices = [];
   const priceRatios = [];
   const priceFields = {};
   const stockFields = {};
+  const matchMethods = {};
 
   for (const product of products) {
     const catalogKey = text(product.catalog_key);
@@ -494,60 +662,141 @@ function buildPlan(products, feedRows) {
       continue;
     }
     const desired = match.row;
-    if (desired.price === null || desired.stock === null) {
+    // Stock is the only mutable supplier field in this script.
+    // A missing supplier price must never block a valid stock update.
+    if (desired.stock === null) {
       invalid.push({
         catalogKey,
-        reason: desired.price === null ? "invalid-price" : "invalid-stock",
+        reason: "invalid-stock",
       });
       continue;
     }
-    priceFields[desired.priceField || "unknown"] =
-      (priceFields[desired.priceField || "unknown"] || 0) + 1;
+    if (desired.price !== null) {
+      priceFields[desired.priceField || "unknown"] =
+        (priceFields[desired.priceField || "unknown"] || 0) + 1;
+    }
     stockFields[desired.stockField || "unknown"] =
       (stockFields[desired.stockField || "unknown"] || 0) + 1;
+    matchMethods[match.method] = (matchMethods[match.method] || 0) + 1;
 
     const currentPrice = money(product.price);
     const currentStock = stock(product.stock_qty);
-    if (currentPrice && desired.price) {
-      priceRatios.push(desired.price / currentPrice);
-    }
-    const priceChanged =
-      currentPrice === null || Math.abs(currentPrice - desired.price) > 0.009;
+
+    // Supplier price is retained only for diagnostics. It is NEVER a desired
+    // Supabase price here. Pricing is exclusively owned by the protected
+    // iumatec-master-catalog.json -> import-master-catalog-to-supabase.mjs path.
+    const priceRatio =
+      currentPrice && desired.price ? desired.price / currentPrice : null;
+    if (priceRatio !== null) priceRatios.push(priceRatio);
+    const rawSupplierPriceDiffers =
+      desired.price !== null &&
+      (currentPrice === null || Math.abs(currentPrice - desired.price) > 0.009);
+    const supplierPriceOutlier =
+      rawSupplierPriceDiffers &&
+      priceRatio !== null &&
+      (priceRatio < MIN_INDIVIDUAL_PRICE_RATIO ||
+        priceRatio > MAX_INDIVIDUAL_PRICE_RATIO);
+
+    // HARD SAFETY INVARIANT: never plan a price write.
+    const desiredPrice = currentPrice;
+    const priceChanged = false;
+    const priceQuarantined = supplierPriceOutlier;
     const stockChanged = currentStock === null || currentStock !== desired.stock;
     const planned = {
       catalogKey,
       sku: text(product.sku),
       method: match.method,
       currentPrice,
-      desiredPrice: desired.price,
+      desiredPrice,
+      supplierPrice: desired.price,
+      priceRatio,
+      priceQuarantined,
       currentStock,
       desiredStock: desired.stock,
       priceChanged,
       stockChanged,
     };
-    (priceChanged || stockChanged ? changes : exact).push(planned);
+    if (priceQuarantined) quarantinedPrices.push(planned);
+    (stockChanged ? changes : exact).push(planned);
   }
+
+  const matched = changes.length + exact.length;
+  const priceChangeRows = changes.filter((row) => row.priceChanged);
+  const stockChangeRows = changes.filter((row) => row.stockChanged);
+  const priceIncreases = priceChangeRows.filter(
+    (row) => row.currentPrice !== null && row.desiredPrice > row.currentPrice,
+  );
+  const priceDecreases = priceChangeRows.filter(
+    (row) => row.currentPrice !== null && row.desiredPrice < row.currentPrice,
+  );
+  const newPrices = priceChangeRows.filter((row) => row.currentPrice === null);
+  const stockToZero = stockChangeRows.filter(
+    (row) => row.currentStock !== null && row.currentStock > 0 && row.desiredStock === 0,
+  );
+  const stockFromZero = stockChangeRows.filter(
+    (row) => row.currentStock === 0 && row.desiredStock > 0,
+  );
+  const invalidReasons = invalid.reduce((counts, row) => {
+    counts[row.reason] = (counts[row.reason] || 0) + 1;
+    return counts;
+  }, {});
+  const byPriceRatioDescending = (left, right) =>
+    right.desiredPrice / right.currentPrice -
+    left.desiredPrice / left.currentPrice;
+  const byPriceRatioAscending = (left, right) =>
+    left.desiredPrice / left.currentPrice -
+    right.desiredPrice / right.currentPrice;
 
   return {
     changes,
     summary: {
       supabaseRows: products.length,
       feedRows: feedRows.length,
-      matched: changes.length + exact.length,
+      matched,
+      matchedRatio: products.length ? matched / products.length : 0,
       exact: exact.length,
       changes: changes.length,
-      priceChanges: changes.filter((row) => row.priceChanged).length,
-      stockChanges: changes.filter((row) => row.stockChanged).length,
+      priceChanges: priceChangeRows.length,
+      priceChangeRatio: matched ? priceChangeRows.length / matched : 0,
+      priceIncreases: priceIncreases.length,
+      priceDecreases: priceDecreases.length,
+      newPrices: newPrices.length,
+      quarantinedPrices: quarantinedPrices.length,
+      quarantinedPriceRatio: matched
+        ? quarantinedPrices.length / matched
+        : 0,
+      stockChanges: stockChangeRows.length,
+      stockChangeRatio: matched ? stockChangeRows.length / matched : 0,
+      stockToZero: stockToZero.length,
+      stockFromZero: stockFromZero.length,
       unmatched: unmatched.length,
+      unmatchedRatio: products.length ? unmatched.length / products.length : 0,
       ambiguous: ambiguous.length,
       invalid: invalid.length,
+      invalidRatio: products.length ? invalid.length / products.length : 0,
+      invalidReasons,
       duplicateCatalogKeys: duplicateCatalogKeys.length,
       medianFeedToCurrentPriceRatio: median(priceRatios),
       priceFields,
       stockFields,
+      matchMethods,
     },
     samples: {
       changes: changes.slice(0, 25),
+      largestPriceIncreases: [...priceIncreases]
+        .sort(byPriceRatioDescending)
+        .slice(0, 25),
+      largestPriceDecreases: [...priceDecreases]
+        .sort(byPriceRatioAscending)
+        .slice(0, 25),
+      quarantinedPrices: [...quarantinedPrices]
+        .sort((left, right) =>
+          Math.abs(Math.log(right.priceRatio)) -
+          Math.abs(Math.log(left.priceRatio)),
+        )
+        .slice(0, 50),
+      stockToZero: stockToZero.slice(0, 25),
+      stockFromZero: stockFromZero.slice(0, 25),
       unmatched: unmatched.slice(0, 25),
       ambiguous: ambiguous.slice(0, 25),
       invalid: invalid.slice(0, 25),
@@ -566,14 +815,34 @@ function safetyChecks(summary) {
       `Expected ${MIN_SUPABASE_ROWS}-${MAX_SUPABASE_ROWS} Supabase rows, found ${summary.supabaseRows}`,
     );
   }
-  if (summary.feedRows < MIN_MATCHED_ROWS) {
-    failures.push(`Alltron feed is too small (${summary.feedRows} rows)`);
+  if (summary.feedRows < MIN_FEED_ROWS || summary.feedRows > MAX_FEED_ROWS) {
+    failures.push(
+      `Expected ${MIN_FEED_ROWS}-${MAX_FEED_ROWS} Alltron article rows, found ${summary.feedRows}`,
+    );
   }
-  if (summary.matched < MIN_MATCHED_ROWS) {
-    failures.push(`Only ${summary.matched} Supabase rows matched the Alltron feed`);
+  if (
+    summary.matched < MIN_MATCHED_ROWS ||
+    summary.matchedRatio < MIN_MATCHED_RATIO
+  ) {
+    failures.push(
+      `Only ${summary.matched} Supabase rows matched the Alltron feed (${(summary.matchedRatio * 100).toFixed(2)}%)`,
+    );
   }
-  if (summary.unmatched > MAX_UNMATCHED_ROWS) {
-    failures.push(`Too many unmatched rows (${summary.unmatched})`);
+  if (
+    summary.unmatched > MAX_UNMATCHED_ROWS ||
+    summary.unmatchedRatio > MAX_UNMATCHED_RATIO
+  ) {
+    failures.push(
+      `Too many unmatched rows (${summary.unmatched}; ${(summary.unmatchedRatio * 100).toFixed(2)}%)`,
+    );
+  }
+  if (
+    summary.invalid > MAX_INVALID_ROWS ||
+    summary.invalidRatio > MAX_INVALID_RATIO
+  ) {
+    failures.push(
+      `Too many invalid rows (${summary.invalid}; ${(summary.invalidRatio * 100).toFixed(2)}%)`,
+    );
   }
   if (summary.ambiguous > MAX_AMBIGUOUS_ROWS) {
     failures.push(`Too many ambiguous rows (${summary.ambiguous})`);
@@ -581,20 +850,8 @@ function safetyChecks(summary) {
   if (summary.duplicateCatalogKeys > 0) {
     failures.push(`Supabase contains ${summary.duplicateCatalogKeys} duplicate catalog keys`);
   }
-  if (summary.priceChanges > MAX_PRICE_CHANGES) {
-    failures.push(`Too many price changes (${summary.priceChanges})`);
-  }
-  const ratio = summary.medianFeedToCurrentPriceRatio;
-  if (
-    ratio === null ||
-    ratio < 1 - MAX_PRICE_RATIO_DEVIATION ||
-    ratio > 1 + MAX_PRICE_RATIO_DEVIATION
-  ) {
-    failures.push(`Abnormal median price ratio (${ratio})`);
-  }
-  if (!summary.priceFields.ECPR) {
-    failures.push("The feed did not provide the expected ECPR price field");
-  }
+  // Price-related safety gates are intentionally absent here. This script
+  // never writes prices; supplier price data is diagnostic only.
   if (!summary.stockFields.STQU) {
     failures.push("The feed did not provide the expected STQU stock field");
   }
@@ -611,7 +868,6 @@ async function patchProduct(change) {
       method: "PATCH",
       headers: supabaseHeaders({ Prefer: "return=representation" }),
       body: JSON.stringify({
-        price: change.desiredPrice,
         stock_qty: change.desiredStock,
         in_stock: change.desiredStock > 0,
       }),
@@ -664,15 +920,26 @@ async function main() {
   const temporaryDirectory = fs.mkdtempSync(
     path.join(os.tmpdir(), "iumatec-alltron-sync-"),
   );
-  const feedPath = path.join(temporaryDirectory, alltronFile);
+  const priceFeedPath = path.join(temporaryDirectory, alltronPriceFile);
+  const articleFeedPath = path.join(temporaryDirectory, alltronArticleFile);
   let report;
   try {
     console.log(`Mode: ${APPLY ? "APPLY" : "AUDIT (0 changes)"}`);
-    console.log("Downloading the current Alltron price/stock feed...");
-    const source = await downloadPriceFeed(feedPath);
-    const feed = parseFeed(feedPath);
+    console.log("Downloading the current Alltron price feed...");
+    const priceSource = await downloadFeedFile(
+      alltronPriceFile,
+      priceFeedPath,
+      LOCAL_PRICE_SOURCE,
+    );
+    console.log("Downloading the current Alltron article/stock feed...");
+    const articleSource = await downloadFeedFile(
+      alltronArticleFile,
+      articleFeedPath,
+      LOCAL_ARTICLE_SOURCE,
+    );
+    const feed = parseCombinedFeed(priceFeedPath, articleFeedPath);
     console.log(
-      `Alltron: ${feed.rows.length.toLocaleString("pt-PT")} price rows parsed`,
+      `Alltron: ${feed.priceRows.toLocaleString("pt-PT")} prices and ${feed.rows.length.toLocaleString("pt-PT")} article/stock rows parsed`,
     );
     const products = await fetchSupabaseProducts();
     const plan = buildPlan(products, feed.rows);
@@ -687,12 +954,25 @@ async function main() {
       generatedAt: new Date().toISOString(),
       mode: APPLY ? "apply" : "audit",
       source: {
-        ...source,
-        downloadedBytes: feed.bytes,
-        sha256: feed.hash,
-        xmlItemPath: feed.itemPath,
+        price: {
+          ...priceSource,
+          downloadedBytes: feed.priceFeed.bytes,
+          sha256: feed.priceFeed.hash,
+          xmlItemPath: feed.priceFeed.itemPath,
+        },
+        article: {
+          ...articleSource,
+          downloadedBytes: feed.articleFeed.bytes,
+          sha256: feed.articleFeed.hash,
+          xmlItemPath: feed.articleFeed.itemPath,
+        },
       },
       validation: plan.summary,
+      pricingPolicy: {
+        owner: "iumatec-master-catalog.json",
+        priceWritesEnabled: PRICE_WRITES_ENABLED,
+        note: "This script updates stock_qty/in_stock only and never writes products.price",
+      },
       safetyReady: failures.length === 0,
       safetyFailures: failures,
       selected: planned.length,
@@ -703,7 +983,8 @@ async function main() {
     };
     writeJson(REPORT_PATH, report);
 
-    console.log("\n========== ALLTRON -> SUPABASE ==========");
+    console.log("\n========== ALLTRON STOCK -> SUPABASE ==========");
+    console.log("PRICE WRITES: DISABLED (master catalog owns products.price)");
     for (const [key, value] of Object.entries(plan.summary)) {
       console.log(`${key}: ${typeof value === "object" ? JSON.stringify(value) : value}`);
     }
@@ -719,7 +1000,7 @@ async function main() {
       throw new Error(`Safety validation failed: ${failures.join(" | ")}`);
     }
     if (!planned.length) {
-      console.log("Nothing changed in the Alltron feed.");
+      console.log("No stock changes found in the Alltron feed.");
       return;
     }
     await applyChanges(planned, report);

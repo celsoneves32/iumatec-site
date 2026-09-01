@@ -2,36 +2,84 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ========= IUMATEC Brand Theme ========= */
+/* ========= IUMATEC Design V2 ========= */
 
-::selection { background: rgb(225 29 72 / 0.18); }
+:root {
+  color-scheme: light;
+}
+
+::selection {
+  background: rgb(220 38 38 / 0.16);
+}
 
 :focus-visible {
-  outline: 2px solid rgb(225 29 72 / 0.7);
+  outline: 2px solid rgb(220 38 38 / 0.7);
   outline-offset: 3px;
 }
 
-@layer components {
-  .btn-brand {
-    @apply rounded-xl bg-brand px-5 py-3 text-white text-sm font-semibold
-      hover:bg-brand-dark transition;
-  }
-
-  .btn-outline {
-    @apply rounded-xl border border-neutral-300 px-5 py-3 text-sm font-semibold
-      hover:bg-neutral-50 transition;
-  }
-
-  a.brand-link {
-    @apply text-brand hover:text-brand-dark underline underline-offset-2;
-  }
+html {
+  scroll-behavior: smooth;
+  background: #ffffff;
 }
+
 html,
 body {
   max-width: 100%;
   overflow-x: hidden;
 }
 
+body {
+  background: #ffffff;
+  color: #171717;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 main {
   overflow-x: hidden;
+}
+
+img {
+  user-select: none;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+@layer components {
+  .btn-brand {
+    @apply rounded-xl bg-red-600 px-5 py-3 text-sm font-black text-white transition
+      hover:bg-neutral-950;
+  }
+
+  .btn-outline {
+    @apply rounded-xl border border-neutral-300 bg-white px-5 py-3 text-sm font-black
+      text-neutral-900 transition hover:border-neutral-950 hover:bg-neutral-950 hover:text-white;
+  }
+
+  a.brand-link {
+    @apply text-red-600 underline underline-offset-2 hover:text-red-700;
+  }
+
+  .iumatec-panel {
+    @apply rounded-[22px] border border-neutral-200 bg-white;
+  }
+
+  .iumatec-kicker {
+    @apply text-[10px] font-black uppercase tracking-[0.16em] text-red-600;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

@@ -1,0 +1,489 @@
+const fs = require("fs");
+const path = require("path");
+
+const ROOT = process.cwd();
+
+const CLASS_FILE = path.join(
+  ROOT,
+  "integrations",
+  "alltron",
+  "out",
+  "shopify-price-reconcile",
+  "invalid-final-classification.json"
+);
+
+const STATE_FILE = path.join(
+  ROOT,
+  "integrations",
+  "alltron",
+  "out",
+  "shopify-master-sync-missing-29",
+  "state.json"
+);
+
+const OUT_DIR = path.join(
+  ROOT,
+  "integrations",
+  "alltron",
+  "out",
+  "link-missing-29-supabase"
+);
+
+const SUPABASE_URL = String(
+  process.env.SUPABASE_URL ||
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||
+  ""
+).trim().replace(/\/$/, "");
+
+const SUPABASE_KEY = String(
+  process.env.SUPABASE_SECRET_KEY ||
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  ""
+).trim();
+
+function text(v) {
+  return String(v ?? "").trim();
+}
+
+function norm(v) {
+  return text(v)
+    .toUpperCase()
+    .replace(/\s+/g, " ");
+}
+
+function readJson(file) {
+  return JSON.parse(
+    fs.readFileSync(file, "utf8").replace(/^\uFEFF/, "")
+  );
+}
+
+function headers(extra = {}) {
+  return {
+    apikey: SUPABASE_KEY,
+    Authorization: `Bearer ${SUPABASE_KEY}`,
+    "Content-Type": "application/json",
+    ...extra
+  };
+}
+
+function fail(message) {
+  throw new Error(message);
+}
+
+async function find(field, value) {
+  if (!text(value)) return [];
+
+  const url = new URL(
+    `${SUPABASE_URL}/rest/v1/products`
+  );
+
+  url.searchParams.set(
+    "select",
+    [
+      "catalog_key",
+      "sku",
+      "ean",
+      "merchandise_id",
+      "shopify_variant_id",
+      "shopify_product_id",
+      "shopify_product_handle",
+      "shopify_sync_status"
+    ].join(",")
+  );
+
+  url.searchParams.set(
+    field,
+    `eq.${text(value)}`
+  );
+
+  const response = await fetch(
+    url,
+    { headers: headers() }
+  );
+
+  if (!response.ok) {
+    fail(
+      `READ ${field} ${response.status}: ` +
+      (await response.text()).slice(0, 1000)
+    );
+  }
+
+  return await response.json();
+}
+
+async function patchRow(catalogKey, body) {
+  const url = new URL(
+    `${SUPABASE_URL}/rest/v1/products`
+  );
+
+  url.searchParams.set(
+    "catalog_key",
+    `eq.${catalogKey}`
+  );
+
+  const response = await fetch(
+    url,
+    {
+      method: "PATCH",
+      headers: headers({
+        Prefer: "return=representation"
+      }),
+      body: JSON.stringify(body)
+    }
+  );
+
+  if (!response.ok) {
+    fail(
+      `PATCH ${catalogKey} ${response.status}: ` +
+      (await response.text()).slice(0, 1500)
+    );
+  }
+
+  return await response.json();
+}
+
+(async () => {
+
+  console.log("");
+  console.log("==============================================");
+  console.log(" LIGAR DEFINITIVAMENTE OS 29 AO SUPABASE");
+  console.log("==============================================");
+  console.log("");
+
+  if (!SUPABASE_URL) {
+    fail("SUPABASE_URL em falta.");
+  }
+
+  if (!SUPABASE_KEY) {
+    fail("SUPABASE KEY em falta.");
+  }
+
+  const classification = readJson(CLASS_FILE);
+  const state = readJson(STATE_FILE);
+
+  const targets = (
+    Array.isArray(classification.result)
+      ? classification.result
+      : []
+  ).filter(
+    r => r.decision === "CRIAR_NA_SHOPIFY"
+  );
+
+  if (targets.length !== 29) {
+    fail(
+      `Esperava 29 targets. Encontrei ${targets.length}.`
+    );
+  }
+
+  const stateEntries =
+    Object.entries(state.success || {});
+
+  if (stateEntries.length !== 29) {
+    fail(
+      `Esperava 29 sucessos Shopify. Encontrei ${stateEntries.length}.`
+    );
+  }
+
+  const shopifyBySku = new Map();
+
+  for (const [sku, value] of stateEntries) {
+
+    const productId = text(value.productId);
+    const variantId = text(value.variantId);
+    const handle = text(value.handle);
+
+    if (
+      !/^gid:\/\/shopify\/Product\/\d+$/.test(productId)
+    ) {
+      fail(`Product ID invalido: ${sku}`);
+    }
+
+    if (
+      !/^gid:\/\/shopify\/ProductVariant\/\d+$/.test(
+        variantId
+      )
+    ) {
+      fail(`Variant ID invalido: ${sku}`);
+    }
+
+    if (!handle) {
+      fail(`Handle vazio: ${sku}`);
+    }
+
+    shopifyBySku.set(
+      norm(sku),
+      {
+        productId,
+        variantId,
+        handle
+      }
+    );
+  }
+
+  console.log("===== PRE-VALIDACAO =====");
+  console.log("");
+
+  const plan = [];
+
+  for (let i = 0; i < targets.length; i++) {
+
+    const target = targets[i];
+
+    const ids =
+      shopifyBySku.get(norm(target.sku));
+
+    if (!ids) {
+      fail(
+        `Sem IDs Shopify para ${target.sku}`
+      );
+    }
+
+    const skuRows =
+      await find("sku", target.sku);
+
+    const eanRows =
+      await find("ean", target.ean);
+
+    const union = new Map();
+
+    for (const row of [
+      ...skuRows,
+      ...eanRows
+    ]) {
+      union.set(
+        text(row.catalog_key),
+        row
+      );
+    }
+
+    const rows = [...union.values()];
+
+    if (rows.length !== 1) {
+      fail(
+        `PARAR ${target.sku}: ` +
+        `encontrei ${rows.length} linhas; esperava 1.`
+      );
+    }
+
+    const row = rows[0];
+
+    if (!text(row.catalog_key)) {
+      fail(
+        `catalog_key vazio: ${target.sku}`
+      );
+    }
+
+    const existingVariant =
+      text(row.shopify_variant_id);
+
+    if (
+      /^gid:\/\/shopify\/ProductVariant\/\d+$/.test(
+        existingVariant
+      ) &&
+      existingVariant !== ids.variantId
+    ) {
+      fail(
+        `CONFLITO ${target.sku}: ` +
+        `ja existe outro Variant ID valido.`
+      );
+    }
+
+    plan.push({
+      target,
+      row,
+      ids
+    });
+
+    console.log(
+      `[${i + 1}/29] OK`,
+      target.sku
+    );
+  }
+
+  if (plan.length !== 29) {
+    fail("Plano final nao contém 29 produtos.");
+  }
+
+  fs.mkdirSync(
+    OUT_DIR,
+    { recursive: true }
+  );
+
+  const stamp =
+    new Date()
+      .toISOString()
+      .replace(/[:.]/g, "-");
+
+  const backup = path.join(
+    OUT_DIR,
+    `before-final-link-${stamp}.json`
+  );
+
+  fs.writeFileSync(
+    backup,
+    JSON.stringify(
+      plan.map(x => x.row),
+      null,
+      2
+    ),
+    "utf8"
+  );
+
+  console.log("");
+  console.log("==============================================");
+  console.log(" PRE-VALIDACAO 29/29 OK");
+  console.log("==============================================");
+  console.log("Backup:", backup);
+  console.log("");
+  console.log("A APLICAR...");
+  console.log("");
+
+  let updated = 0;
+  let alreadyExact = 0;
+
+  for (let i = 0; i < plan.length; i++) {
+
+    const { target, row, ids } = plan[i];
+
+    const exact =
+      text(row.shopify_variant_id) === ids.variantId &&
+      text(row.shopify_product_id) === ids.productId &&
+      text(row.shopify_product_handle) === ids.handle &&
+      text(row.shopify_sync_status) === "reconciled";
+
+    if (exact) {
+
+      alreadyExact++;
+
+      console.log(
+        `[${i + 1}/29] JA OK`,
+        target.sku
+      );
+
+      continue;
+    }
+
+    const result = await patchRow(
+      text(row.catalog_key),
+      {
+        shopify_variant_id: ids.variantId,
+        shopify_product_id: ids.productId,
+        shopify_product_handle: ids.handle,
+        shopify_sync_status: "reconciled"
+      }
+    );
+
+    if (!Array.isArray(result) || result.length !== 1) {
+      fail(
+        `PATCH inesperado para ${target.sku}: ` +
+        `${Array.isArray(result) ? result.length : "nao-array"} linhas.`
+      );
+    }
+
+    updated++;
+
+    console.log(
+      `[${i + 1}/29] LIGADO`,
+      target.sku
+    );
+  }
+
+  console.log("");
+  console.log("===== VERIFICACAO FINAL =====");
+  console.log("");
+
+  let verified = 0;
+  const problems = [];
+
+  for (const { target, ids } of plan) {
+
+    const skuRows =
+      await find("sku", target.sku);
+
+    const eanRows =
+      await find("ean", target.ean);
+
+    const union = new Map();
+
+    for (const row of [
+      ...skuRows,
+      ...eanRows
+    ]) {
+      union.set(
+        text(row.catalog_key),
+        row
+      );
+    }
+
+    const rows = [...union.values()];
+
+    if (rows.length !== 1) {
+      problems.push({
+        sku: target.sku,
+        reason: `rows=${rows.length}`
+      });
+
+      continue;
+    }
+
+    const row = rows[0];
+
+    const ok =
+      text(row.shopify_variant_id) === ids.variantId &&
+      text(row.shopify_product_id) === ids.productId &&
+      text(row.shopify_product_handle) === ids.handle &&
+      text(row.shopify_sync_status) === "reconciled";
+
+    if (ok) {
+      verified++;
+    } else {
+      problems.push({
+        sku: target.sku,
+        variant: row.shopify_variant_id,
+        product: row.shopify_product_id,
+        handle: row.shopify_product_handle,
+        status: row.shopify_sync_status
+      });
+    }
+  }
+
+  if (
+    verified !== 29 ||
+    problems.length !== 0
+  ) {
+    console.table(problems);
+
+    fail(
+      `VERIFICACAO FALHOU: ${verified}/29 OK.`
+    );
+  }
+
+  console.log("");
+  console.log("==============================================");
+  console.log(" 29 / 29 SUPABASE LIGADOS COM SUCESSO");
+  console.log("==============================================");
+  console.log("");
+  console.log("Atualizados agora :", updated);
+  console.log("Ja estavam exatos :", alreadyExact);
+  console.log("Verificados       :", verified + "/29");
+  console.log("Problemas         : 0");
+  console.log("");
+  console.log("Variant IDs       : OK");
+  console.log("Product IDs       : OK");
+  console.log("Handles           : OK");
+  console.log("Sync status       : reconciled");
+  console.log("");
+  console.log("PRECO             : NAO ALTERADO");
+  console.log("STOCK             : NAO ALTERADO");
+  console.log("MERCHANDISE ID    : NAO ALTERADO");
+  console.log("SHOPIFY           : NAO ALTERADA");
+  console.log("");
+
+})().catch(error => {
+  console.error("");
+  console.error("==============================================");
+  console.error(" PARADO");
+  console.error("==============================================");
+  console.error(error.message);
+  process.exitCode = 1;
+});

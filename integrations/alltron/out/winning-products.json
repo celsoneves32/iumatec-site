@@ -8,7 +8,7 @@
     "fullTitle": "Apple 11\" iPad Pro (M5), 1TB, Schwarz",
     "brand": "Apple",
     "stock": 1,
-    "price": 1566.9,
+    "price": 1880.9,
     "image": "https://cdn.competec.ch/images2/1/9/6/402943691/402943691_xxl3.jpg?export=Ga4PCo68TlLe9g",
     "images": [
       "https://cdn.competec.ch/images2/1/9/6/402943691/402943691_xxl3.jpg?export=Ga4PCo68TlLe9g"
@@ -26,20 +26,24 @@
       "sub": "Laptops",
       "priority": 100
     },
-    "shopifyProductId": "gid://shopify/Product/15637227307392",
-    "shopifyVariantId": "57666198143360",
-    "merchandiseId": "gid://shopify/ProductVariant/57666198143360",
-    "shopifyProductHandle": "apple-11-ipad-pro-m5-1tb-schwarz",
+    "shopifyProductId": "gid://shopify/Product/15844727030144",
+    "shopifyVariantId": "58490779337088",
+    "merchandiseId": "gid://shopify/ProductVariant/58490779337088",
+    "shopifyProductHandle": "apple-11-ipad-pro-m5-1tb-schwarz-wi-fi-cellular-standardglas-1978239",
     "shopifyProductTitle": "Apple 11\" iPad Pro (M5), 1TB, Schwarz",
     "shopifyCreateStatus": "updated-existing",
     "shopifyMatchStatus": "variant-id",
-    "shopifySyncStatus": "not-found",
+    "shopifySyncStatus": "synced",
     "shopifyImageSyncStatus": "not-found",
     "shopifyVariantTitle": "Default Title",
     "shopifyProductStatus": "ACTIVE",
     "storefrontVisible": true,
     "storefrontReason": "ok",
-    "_score": 1850
+    "_score": 1850,
+    "basePrice": 1566.9,
+    "marginRate": 0.2,
+    "priceRule": "base_price_plus_20_percent_rounded_to_90",
+    "stockQty": 1
   },
   {
     "sku": "NO AP MBA15 MW1M3SM/A-088OU8",
@@ -260,7 +264,7 @@
     "fullTitle": "HP EliteBook 8 G1i 14,U7 255U,16GB,512GB",
     "brand": "HP Inc.",
     "stock": 7,
-    "price": 1665.9,
+    "price": 1999.9,
     "image": "https://cdn.competec.ch/images2/1/0/8/388847801/388847801_xxl3.jpg?export=Ga4PCo68TlLe9g",
     "images": [
       "https://cdn.competec.ch/images2/1/0/8/388847801/388847801_xxl3.jpg?export=Ga4PCo68TlLe9g"
@@ -278,20 +282,24 @@
       "sub": "Laptops",
       "priority": 100
     },
-    "shopifyProductId": "gid://shopify/Product/15637227962752",
-    "shopifyVariantId": "57666198995328",
-    "merchandiseId": "gid://shopify/ProductVariant/57666198995328",
-    "shopifyProductHandle": "hp-elitebook-8-g1i-14-u7-255u-16gb-512gb",
+    "shopifyProductId": "gid://shopify/Product/15839516066176",
+    "shopifyVariantId": "58474475684224",
+    "merchandiseId": "gid://shopify/ProductVariant/58474475684224",
+    "shopifyProductHandle": "hp-elitebook-8-g1i-14-u7-255u-16gb-512gb-14-wuxga-400-ag-bl-fpr-w11p-3y-ons-1897036",
     "shopifyProductTitle": "HP EliteBook 8 G1i 14,U7 255U,16GB,512GB",
     "shopifyCreateStatus": "updated-existing",
     "shopifyMatchStatus": "variant-id",
-    "shopifySyncStatus": "not-found",
+    "shopifySyncStatus": "synced",
     "shopifyImageSyncStatus": "not-found",
     "shopifyVariantTitle": "Default Title",
     "shopifyProductStatus": "ACTIVE",
     "storefrontVisible": true,
     "storefrontReason": "ok",
-    "_score": 1850
+    "_score": 1850,
+    "basePrice": 1665.9,
+    "marginRate": 0.2,
+    "priceRule": "base_price_plus_20_percent_rounded_to_90",
+    "stockQty": 7
   },
   {
     "sku": "NO AP MP14/M5/16/1T/CH/SB",
@@ -302,7 +310,7 @@
     "fullTitle": "14\" MacBook Pro (M5), Space Schwarz",
     "brand": "Apple",
     "stock": 15,
-    "price": 1548.9,
+    "price": 1858.9,
     "image": "https://cdn.competec.ch/images2/6/2/8/402928826/402928826_xxl3.jpg?export=Ga4PCo68TlLe9g",
     "images": [
       "https://cdn.competec.ch/images2/6/2/8/402928826/402928826_xxl3.jpg?export=Ga4PCo68TlLe9g"
@@ -320,20 +328,24 @@
       "sub": "Laptops",
       "priority": 100
     },
-    "shopifyProductId": "gid://shopify/Product/15637221605760",
-    "shopifyVariantId": "57666178482560",
-    "merchandiseId": "gid://shopify/ProductVariant/57666178482560",
-    "shopifyProductHandle": "14-macbook-pro-m5-space-schwarz",
+    "shopifyProductId": "gid://shopify/Product/15841172259200",
+    "shopifyVariantId": "58482288034176",
+    "merchandiseId": "gid://shopify/ProductVariant/58482288034176",
+    "shopifyProductHandle": "14-macbook-pro-m5-space-schwarz-10c-cpu-10c-gpu-16gb-1tb-ch-1978132",
     "shopifyProductTitle": "14\" MacBook Pro (M5), Space Schwarz",
     "shopifyCreateStatus": "updated-existing",
     "shopifyMatchStatus": "variant-id",
-    "shopifySyncStatus": "not-found",
+    "shopifySyncStatus": "synced",
     "shopifyImageSyncStatus": "not-found",
     "shopifyVariantTitle": "Default Title",
     "shopifyProductStatus": "ACTIVE",
     "storefrontVisible": true,
     "storefrontReason": "ok",
-    "_score": 1850
+    "_score": 1850,
+    "basePrice": 1548.9,
+    "marginRate": 0.2,
+    "priceRule": "base_price_plus_20_percent_rounded_to_90",
+    "stockQty": 15
   },
   {
     "sku": "NO AP MP14/M5/16/1T/CH/SI",
@@ -344,7 +356,7 @@
     "fullTitle": "14\" MacBook Pro (M5), Silber",
     "brand": "Apple",
     "stock": 11,
-    "price": 1548.9,
+    "price": 1858.9,
     "image": "https://cdn.competec.ch/images2/3/8/6/402928683/402928683_xxl3.jpg?export=Ga4PCo68TlLe9g",
     "images": [
       "https://cdn.competec.ch/images2/3/8/6/402928683/402928683_xxl3.jpg?export=Ga4PCo68TlLe9g"
@@ -362,20 +374,24 @@
       "sub": "Laptops",
       "priority": 100
     },
-    "shopifyProductId": "gid://shopify/Product/15637221474688",
-    "shopifyVariantId": "57666178351488",
-    "merchandiseId": "gid://shopify/ProductVariant/57666178351488",
-    "shopifyProductHandle": "14-macbook-pro-m5-silber",
+    "shopifyProductId": "gid://shopify/Product/15841670758784",
+    "shopifyVariantId": "58483994919296",
+    "merchandiseId": "gid://shopify/ProductVariant/58483994919296",
+    "shopifyProductHandle": "14-macbook-pro-m5-silber-10c-cpu-10c-gpu-16gb-1tb-ch-1978135",
     "shopifyProductTitle": "14\" MacBook Pro (M5), Silber",
     "shopifyCreateStatus": "updated-existing",
     "shopifyMatchStatus": "variant-id",
-    "shopifySyncStatus": "not-found",
+    "shopifySyncStatus": "synced",
     "shopifyImageSyncStatus": "not-found",
     "shopifyVariantTitle": "Default Title",
     "shopifyProductStatus": "ACTIVE",
     "storefrontVisible": true,
     "storefrontReason": "ok",
-    "_score": 1850
+    "_score": 1850,
+    "basePrice": 1548.9,
+    "marginRate": 0.2,
+    "priceRule": "base_price_plus_20_percent_rounded_to_90",
+    "stockQty": 11
   },
   {
     "sku": "TC MS SF LAP6 15 1TB C12/16BL",
@@ -428,7 +444,7 @@
     "fullTitle": "Apple 11\" iPad Pro (M5), 1TB, Schwarz",
     "brand": "Apple",
     "stock": 7,
-    "price": 1566.9,
+    "price": 1880.9,
     "image": "https://cdn.competec.ch/images2/1/5/4/402940451/402940451_xxl3.jpg?export=Ga4PCo68TlLe9g",
     "images": [
       "https://cdn.competec.ch/images2/1/5/4/402940451/402940451_xxl3.jpg?export=Ga4PCo68TlLe9g"
@@ -446,20 +462,24 @@
       "sub": "Laptops",
       "priority": 100
     },
-    "shopifyProductId": "gid://shopify/Product/15637227307392",
-    "shopifyVariantId": "57666198143360",
-    "merchandiseId": "gid://shopify/ProductVariant/57666198143360",
-    "shopifyProductHandle": "apple-11-ipad-pro-m5-1tb-schwarz",
+    "shopifyProductId": "gid://shopify/Product/15839516197248",
+    "shopifyVariantId": "58474475815296",
+    "merchandiseId": "gid://shopify/ProductVariant/58474475815296",
+    "shopifyProductHandle": "apple-11-ipad-pro-m5-1tb-schwarz-wi-fi-nanotexturglas-1978217",
     "shopifyProductTitle": "Apple 11\" iPad Pro (M5), 1TB, Schwarz",
     "shopifyCreateStatus": "updated-existing",
     "shopifyMatchStatus": "variant-id",
-    "shopifySyncStatus": "not-found",
+    "shopifySyncStatus": "synced",
     "shopifyImageSyncStatus": "not-found",
     "shopifyVariantTitle": "Default Title",
     "shopifyProductStatus": "ACTIVE",
     "storefrontVisible": true,
     "storefrontReason": "ok",
-    "_score": 1850
+    "_score": 1850,
+    "basePrice": 1566.9,
+    "marginRate": 0.2,
+    "priceRule": "base_price_plus_20_percent_rounded_to_90",
+    "stockQty": 7
   },
   {
     "sku": "PC DE PRO MAX TOWER J9JX5",
@@ -470,7 +490,7 @@
     "fullTitle": "Dell Pro Max TW T2, U7-265",
     "brand": "Dell",
     "stock": 43,
-    "price": 1042.9,
+    "price": 1251.9,
     "image": "https://cdn.competec.ch/images2/3/9/8/398277893/398277893_xxl3.jpg?export=Ga4PCo68TlLe9g",
     "images": [
       "https://cdn.competec.ch/images2/3/9/8/398277893/398277893_xxl3.jpg?export=Ga4PCo68TlLe9g"
@@ -488,20 +508,24 @@
       "sub": "Laptops",
       "priority": 100
     },
-    "shopifyProductId": "gid://shopify/Product/15637223506304",
-    "shopifyVariantId": "57666191753600",
-    "merchandiseId": "gid://shopify/ProductVariant/57666191753600",
-    "shopifyProductHandle": "dell-pro-max-tw-t2-u7-265",
+    "shopifyProductId": "gid://shopify/Product/15837948608896",
+    "shopifyVariantId": "58468658413952",
+    "merchandiseId": "gid://shopify/ProductVariant/58468658413952",
+    "shopifyProductHandle": "dell-pro-max-tw-t2-u7-265-32gb-1tb-sdd-rtx-a1000-w11-p-1951054",
     "shopifyProductTitle": "Dell Pro Max TW T2, U7-265",
     "shopifyCreateStatus": "updated-existing",
     "shopifyMatchStatus": "variant-id",
-    "shopifySyncStatus": "not-found",
+    "shopifySyncStatus": "synced",
     "shopifyImageSyncStatus": "not-found",
     "shopifyVariantTitle": "Default Title",
     "shopifyProductStatus": "ACTIVE",
     "storefrontVisible": true,
     "storefrontReason": "ok",
-    "_score": 1850
+    "_score": 1850,
+    "basePrice": 1042.9,
+    "marginRate": 0.2,
+    "priceRule": "base_price_plus_20_percent_rounded_to_90",
+    "stockQty": 43
   },
   {
     "sku": "TC AP IPP13 M5 512 SG CEL SB",
@@ -596,7 +620,7 @@
     "fullTitle": "Apple 11\" iPad Pro (M5), 1TB, Silber",
     "brand": "Apple",
     "stock": 4,
-    "price": 1565.9,
+    "price": 1879.9,
     "image": "https://cdn.competec.ch/images2/4/4/0/402935044/402935044_xxl3.jpg?export=Ga4PCo68TlLe9g",
     "images": [
       "https://cdn.competec.ch/images2/4/4/0/402935044/402935044_xxl3.jpg?export=Ga4PCo68TlLe9g"
@@ -614,20 +638,24 @@
       "sub": "Laptops",
       "priority": 100
     },
-    "shopifyProductId": "gid://shopify/Product/15637225734528",
-    "shopifyVariantId": "57666195325312",
-    "merchandiseId": "gid://shopify/ProductVariant/57666195325312",
-    "shopifyProductHandle": "apple-11-ipad-pro-m5-1tb-silber",
+    "shopifyProductId": "gid://shopify/Product/15843037512064",
+    "shopifyVariantId": "58486861398400",
+    "merchandiseId": "gid://shopify/ProductVariant/58486861398400",
+    "shopifyProductHandle": "apple-11-ipad-pro-m5-1tb-silber-wi-fi-nanotexturglas-1978218",
     "shopifyProductTitle": "Apple 11\" iPad Pro (M5), 1TB, Silber",
     "shopifyCreateStatus": "updated-existing",
     "shopifyMatchStatus": "variant-id",
-    "shopifySyncStatus": "not-found",
+    "shopifySyncStatus": "synced",
     "shopifyImageSyncStatus": "not-found",
     "shopifyVariantTitle": "Default Title",
     "shopifyProductStatus": "ACTIVE",
     "storefrontVisible": true,
     "storefrontReason": "ok",
-    "_score": 1850
+    "_score": 1850,
+    "basePrice": 1565.9,
+    "marginRate": 0.2,
+    "priceRule": "base_price_plus_20_percent_rounded_to_90",
+    "stockQty": 4
   },
   {
     "sku": "TC MS SF LAP6 15 1TB C12/16PL",
@@ -680,7 +708,7 @@
     "fullTitle": "Microsoft Surface Laptop 7, C12, Platinum",
     "brand": "Microsoft",
     "stock": 2,
-    "price": 1329.9,
+    "price": 1595.9,
     "image": "https://cdn.competec.ch/images2/5/3/5/360782535/360782535_xxl3.jpg?export=Ga4PCo68TlLe9g",
     "images": [
       "https://cdn.competec.ch/images2/5/3/5/360782535/360782535_xxl3.jpg?export=Ga4PCo68TlLe9g"
@@ -698,20 +726,24 @@
       "sub": "Laptops",
       "priority": 100
     },
-    "shopifyProductId": "gid://shopify/Product/15637230813568",
-    "shopifyVariantId": "57666207252864",
-    "merchandiseId": "gid://shopify/ProductVariant/57666207252864",
-    "shopifyProductHandle": "microsoft-surface-laptop-7-c12-platinum",
+    "shopifyProductId": "gid://shopify/Product/15844102242688",
+    "shopifyVariantId": "58489440829824",
+    "merchandiseId": "gid://shopify/ProductVariant/58489440829824",
+    "shopifyProductHandle": "microsoft-surface-laptop-7-c12-platinum-15-16gb-512gb-ssd-win-11-1715677",
     "shopifyProductTitle": "Microsoft Surface Laptop 7, C12, Platinum",
     "shopifyCreateStatus": "updated-existing",
     "shopifyMatchStatus": "variant-id",
-    "shopifySyncStatus": "not-found",
+    "shopifySyncStatus": "synced",
     "shopifyImageSyncStatus": "not-found",
     "shopifyVariantTitle": "Default Title",
     "shopifyProductStatus": "ACTIVE",
     "storefrontVisible": true,
     "storefrontReason": "ok",
-    "_score": 1850
+    "_score": 1850,
+    "basePrice": 1329.9,
+    "marginRate": 0.2,
+    "priceRule": "base_price_plus_20_percent_rounded_to_90",
+    "stockQty": 2
   },
   {
     "sku": "NO AP MBA13 MW0X3SM/A-0808NX",
@@ -1142,7 +1174,7 @@
     "fullTitle": "Microsoft Surface Laptop 7, C12, Platinum",
     "brand": "Microsoft",
     "stock": 2,
-    "price": 1329.9,
+    "price": 1595.9,
     "image": "https://cdn.competec.ch/images2/6/6/8/360781866/360781866_xxl3.jpg?export=Ga4PCo68TlLe9g",
     "images": [
       "https://cdn.competec.ch/images2/6/6/8/360781866/360781866_xxl3.jpg?export=Ga4PCo68TlLe9g"
@@ -1160,20 +1192,24 @@
       "sub": "Laptops",
       "priority": 100
     },
-    "shopifyProductId": "gid://shopify/Product/15637230813568",
-    "shopifyVariantId": "57666207252864",
-    "merchandiseId": "gid://shopify/ProductVariant/57666207252864",
-    "shopifyProductHandle": "microsoft-surface-laptop-7-c12-platinum",
+    "shopifyProductId": "gid://shopify/Product/15844099981696",
+    "shopifyVariantId": "58489438470528",
+    "merchandiseId": "gid://shopify/ProductVariant/58489438470528",
+    "shopifyProductHandle": "microsoft-surface-laptop-7-c12-platinum-13-8-16gb-1tb-ssd-win-11-1715664",
     "shopifyProductTitle": "Microsoft Surface Laptop 7, C12, Platinum",
     "shopifyCreateStatus": "updated-existing",
     "shopifyMatchStatus": "variant-id",
-    "shopifySyncStatus": "not-found",
+    "shopifySyncStatus": "synced",
     "shopifyImageSyncStatus": "not-found",
     "shopifyVariantTitle": "Default Title",
     "shopifyProductStatus": "ACTIVE",
     "storefrontVisible": true,
     "storefrontReason": "ok",
-    "_score": 1850
+    "_score": 1850,
+    "basePrice": 1329.9,
+    "marginRate": 0.2,
+    "priceRule": "base_price_plus_20_percent_rounded_to_90",
+    "stockQty": 2
   },
   {
     "sku": "TC MS SF LAP6 13 1TB C12/16BL",
@@ -1184,7 +1220,7 @@
     "fullTitle": "Microsoft Surface Laptop 7, C12, Schwarz",
     "brand": "Microsoft",
     "stock": 3,
-    "price": 1337.9,
+    "price": 1605.9,
     "image": "https://cdn.competec.ch/images2/1/9/2/360782291/360782291_xxl3.jpg?export=Ga4PCo68TlLe9g",
     "images": [
       "https://cdn.competec.ch/images2/1/9/2/360782291/360782291_xxl3.jpg?export=Ga4PCo68TlLe9g"
@@ -1202,20 +1238,24 @@
       "sub": "Laptops",
       "priority": 100
     },
-    "shopifyProductId": "gid://shopify/Product/15637229732224",
-    "shopifyVariantId": "57666205024640",
-    "merchandiseId": "gid://shopify/ProductVariant/57666205024640",
-    "shopifyProductHandle": "microsoft-surface-laptop-7-c12-schwarz",
+    "shopifyProductId": "gid://shopify/Product/15843592995200",
+    "shopifyVariantId": "58488839438720",
+    "merchandiseId": "gid://shopify/ProductVariant/58488839438720",
+    "shopifyProductHandle": "microsoft-surface-laptop-7-c12-schwarz-13-8-16gb-1tb-ssd-win-11-1715665",
     "shopifyProductTitle": "Microsoft Surface Laptop 7, C12, Schwarz",
     "shopifyCreateStatus": "updated-existing",
     "shopifyMatchStatus": "variant-id",
-    "shopifySyncStatus": "not-found",
+    "shopifySyncStatus": "synced",
     "shopifyImageSyncStatus": "not-found",
     "shopifyVariantTitle": "Default Title",
     "shopifyProductStatus": "ACTIVE",
     "storefrontVisible": true,
     "storefrontReason": "ok",
-    "_score": 1850
+    "_score": 1850,
+    "basePrice": 1337.9,
+    "marginRate": 0.2,
+    "priceRule": "base_price_plus_20_percent_rounded_to_90",
+    "stockQty": 3
   },
   {
     "sku": "PC HP PD 4 G1I TWR 9H7P9ET",
@@ -1315,7 +1355,7 @@
     "fullTitle": "15\" MacBook Air (M5), Sky Blue",
     "brand": "Apple",
     "stock": 5,
-    "price": 1275.9,
+    "price": 1531.9,
     "image": "https://cdn.competec.ch/images2/7/9/4/414255497/414255497_xxl3.jpg?export=Ga4PCo68TlLe9g",
     "images": [
       "https://cdn.competec.ch/images2/7/9/4/414255497/414255497_xxl3.jpg?export=Ga4PCo68TlLe9g"
@@ -1333,20 +1373,24 @@
       "sub": "Laptops",
       "priority": 100
     },
-    "shopifyProductId": "gid://shopify/Product/15637229273472",
-    "shopifyVariantId": "57666204369280",
-    "merchandiseId": "gid://shopify/ProductVariant/57666204369280",
-    "shopifyProductHandle": "15-macbook-air-m5-sky-blue",
+    "shopifyProductId": "gid://shopify/Product/15842680439168",
+    "shopifyVariantId": "58486328361344",
+    "merchandiseId": "gid://shopify/ProductVariant/58486328361344",
+    "shopifyProductHandle": "15-macbook-air-m5-sky-blue-10c-cpu-10c-gpu-16gb-1tb-ch-2081966",
     "shopifyProductTitle": "15\" MacBook Air (M5), Sky Blue",
     "shopifyCreateStatus": "updated-existing",
     "shopifyMatchStatus": "variant-id",
-    "shopifySyncStatus": "not-found",
+    "shopifySyncStatus": "synced",
     "shopifyImageSyncStatus": "not-found",
     "shopifyVariantTitle": "Default Title",
     "shopifyProductStatus": "ACTIVE",
     "storefrontVisible": true,
     "storefrontReason": "ok",
-    "_score": 1850
+    "_score": 1850,
+    "basePrice": 1275.9,
+    "marginRate": 0.2,
+    "priceRule": "base_price_plus_20_percent_rounded_to_90",
+    "stockQty": 5
   },
   {
     "sku": "NO AP MBA15 MDVA4SM/A",
@@ -1357,7 +1401,7 @@
     "fullTitle": "15\" MacBook Air (M5), Silber",
     "brand": "Apple",
     "stock": 5,
-    "price": 1275.9,
+    "price": 1531.9,
     "image": "https://cdn.competec.ch/images2/4/5/5/414255554/414255554_xxl3.jpg?export=Ga4PCo68TlLe9g",
     "images": [
       "https://cdn.competec.ch/images2/4/5/5/414255554/414255554_xxl3.jpg?export=Ga4PCo68TlLe9g"
@@ -1375,20 +1419,24 @@
       "sub": "Laptops",
       "priority": 100
     },
-    "shopifyProductId": "gid://shopify/Product/15637229339008",
-    "shopifyVariantId": "57666204467584",
-    "merchandiseId": "gid://shopify/ProductVariant/57666204467584",
-    "shopifyProductHandle": "15-macbook-air-m5-silber",
+    "shopifyProductId": "gid://shopify/Product/15842680471936",
+    "shopifyVariantId": "58486328394112",
+    "merchandiseId": "gid://shopify/ProductVariant/58486328394112",
+    "shopifyProductHandle": "15-macbook-air-m5-silber-10c-cpu-10c-gpu-16gb-1tb-ch-2081957",
     "shopifyProductTitle": "15\" MacBook Air (M5), Silber",
     "shopifyCreateStatus": "updated-existing",
     "shopifyMatchStatus": "variant-id",
-    "shopifySyncStatus": "not-found",
+    "shopifySyncStatus": "synced",
     "shopifyImageSyncStatus": "not-found",
     "shopifyVariantTitle": "Default Title",
     "shopifyProductStatus": "ACTIVE",
     "storefrontVisible": true,
     "storefrontReason": "ok",
-    "_score": 1850
+    "_score": 1850,
+    "basePrice": 1275.9,
+    "marginRate": 0.2,
+    "priceRule": "base_price_plus_20_percent_rounded_to_90",
+    "stockQty": 5
   },
   {
     "sku": "NO AP MBA15 MDVE4SM/A",
@@ -1399,7 +1447,7 @@
     "fullTitle": "15\" MacBook Air (M5), Starlight",
     "brand": "Apple",
     "stock": 9,
-    "price": 1275.9,
+    "price": 1531.9,
     "image": "https://cdn.competec.ch/images2/7/2/5/414255527/414255527_xxl3.jpg?export=Ga4PCo68TlLe9g",
     "images": [
       "https://cdn.competec.ch/images2/7/2/5/414255527/414255527_xxl3.jpg?export=Ga4PCo68TlLe9g"
@@ -1417,20 +1465,24 @@
       "sub": "Laptops",
       "priority": 100
     },
-    "shopifyProductId": "gid://shopify/Product/15637229437312",
-    "shopifyVariantId": "57666204565888",
-    "merchandiseId": "gid://shopify/ProductVariant/57666204565888",
-    "shopifyProductHandle": "15-macbook-air-m5-starlight",
+    "shopifyProductId": "gid://shopify/Product/15839020712320",
+    "shopifyVariantId": "58473478324608",
+    "merchandiseId": "gid://shopify/ProductVariant/58473478324608",
+    "shopifyProductHandle": "15-macbook-air-m5-starlight-10c-cpu-10c-gpu-16gb-1tb-ch-2081960",
     "shopifyProductTitle": "15\" MacBook Air (M5), Starlight",
     "shopifyCreateStatus": "updated-existing",
     "shopifyMatchStatus": "variant-id",
-    "shopifySyncStatus": "not-found",
+    "shopifySyncStatus": "synced",
     "shopifyImageSyncStatus": "not-found",
     "shopifyVariantTitle": "Default Title",
     "shopifyProductStatus": "ACTIVE",
     "storefrontVisible": true,
     "storefrontReason": "ok",
-    "_score": 1850
+    "_score": 1850,
+    "basePrice": 1275.9,
+    "marginRate": 0.2,
+    "priceRule": "base_price_plus_20_percent_rounded_to_90",
+    "stockQty": 9
   },
   {
     "sku": "NO AP MBA15 MDVK4SM/A",
@@ -1441,7 +1493,7 @@
     "fullTitle": "15\" MacBook Air (M5), Midnight",
     "brand": "Apple",
     "stock": 9,
-    "price": 1275.9,
+    "price": 1531.9,
     "image": "https://cdn.competec.ch/images2/8/6/3/414255368/414255368_xxl3.jpg?export=Ga4PCo68TlLe9g",
     "images": [
       "https://cdn.competec.ch/images2/8/6/3/414255368/414255368_xxl3.jpg?export=Ga4PCo68TlLe9g"
@@ -1459,20 +1511,24 @@
       "sub": "Laptops",
       "priority": 100
     },
-    "shopifyProductId": "gid://shopify/Product/15637229207936",
-    "shopifyVariantId": "57666204303744",
-    "merchandiseId": "gid://shopify/ProductVariant/57666204303744",
-    "shopifyProductHandle": "15-macbook-air-m5-midnight",
+    "shopifyProductId": "gid://shopify/Product/15839020679552",
+    "shopifyVariantId": "58473478291840",
+    "merchandiseId": "gid://shopify/ProductVariant/58473478291840",
+    "shopifyProductHandle": "15-macbook-air-m5-midnight-10c-cpu-10c-gpu-16gb-1tb-ch-2081963",
     "shopifyProductTitle": "15\" MacBook Air (M5), Midnight",
     "shopifyCreateStatus": "updated-existing",
     "shopifyMatchStatus": "variant-id",
-    "shopifySyncStatus": "not-found",
+    "shopifySyncStatus": "synced",
     "shopifyImageSyncStatus": "not-found",
     "shopifyVariantTitle": "Default Title",
     "shopifyProductStatus": "ACTIVE",
     "storefrontVisible": true,
     "storefrontReason": "ok",
-    "_score": 1850
+    "_score": 1850,
+    "basePrice": 1275.9,
+    "marginRate": 0.2,
+    "priceRule": "base_price_plus_20_percent_rounded_to_90",
+    "stockQty": 9
   },
   {
     "sku": "NO HP EB 6 G1I 13 A37KVET",
@@ -1619,7 +1675,7 @@
     "fullTitle": "Microsoft Surface Laptop 7, C12, Schwarz",
     "brand": "Microsoft",
     "stock": 5,
-    "price": 1337.9,
+    "price": 1605.9,
     "image": "https://cdn.competec.ch/images2/7/3/9/360782937/360782937_xxl3.jpg?export=Ga4PCo68TlLe9g",
     "images": [
       "https://cdn.competec.ch/images2/7/3/9/360782937/360782937_xxl3.jpg?export=Ga4PCo68TlLe9g"
@@ -1637,20 +1693,24 @@
       "sub": "Laptops",
       "priority": 100
     },
-    "shopifyProductId": "gid://shopify/Product/15637229732224",
-    "shopifyVariantId": "57666205024640",
-    "merchandiseId": "gid://shopify/ProductVariant/57666205024640",
-    "shopifyProductHandle": "microsoft-surface-laptop-7-c12-schwarz",
+    "shopifyProductId": "gid://shopify/Product/15842680209792",
+    "shopifyVariantId": "58486328131968",
+    "merchandiseId": "gid://shopify/ProductVariant/58486328131968",
+    "shopifyProductHandle": "microsoft-surface-laptop-7-c12-schwarz-15-16gb-512gb-ssd-win-11-1715734",
     "shopifyProductTitle": "Microsoft Surface Laptop 7, C12, Schwarz",
     "shopifyCreateStatus": "updated-existing",
     "shopifyMatchStatus": "variant-id",
-    "shopifySyncStatus": "not-found",
+    "shopifySyncStatus": "synced",
     "shopifyImageSyncStatus": "not-found",
     "shopifyVariantTitle": "Default Title",
     "shopifyProductStatus": "ACTIVE",
     "storefrontVisible": true,
     "storefrontReason": "ok",
-    "_score": 1850
+    "_score": 1850,
+    "basePrice": 1337.9,
+    "marginRate": 0.2,
+    "priceRule": "base_price_plus_20_percent_rounded_to_90",
+    "stockQty": 5
   },
   {
     "sku": "TC AP AIR 13 1TB CEL 25 BLU",
@@ -2425,7 +2485,7 @@
     "fullTitle": "Microsoft Surface Laptop 7, C12, Platinum",
     "brand": "Microsoft",
     "stock": 9,
-    "price": 1329.9,
+    "price": 1595.9,
     "image": "https://cdn.competec.ch/images2/5/3/5/360782535/360782535_xxl3.jpg?export=Ga4PCo68TlLe9g",
     "images": [
       "https://cdn.competec.ch/images2/5/3/5/360782535/360782535_xxl3.jpg?export=Ga4PCo68TlLe9g"
@@ -2443,20 +2503,24 @@
       "sub": "Laptops",
       "priority": 100
     },
-    "shopifyProductId": "gid://shopify/Product/15637230813568",
-    "shopifyVariantId": "57666207252864",
-    "merchandiseId": "gid://shopify/ProductVariant/57666207252864",
-    "shopifyProductHandle": "microsoft-surface-laptop-7-c12-platinum",
+    "shopifyProductId": "gid://shopify/Product/15839020810624",
+    "shopifyVariantId": "58473478455680",
+    "merchandiseId": "gid://shopify/ProductVariant/58473478455680",
+    "shopifyProductHandle": "microsoft-surface-laptop-7-c12-platinum-15-16gb-256gb-ssd-win-11-1715669",
     "shopifyProductTitle": "Microsoft Surface Laptop 7, C12, Platinum",
     "shopifyCreateStatus": "updated-existing",
     "shopifyMatchStatus": "variant-id",
-    "shopifySyncStatus": "not-found",
+    "shopifySyncStatus": "synced",
     "shopifyImageSyncStatus": "not-found",
     "shopifyVariantTitle": "Default Title",
     "shopifyProductStatus": "ACTIVE",
     "storefrontVisible": true,
     "storefrontReason": "ok",
-    "_score": 1850
+    "_score": 1850,
+    "basePrice": 1329.9,
+    "marginRate": 0.2,
+    "priceRule": "base_price_plus_20_percent_rounded_to_90",
+    "stockQty": 9
   },
   {
     "sku": "NO AP MBA13 MW133SM/A-080WZS",
@@ -2514,7 +2578,7 @@
     "fullTitle": "13\" MacBook Air (M4), Silber, Z1CU",
     "brand": "Apple",
     "stock": 8,
-    "price": 1171.9,
+    "price": 1406.9,
     "image": "https://cdn.competec.ch/images2/2/6/7/385830762/385830762_xxl3.jpg?export=Ga4PCo68TlLe9g",
     "images": [
       "https://cdn.competec.ch/images2/2/6/7/385830762/385830762_xxl3.jpg?export=Ga4PCo68TlLe9g"
@@ -2532,20 +2596,24 @@
       "sub": "Laptops",
       "priority": 100
     },
-    "shopifyProductId": "gid://shopify/Product/15637231829376",
-    "shopifyVariantId": "57666210103680",
-    "merchandiseId": "gid://shopify/ProductVariant/57666210103680",
-    "shopifyProductHandle": "13-macbook-air-m4-silber-z1cu",
+    "shopifyProductId": "gid://shopify/Product/15839279710592",
+    "shopifyVariantId": "58473911517568",
+    "merchandiseId": "gid://shopify/ProductVariant/58473911517568",
+    "shopifyProductHandle": "13-macbook-air-m4-silber-z1cu-10c-cpu-10c-gpu-16gb-1tb-ch-1916410",
     "shopifyProductTitle": "13\" MacBook Air (M4), Silber, Z1CU",
     "shopifyCreateStatus": "updated-existing",
     "shopifyMatchStatus": "variant-id",
-    "shopifySyncStatus": "not-found",
+    "shopifySyncStatus": "synced",
     "shopifyImageSyncStatus": "not-found",
     "shopifyVariantTitle": "Default Title",
     "shopifyProductStatus": "ACTIVE",
     "storefrontVisible": true,
     "storefrontReason": "ok",
-    "_score": 1850
+    "_score": 1850,
+    "basePrice": 1171.9,
+    "marginRate": 0.2,
+    "priceRule": "base_price_plus_20_percent_rounded_to_90",
+    "stockQty": 8
   },
   {
     "sku": "TC AP IPP11 M5 512 SG CEL SV",
@@ -2682,7 +2750,7 @@
     "fullTitle": "15\" MacBook Air (M4), Silber",
     "brand": "Apple",
     "stock": 19,
-    "price": 1167.9,
+    "price": 1401.9,
     "image": "https://cdn.competec.ch/images2/5/1/7/385832715/385832715_xxl3.jpg?export=Ga4PCo68TlLe9g",
     "images": [
       "https://cdn.competec.ch/images2/5/1/7/385832715/385832715_xxl3.jpg?export=Ga4PCo68TlLe9g"
@@ -2700,20 +2768,24 @@
       "sub": "Laptops",
       "priority": 100
     },
-    "shopifyProductId": "gid://shopify/Product/15637232517504",
-    "shopifyVariantId": "57666211643776",
-    "merchandiseId": "gid://shopify/ProductVariant/57666211643776",
-    "shopifyProductHandle": "15-macbook-air-m4-silber",
+    "shopifyProductId": "gid://shopify/Product/15840922108288",
+    "shopifyVariantId": "58481927192960",
+    "merchandiseId": "gid://shopify/ProductVariant/58481927192960",
+    "shopifyProductHandle": "15-macbook-air-m4-silber-10c-cpu-10c-gpu-16gb-512gb-ch-1858831",
     "shopifyProductTitle": "15\" MacBook Air (M4), Silber",
     "shopifyCreateStatus": "updated-existing",
     "shopifyMatchStatus": "variant-id",
-    "shopifySyncStatus": "not-found",
+    "shopifySyncStatus": "synced",
     "shopifyImageSyncStatus": "not-found",
     "shopifyVariantTitle": "Default Title",
     "shopifyProductStatus": "ACTIVE",
     "storefrontVisible": true,
     "storefrontReason": "ok",
-    "_score": 1850
+    "_score": 1850,
+    "basePrice": 1167.9,
+    "marginRate": 0.2,
+    "priceRule": "base_price_plus_20_percent_rounded_to_90",
+    "stockQty": 19
   },
   {
     "sku": "TC AP IPP11 M5 512 SG CEL SB",
@@ -2808,7 +2880,7 @@
     "fullTitle": "15\" MacBook Air (M4), Midnight",
     "brand": "Apple",
     "stock": 14,
-    "price": 1167.9,
+    "price": 1401.9,
     "image": "https://cdn.competec.ch/images2/8/2/2/385833228/385833228_xxl3.jpg?export=Ga4PCo68TlLe9g",
     "images": [
       "https://cdn.competec.ch/images2/8/2/2/385833228/385833228_xxl3.jpg?export=Ga4PCo68TlLe9g"
@@ -2826,20 +2898,24 @@
       "sub": "Laptops",
       "priority": 100
     },
-    "shopifyProductId": "gid://shopify/Product/15637232386432",
-    "shopifyVariantId": "57666211512704",
-    "merchandiseId": "gid://shopify/ProductVariant/57666211512704",
-    "shopifyProductHandle": "15-macbook-air-m4-midnight",
+    "shopifyProductId": "gid://shopify/Product/15841343046016",
+    "shopifyVariantId": "58482887360896",
+    "merchandiseId": "gid://shopify/ProductVariant/58482887360896",
+    "shopifyProductHandle": "15-macbook-air-m4-midnight-10c-cpu-10c-gpu-16gb-512gb-ch-1858834",
     "shopifyProductTitle": "15\" MacBook Air (M4), Midnight",
     "shopifyCreateStatus": "updated-existing",
     "shopifyMatchStatus": "variant-id",
-    "shopifySyncStatus": "not-found",
+    "shopifySyncStatus": "synced",
     "shopifyImageSyncStatus": "not-found",
     "shopifyVariantTitle": "Default Title",
     "shopifyProductStatus": "ACTIVE",
     "storefrontVisible": true,
     "storefrontReason": "ok",
-    "_score": 1850
+    "_score": 1850,
+    "basePrice": 1167.9,
+    "marginRate": 0.2,
+    "priceRule": "base_price_plus_20_percent_rounded_to_90",
+    "stockQty": 14
   },
   {
     "sku": "NO AP MBA15 MW1K3SM/A",
@@ -2850,7 +2926,7 @@
     "fullTitle": "15\" MacBook Air (M4), Starlight",
     "brand": "Apple",
     "stock": 4,
-    "price": 1167.9,
+    "price": 1401.9,
     "image": "https://cdn.competec.ch/images2/5/2/7/385833725/385833725_xxl3.jpg?export=Ga4PCo68TlLe9g",
     "images": [
       "https://cdn.competec.ch/images2/5/2/7/385833725/385833725_xxl3.jpg?export=Ga4PCo68TlLe9g"
@@ -2868,20 +2944,24 @@
       "sub": "Laptops",
       "priority": 100
     },
-    "shopifyProductId": "gid://shopify/Product/15637232484736",
-    "shopifyVariantId": "57666211611008",
-    "merchandiseId": "gid://shopify/ProductVariant/57666211611008",
-    "shopifyProductHandle": "15-macbook-air-m4-starlight",
+    "shopifyProductId": "gid://shopify/Product/15843037970816",
+    "shopifyVariantId": "58486861857152",
+    "merchandiseId": "gid://shopify/ProductVariant/58486861857152",
+    "shopifyProductHandle": "15-macbook-air-m4-starlight-10c-cpu-10c-gpu-16gb-512gb-ch-1858840",
     "shopifyProductTitle": "15\" MacBook Air (M4), Starlight",
     "shopifyCreateStatus": "updated-existing",
     "shopifyMatchStatus": "variant-id",
-    "shopifySyncStatus": "not-found",
+    "shopifySyncStatus": "synced",
     "shopifyImageSyncStatus": "not-found",
     "shopifyVariantTitle": "Default Title",
     "shopifyProductStatus": "ACTIVE",
     "storefrontVisible": true,
     "storefrontReason": "ok",
-    "_score": 1850
+    "_score": 1850,
+    "basePrice": 1167.9,
+    "marginRate": 0.2,
+    "priceRule": "base_price_plus_20_percent_rounded_to_90",
+    "stockQty": 4
   },
   {
     "sku": "NO AP MBA15 MC7C4SM/A",
@@ -2892,7 +2972,7 @@
     "fullTitle": "15\" MacBook Air (M4), Sky Blue",
     "brand": "Apple",
     "stock": 16,
-    "price": 1167.9,
+    "price": 1401.9,
     "image": "https://cdn.competec.ch/images2/9/3/5/385833539/385833539_xxl3.jpg?export=Ga4PCo68TlLe9g",
     "images": [
       "https://cdn.competec.ch/images2/9/3/5/385833539/385833539_xxl3.jpg?export=Ga4PCo68TlLe9g"
@@ -2910,20 +2990,24 @@
       "sub": "Laptops",
       "priority": 100
     },
-    "shopifyProductId": "gid://shopify/Product/15637232419200",
-    "shopifyVariantId": "57666211545472",
-    "merchandiseId": "gid://shopify/ProductVariant/57666211545472",
-    "shopifyProductHandle": "15-macbook-air-m4-sky-blue",
+    "shopifyProductId": "gid://shopify/Product/15841102758272",
+    "shopifyVariantId": "58482200412544",
+    "merchandiseId": "gid://shopify/ProductVariant/58482200412544",
+    "shopifyProductHandle": "15-macbook-air-m4-sky-blue-10c-cpu-10c-gpu-16gb-512gb-ch-1858836",
     "shopifyProductTitle": "15\" MacBook Air (M4), Sky Blue",
     "shopifyCreateStatus": "updated-existing",
     "shopifyMatchStatus": "variant-id",
-    "shopifySyncStatus": "not-found",
+    "shopifySyncStatus": "synced",
     "shopifyImageSyncStatus": "not-found",
     "shopifyVariantTitle": "Default Title",
     "shopifyProductStatus": "ACTIVE",
     "storefrontVisible": true,
     "storefrontReason": "ok",
-    "_score": 1850
+    "_score": 1850,
+    "basePrice": 1167.9,
+    "marginRate": 0.2,
+    "priceRule": "base_price_plus_20_percent_rounded_to_90",
+    "stockQty": 16
   },
   {
     "sku": "TC AP AIR 11 1TB CEL 26 SG",
@@ -2934,7 +3018,7 @@
     "fullTitle": "Apple iPad Air 1TB Space Gray",
     "brand": "Apple",
     "stock": 1,
-    "price": 1193.9,
+    "price": 1432.9,
     "image": "https://cdn.competec.ch/images2/6/5/4/414194456/414194456_xxl3.jpg?export=Ga4PCo68TlLe9g",
     "images": [
       "https://cdn.competec.ch/images2/6/5/4/414194456/414194456_xxl3.jpg?export=Ga4PCo68TlLe9g"
@@ -2952,20 +3036,24 @@
       "sub": "Laptops",
       "priority": 100
     },
-    "shopifyProductId": "gid://shopify/Product/15637236089216",
-    "shopifyVariantId": "57666229830016",
-    "merchandiseId": "gid://shopify/ProductVariant/57666229830016",
-    "shopifyProductHandle": "apple-ipad-air-1tb-space-gray",
+    "shopifyProductId": "gid://shopify/Product/15844737712512",
+    "shopifyVariantId": "58490790314368",
+    "merchandiseId": "gid://shopify/ProductVariant/58490790314368",
+    "shopifyProductHandle": "apple-ipad-air-1tb-space-gray-11-m4-cellular-2026-dep-2080568",
     "shopifyProductTitle": "Apple iPad Air 1TB Space Gray",
     "shopifyCreateStatus": "updated-existing",
     "shopifyMatchStatus": "variant-id",
-    "shopifySyncStatus": "not-found",
+    "shopifySyncStatus": "synced",
     "shopifyImageSyncStatus": "not-found",
     "shopifyVariantTitle": "Default Title",
     "shopifyProductStatus": "ACTIVE",
     "storefrontVisible": true,
     "storefrontReason": "ok",
-    "_score": 1850
+    "_score": 1850,
+    "basePrice": 1193.9,
+    "marginRate": 0.2,
+    "priceRule": "base_price_plus_20_percent_rounded_to_90",
+    "stockQty": 1
   },
   {
     "sku": "NO DE XPS 13-5WT5W",
@@ -3441,7 +3529,7 @@
     "fullTitle": "13\" MacBook Air (M5), Starlight",
     "brand": "Apple",
     "stock": 5,
-    "price": 1108.9,
+    "price": 1330.9,
     "image": "https://cdn.competec.ch/images2/6/1/6/414255616/414255616_xxl3.jpg?export=Ga4PCo68TlLe9g",
     "images": [
       "https://cdn.competec.ch/images2/6/1/6/414255616/414255616_xxl3.jpg?export=Ga4PCo68TlLe9g"
@@ -3459,20 +3547,24 @@
       "sub": "Laptops",
       "priority": 100
     },
-    "shopifyProductId": "gid://shopify/Product/15637232976256",
-    "shopifyVariantId": "57666213740928",
-    "merchandiseId": "gid://shopify/ProductVariant/57666213740928",
-    "shopifyProductHandle": "13-macbook-air-m5-starlight",
+    "shopifyProductId": "gid://shopify/Product/15842680799616",
+    "shopifyVariantId": "58486328754560",
+    "merchandiseId": "gid://shopify/ProductVariant/58486328754560",
+    "shopifyProductHandle": "13-macbook-air-m5-starlight-10c-cpu-10c-gpu-16gb-1tb-ch-2081927",
     "shopifyProductTitle": "13\" MacBook Air (M5), Starlight",
     "shopifyCreateStatus": "updated-existing",
     "shopifyMatchStatus": "variant-id",
-    "shopifySyncStatus": "not-found",
+    "shopifySyncStatus": "synced",
     "shopifyImageSyncStatus": "not-found",
     "shopifyVariantTitle": "Default Title",
     "shopifyProductStatus": "ACTIVE",
     "storefrontVisible": true,
     "storefrontReason": "ok",
-    "_score": 1850
+    "_score": 1850,
+    "basePrice": 1108.9,
+    "marginRate": 0.2,
+    "priceRule": "base_price_plus_20_percent_rounded_to_90",
+    "stockQty": 5
   },
   {
     "sku": "NO AP MBA13 MDH84SM/A",
@@ -3483,7 +3575,7 @@
     "fullTitle": "13\" MacBook Air (M5), Silber",
     "brand": "Apple",
     "stock": 7,
-    "price": 1108.9,
+    "price": 1330.9,
     "image": "https://cdn.competec.ch/images2/5/5/6/414255655/414255655_xxl3.jpg?export=Ga4PCo68TlLe9g",
     "images": [
       "https://cdn.competec.ch/images2/5/5/6/414255655/414255655_xxl3.jpg?export=Ga4PCo68TlLe9g"
@@ -3501,20 +3593,24 @@
       "sub": "Laptops",
       "priority": 100
     },
-    "shopifyProductId": "gid://shopify/Product/15637232681344",
-    "shopifyVariantId": "57666211774848",
-    "merchandiseId": "gid://shopify/ProductVariant/57666211774848",
-    "shopifyProductHandle": "13-macbook-air-m5-silber",
+    "shopifyProductId": "gid://shopify/Product/15839516557696",
+    "shopifyVariantId": "58474476208512",
+    "merchandiseId": "gid://shopify/ProductVariant/58474476208512",
+    "shopifyProductHandle": "13-macbook-air-m5-silber-10c-cpu-10c-gpu-16gb-1tb-ch-2081924",
     "shopifyProductTitle": "13\" MacBook Air (M5), Silber",
     "shopifyCreateStatus": "updated-existing",
     "shopifyMatchStatus": "variant-id",
-    "shopifySyncStatus": "not-found",
+    "shopifySyncStatus": "synced",
     "shopifyImageSyncStatus": "not-found",
     "shopifyVariantTitle": "Default Title",
     "shopifyProductStatus": "ACTIVE",
     "storefrontVisible": true,
     "storefrontReason": "ok",
-    "_score": 1850
+    "_score": 1850,
+    "basePrice": 1108.9,
+    "marginRate": 0.2,
+    "priceRule": "base_price_plus_20_percent_rounded_to_90",
+    "stockQty": 7
   },
   {
     "sku": "NO AP MBA13 MDHJ4SM/A",
@@ -3525,7 +3621,7 @@
     "fullTitle": "13\" MacBook Air (M5), Sky Blue",
     "brand": "Apple",
     "stock": 10,
-    "price": 1108.9,
+    "price": 1330.9,
     "image": "https://cdn.competec.ch/images2/2/4/5/414255542/414255542_xxl3.jpg?export=Ga4PCo68TlLe9g",
     "images": [
       "https://cdn.competec.ch/images2/2/4/5/414255542/414255542_xxl3.jpg?export=Ga4PCo68TlLe9g"
@@ -3543,20 +3639,24 @@
       "sub": "Laptops",
       "priority": 100
     },
-    "shopifyProductId": "gid://shopify/Product/15637232910720",
-    "shopifyVariantId": "57666213675392",
-    "merchandiseId": "gid://shopify/ProductVariant/57666213675392",
-    "shopifyProductHandle": "13-macbook-air-m5-sky-blue",
+    "shopifyProductId": "gid://shopify/Product/15841795211648",
+    "shopifyVariantId": "58484135592320",
+    "merchandiseId": "gid://shopify/ProductVariant/58484135592320",
+    "shopifyProductHandle": "13-macbook-air-m5-sky-blue-10c-cpu-10c-gpu-16gb-1tb-ch-2081933",
     "shopifyProductTitle": "13\" MacBook Air (M5), Sky Blue",
     "shopifyCreateStatus": "updated-existing",
     "shopifyMatchStatus": "variant-id",
-    "shopifySyncStatus": "not-found",
+    "shopifySyncStatus": "synced",
     "shopifyImageSyncStatus": "not-found",
     "shopifyVariantTitle": "Default Title",
     "shopifyProductStatus": "ACTIVE",
     "storefrontVisible": true,
     "storefrontReason": "ok",
-    "_score": 1850
+    "_score": 1850,
+    "basePrice": 1108.9,
+    "marginRate": 0.2,
+    "priceRule": "base_price_plus_20_percent_rounded_to_90",
+    "stockQty": 10
   },
   {
     "sku": "NO AP MBA13 MDHF4SM/A",
@@ -3567,7 +3667,7 @@
     "fullTitle": "13\" MacBook Air (M5), Midnight",
     "brand": "Apple",
     "stock": 15,
-    "price": 1108.9,
+    "price": 1330.9,
     "image": "https://cdn.competec.ch/images2/0/2/6/414255620/414255620_xxl3.jpg?export=Ga4PCo68TlLe9g",
     "images": [
       "https://cdn.competec.ch/images2/0/2/6/414255620/414255620_xxl3.jpg?export=Ga4PCo68TlLe9g"
@@ -3585,20 +3685,24 @@
       "sub": "Laptops",
       "priority": 100
     },
-    "shopifyProductId": "gid://shopify/Product/15637232746880",
-    "shopifyVariantId": "57666213446016",
-    "merchandiseId": "gid://shopify/ProductVariant/57666213446016",
-    "shopifyProductHandle": "13-macbook-air-m5-midnight",
+    "shopifyProductId": "gid://shopify/Product/15841172488576",
+    "shopifyVariantId": "58482288329088",
+    "merchandiseId": "gid://shopify/ProductVariant/58482288329088",
+    "shopifyProductHandle": "13-macbook-air-m5-midnight-10c-cpu-10c-gpu-16gb-1tb-ch-2081930",
     "shopifyProductTitle": "13\" MacBook Air (M5), Midnight",
     "shopifyCreateStatus": "updated-existing",
     "shopifyMatchStatus": "variant-id",
-    "shopifySyncStatus": "not-found",
+    "shopifySyncStatus": "synced",
     "shopifyImageSyncStatus": "not-found",
     "shopifyVariantTitle": "Default Title",
     "shopifyProductStatus": "ACTIVE",
     "storefrontVisible": true,
     "storefrontReason": "ok",
-    "_score": 1850
+    "_score": 1850,
+    "basePrice": 1108.9,
+    "marginRate": 0.2,
+    "priceRule": "base_price_plus_20_percent_rounded_to_90",
+    "stockQty": 15
   },
   {
     "sku": "NO DE PRO 16 PLUS 35KP8",
@@ -3938,7 +4042,7 @@
     "fullTitle": "Apple iPad Air 1TB space grey",
     "brand": "Apple",
     "stock": 1,
-    "price": 1094.9,
+    "price": 1313.9,
     "image": "https://cdn.competec.ch/images2/8/7/1/385752178/385752178_xxl3.jpg?export=Ga4PCo68TlLe9g",
     "images": [
       "https://cdn.competec.ch/images2/8/7/1/385752178/385752178_xxl3.jpg?export=Ga4PCo68TlLe9g"
@@ -3956,20 +4060,24 @@
       "sub": "Laptops",
       "priority": 100
     },
-    "shopifyProductId": "gid://shopify/Product/15637235302784",
-    "shopifyVariantId": "57666226323840",
-    "merchandiseId": "gid://shopify/ProductVariant/57666226323840",
-    "shopifyProductHandle": "apple-ipad-air-1tb-space-grey",
+    "shopifyProductId": "gid://shopify/Product/15844735713664",
+    "shopifyVariantId": "58490788249984",
+    "merchandiseId": "gid://shopify/ProductVariant/58490788249984",
+    "shopifyProductHandle": "apple-ipad-air-1tb-space-grey-13-wifi-2025-1857990",
     "shopifyProductTitle": "Apple iPad Air 1TB space grey",
     "shopifyCreateStatus": "updated-existing",
     "shopifyMatchStatus": "variant-id",
-    "shopifySyncStatus": "not-found",
+    "shopifySyncStatus": "synced",
     "shopifyImageSyncStatus": "not-found",
     "shopifyVariantTitle": "Default Title",
     "shopifyProductStatus": "ACTIVE",
     "storefrontVisible": true,
     "storefrontReason": "ok",
-    "_score": 1850
+    "_score": 1850,
+    "basePrice": 1094.9,
+    "marginRate": 0.2,
+    "priceRule": "base_price_plus_20_percent_rounded_to_90",
+    "stockQty": 1
   },
   {
     "sku": "NO AP MBA15 MDVD4SM/A",
@@ -5375,7 +5483,7 @@
     "fullTitle": "13\" MacBook Air (M4), Midnight",
     "brand": "Apple",
     "stock": 58,
-    "price": 973.9,
+    "price": 1168.9,
     "image": "https://cdn.competec.ch/images2/7/0/6/385831607/385831607_xxl3.jpg?export=Ga4PCo68TlLe9g",
     "images": [
       "https://cdn.competec.ch/images2/7/0/6/385831607/385831607_xxl3.jpg?export=Ga4PCo68TlLe9g"
@@ -5393,20 +5501,24 @@
       "sub": "Laptops",
       "priority": 100
     },
-    "shopifyProductId": "gid://shopify/Product/15637236351360",
-    "shopifyVariantId": "57666233401728",
-    "merchandiseId": "gid://shopify/ProductVariant/57666233401728",
-    "shopifyProductHandle": "13-macbook-air-m4-midnight",
+    "shopifyProductId": "gid://shopify/Product/15837772284288",
+    "shopifyVariantId": "58468262052224",
+    "merchandiseId": "gid://shopify/ProductVariant/58468262052224",
+    "shopifyProductHandle": "13-macbook-air-m4-midnight-10c-cpu-10c-gpu-16gb-512gb-ch-1858825",
     "shopifyProductTitle": "13\" MacBook Air (M4), Midnight",
     "shopifyCreateStatus": "updated-existing",
     "shopifyMatchStatus": "variant-id",
-    "shopifySyncStatus": "not-found",
+    "shopifySyncStatus": "synced",
     "shopifyImageSyncStatus": "not-found",
     "shopifyVariantTitle": "Default Title",
     "shopifyProductStatus": "ACTIVE",
     "storefrontVisible": true,
     "storefrontReason": "ok",
-    "_score": 1850
+    "_score": 1850,
+    "basePrice": 973.9,
+    "marginRate": 0.2,
+    "priceRule": "base_price_plus_20_percent_rounded_to_90",
+    "stockQty": 58
   },
   {
     "sku": "NO AP MBA13 MW0X3SM/A-0808OX",
@@ -5605,7 +5717,7 @@
     "fullTitle": "13\" MacBook Air (M4), Starlight",
     "brand": "Apple",
     "stock": 12,
-    "price": 973.9,
+    "price": 1168.9,
     "image": "https://cdn.competec.ch/images2/5/7/0/385832075/385832075_xxl3.jpg?export=Ga4PCo68TlLe9g",
     "images": [
       "https://cdn.competec.ch/images2/5/7/0/385832075/385832075_xxl3.jpg?export=Ga4PCo68TlLe9g"
@@ -5623,20 +5735,24 @@
       "sub": "Laptops",
       "priority": 100
     },
-    "shopifyProductId": "gid://shopify/Product/15637235990912",
-    "shopifyVariantId": "57666229731712",
-    "merchandiseId": "gid://shopify/ProductVariant/57666229731712",
-    "shopifyProductHandle": "13-macbook-air-m4-starlight",
+    "shopifyProductId": "gid://shopify/Product/15841544634752",
+    "shopifyVariantId": "58483857817984",
+    "merchandiseId": "gid://shopify/ProductVariant/58483857817984",
+    "shopifyProductHandle": "13-macbook-air-m4-starlight-10c-cpu-10c-gpu-16gb-512gb-ch-1858828",
     "shopifyProductTitle": "13\" MacBook Air (M4), Starlight",
     "shopifyCreateStatus": "updated-existing",
     "shopifyMatchStatus": "variant-id",
-    "shopifySyncStatus": "not-found",
+    "shopifySyncStatus": "synced",
     "shopifyImageSyncStatus": "not-found",
     "shopifyVariantTitle": "Default Title",
     "shopifyProductStatus": "ACTIVE",
     "storefrontVisible": true,
     "storefrontReason": "ok",
-    "_score": 1850
+    "_score": 1850,
+    "basePrice": 973.9,
+    "marginRate": 0.2,
+    "priceRule": "base_price_plus_20_percent_rounded_to_90",
+    "stockQty": 12
   },
   {
     "sku": "NO AP MBA15 MW1L3SM/A",
@@ -5741,7 +5857,7 @@
     "fullTitle": "13\" MacBook Air (M4), Sky Blue",
     "brand": "Apple",
     "stock": 22,
-    "price": 976.9,
+    "price": 1172.9,
     "image": "https://cdn.competec.ch/images2/4/6/1/385831164/385831164_xxl3.jpg?export=Ga4PCo68TlLe9g",
     "images": [
       "https://cdn.competec.ch/images2/4/6/1/385831164/385831164_xxl3.jpg?export=Ga4PCo68TlLe9g"
@@ -5759,20 +5875,24 @@
       "sub": "Laptops",
       "priority": 100
     },
-    "shopifyProductId": "gid://shopify/Product/15637236253056",
-    "shopifyVariantId": "57666233303424",
-    "merchandiseId": "gid://shopify/ProductVariant/57666233303424",
-    "shopifyProductHandle": "13-macbook-air-m4-sky-blue",
+    "shopifyProductId": "gid://shopify/Product/15840314032512",
+    "shopifyVariantId": "58478141014400",
+    "merchandiseId": "gid://shopify/ProductVariant/58478141014400",
+    "shopifyProductHandle": "13-macbook-air-m4-sky-blue-10c-cpu-10c-gpu-16gb-512gb-ch-1858821",
     "shopifyProductTitle": "13\" MacBook Air (M4), Sky Blue",
     "shopifyCreateStatus": "updated-existing",
     "shopifyMatchStatus": "variant-id",
-    "shopifySyncStatus": "not-found",
+    "shopifySyncStatus": "synced",
     "shopifyImageSyncStatus": "not-found",
     "shopifyVariantTitle": "Default Title",
     "shopifyProductStatus": "ACTIVE",
     "storefrontVisible": true,
     "storefrontReason": "ok",
-    "_score": 1850
+    "_score": 1850,
+    "basePrice": 976.9,
+    "marginRate": 0.2,
+    "priceRule": "base_price_plus_20_percent_rounded_to_90",
+    "stockQty": 22
   },
   {
     "sku": "TC AP IPP11 M5 512 SG WIFI SB",
@@ -6569,7 +6689,7 @@
     "fullTitle": "Apple iPad Air 512GB Starlight",
     "brand": "Apple",
     "stock": 3,
-    "price": 971.9,
+    "price": 1166.9,
     "image": "https://cdn.competec.ch/images2/0/8/4/414196480/414196480_xxl3.jpg?export=Ga4PCo68TlLe9g",
     "images": [
       "https://cdn.competec.ch/images2/0/8/4/414196480/414196480_xxl3.jpg?export=Ga4PCo68TlLe9g"
@@ -6587,20 +6707,24 @@
       "sub": "Laptops",
       "priority": 100
     },
-    "shopifyProductId": "gid://shopify/Product/15637242380672",
-    "shopifyVariantId": "57666248311168",
-    "merchandiseId": "gid://shopify/ProductVariant/57666248311168",
-    "shopifyProductHandle": "apple-ipad-air-512gb-starlight",
+    "shopifyProductId": "gid://shopify/Product/15843597681024",
+    "shopifyVariantId": "58488844681600",
+    "merchandiseId": "gid://shopify/ProductVariant/58488844681600",
+    "shopifyProductHandle": "apple-ipad-air-512gb-starlight-11-m4-cellular-2026-dep-2080563",
     "shopifyProductTitle": "Apple iPad Air 512GB Starlight",
     "shopifyCreateStatus": "updated-existing",
     "shopifyMatchStatus": "variant-id",
-    "shopifySyncStatus": "not-found",
+    "shopifySyncStatus": "synced",
     "shopifyImageSyncStatus": "not-found",
     "shopifyVariantTitle": "Default Title",
     "shopifyProductStatus": "ACTIVE",
     "storefrontVisible": true,
     "storefrontReason": "ok",
-    "_score": 1850
+    "_score": 1850,
+    "basePrice": 971.9,
+    "marginRate": 0.2,
+    "priceRule": "base_price_plus_20_percent_rounded_to_90",
+    "stockQty": 3
   },
   {
     "sku": "NO AP MBA13 MDHA4SM/A",
@@ -7081,7 +7205,7 @@
     "fullTitle": "Apple iPad Air 512GB blue",
     "brand": "Apple",
     "stock": 3,
-    "price": 971.9,
+    "price": 1166.9,
     "image": "https://cdn.competec.ch/images2/3/4/5/385752543/385752543_xxl3.jpg?export=Ga4PCo68TlLe9g",
     "images": [
       "https://cdn.competec.ch/images2/3/4/5/385752543/385752543_xxl3.jpg?export=Ga4PCo68TlLe9g"
@@ -7099,20 +7223,24 @@
       "sub": "Laptops",
       "priority": 100
     },
-    "shopifyProductId": "gid://shopify/Product/15637242282368",
-    "shopifyVariantId": "57666248212864",
-    "merchandiseId": "gid://shopify/ProductVariant/57666248212864",
-    "shopifyProductHandle": "apple-ipad-air-512gb-blue",
+    "shopifyProductId": "gid://shopify/Product/15843597123968",
+    "shopifyVariantId": "58488844059008",
+    "merchandiseId": "gid://shopify/ProductVariant/58488844059008",
+    "shopifyProductHandle": "apple-ipad-air-512gb-blue-13-wifi-2025-1857983",
     "shopifyProductTitle": "Apple iPad Air 512GB Blue",
     "shopifyCreateStatus": "updated-existing",
     "shopifyMatchStatus": "variant-id",
-    "shopifySyncStatus": "not-found",
+    "shopifySyncStatus": "synced",
     "shopifyImageSyncStatus": "not-found",
     "shopifyVariantTitle": "Default Title",
     "shopifyProductStatus": "ACTIVE",
     "storefrontVisible": true,
     "storefrontReason": "ok",
-    "_score": 1850
+    "_score": 1850,
+    "basePrice": 971.9,
+    "marginRate": 0.2,
+    "priceRule": "base_price_plus_20_percent_rounded_to_90",
+    "stockQty": 3
   },
   {
     "sku": "PC HP PD 4 G1I TWR 9H7P7ET",
@@ -7259,7 +7387,7 @@
     "fullTitle": "Apple iPad Air 512GB starlight",
     "brand": "Apple",
     "stock": 1,
-    "price": 971.9,
+    "price": 1166.9,
     "image": "https://cdn.competec.ch/images2/3/9/6/385752693/385752693_xxl3.jpg?export=Ga4PCo68TlLe9g",
     "images": [
       "https://cdn.competec.ch/images2/3/9/6/385752693/385752693_xxl3.jpg?export=Ga4PCo68TlLe9g"
@@ -7277,20 +7405,24 @@
       "sub": "Laptops",
       "priority": 100
     },
-    "shopifyProductId": "gid://shopify/Product/15637242380672",
-    "shopifyVariantId": "57666248311168",
-    "merchandiseId": "gid://shopify/ProductVariant/57666248311168",
-    "shopifyProductHandle": "apple-ipad-air-512gb-starlight",
+    "shopifyProductId": "gid://shopify/Product/15844741153152",
+    "shopifyVariantId": "58490793820544",
+    "merchandiseId": "gid://shopify/ProductVariant/58490793820544",
+    "shopifyProductHandle": "apple-ipad-air-512gb-starlight-13-wifi-2025-1857984",
     "shopifyProductTitle": "Apple iPad Air 512GB Starlight",
     "shopifyCreateStatus": "updated-existing",
     "shopifyMatchStatus": "variant-id",
-    "shopifySyncStatus": "not-found",
+    "shopifySyncStatus": "synced",
     "shopifyImageSyncStatus": "not-found",
     "shopifyVariantTitle": "Default Title",
     "shopifyProductStatus": "ACTIVE",
     "storefrontVisible": true,
     "storefrontReason": "ok",
-    "_score": 1850
+    "_score": 1850,
+    "basePrice": 971.9,
+    "marginRate": 0.2,
+    "priceRule": "base_price_plus_20_percent_rounded_to_90",
+    "stockQty": 1
   },
   {
     "sku": "TC MS SF LAP12IN 512 C8/16PL",
@@ -7437,7 +7569,7 @@
     "fullTitle": "Apple iPad Air 512GB space grey",
     "brand": "Apple",
     "stock": 6,
-    "price": 887.9,
+    "price": 1065.9,
     "image": "https://cdn.competec.ch/images2/8/7/1/385752178/385752178_xxl3.jpg?export=Ga4PCo68TlLe9g",
     "images": [
       "https://cdn.competec.ch/images2/8/7/1/385752178/385752178_xxl3.jpg?export=Ga4PCo68TlLe9g"
@@ -7455,20 +7587,24 @@
       "sub": "Laptops",
       "priority": 100
     },
-    "shopifyProductId": "gid://shopify/Product/15637242642816",
-    "shopifyVariantId": "57666251325824",
-    "merchandiseId": "gid://shopify/ProductVariant/57666251325824",
-    "shopifyProductHandle": "apple-ipad-air-512gb-space-grey",
+    "shopifyProductId": "gid://shopify/Product/15842042708352",
+    "shopifyVariantId": "58484958036352",
+    "merchandiseId": "gid://shopify/ProductVariant/58484958036352",
+    "shopifyProductHandle": "apple-ipad-air-512gb-space-grey-13-wifi-2025-1857982",
     "shopifyProductTitle": "Apple iPad Air 512GB space grey",
     "shopifyCreateStatus": "updated-existing",
     "shopifyMatchStatus": "variant-id",
-    "shopifySyncStatus": "not-found",
+    "shopifySyncStatus": "synced",
     "shopifyImageSyncStatus": "not-found",
     "shopifyVariantTitle": "Default Title",
     "shopifyProductStatus": "ACTIVE",
     "storefrontVisible": true,
     "storefrontReason": "ok",
-    "_score": 1850
+    "_score": 1850,
+    "basePrice": 887.9,
+    "marginRate": 0.2,
+    "priceRule": "base_price_plus_20_percent_rounded_to_90",
+    "stockQty": 6
   },
   {
     "sku": "NO AP MBA13 M3 16/256GB MN",
@@ -7620,7 +7756,7 @@
     "fullTitle": "Apple iPad Air 512GB blue",
     "brand": "Apple",
     "stock": 1,
-    "price": 971.9,
+    "price": 1166.9,
     "image": "https://cdn.competec.ch/images2/3/2/3/385746323/385746323_xxl3.jpg?export=Ga4PCo68TlLe9g",
     "images": [
       "https://cdn.competec.ch/images2/3/2/3/385746323/385746323_xxl3.jpg?export=Ga4PCo68TlLe9g"
@@ -7638,20 +7774,24 @@
       "sub": "Laptops",
       "priority": 100
     },
-    "shopifyProductId": "gid://shopify/Product/15637242282368",
-    "shopifyVariantId": "57666248212864",
-    "merchandiseId": "gid://shopify/ProductVariant/57666248212864",
-    "shopifyProductHandle": "apple-ipad-air-512gb-blue",
+    "shopifyProductId": "gid://shopify/Product/15844743053696",
+    "shopifyVariantId": "58490795721088",
+    "merchandiseId": "gid://shopify/ProductVariant/58490795721088",
+    "shopifyProductHandle": "apple-ipad-air-512gb-blue-11-cellular-2025-1857955",
     "shopifyProductTitle": "Apple iPad Air 512GB Blue",
     "shopifyCreateStatus": "updated-existing",
     "shopifyMatchStatus": "variant-id",
-    "shopifySyncStatus": "not-found",
+    "shopifySyncStatus": "synced",
     "shopifyImageSyncStatus": "not-found",
     "shopifyVariantTitle": "Default Title",
     "shopifyProductStatus": "ACTIVE",
     "storefrontVisible": true,
     "storefrontReason": "ok",
-    "_score": 1850
+    "_score": 1850,
+    "basePrice": 971.9,
+    "marginRate": 0.2,
+    "priceRule": "base_price_plus_20_percent_rounded_to_90",
+    "stockQty": 1
   },
   {
     "sku": "PC DE PRO 24 AIO PLUS XJP3R",
@@ -7803,7 +7943,7 @@
     "fullTitle": "Apple iPad Air 512GB space grey",
     "brand": "Apple",
     "stock": 14,
-    "price": 887.9,
+    "price": 1065.9,
     "image": "https://cdn.competec.ch/images2/6/4/7/385746746/385746746_xxl3.jpg?export=Ga4PCo68TlLe9g",
     "images": [
       "https://cdn.competec.ch/images2/6/4/7/385746746/385746746_xxl3.jpg?export=Ga4PCo68TlLe9g"
@@ -7821,20 +7961,24 @@
       "sub": "Laptops",
       "priority": 100
     },
-    "shopifyProductId": "gid://shopify/Product/15637242642816",
-    "shopifyVariantId": "57666251325824",
-    "merchandiseId": "gid://shopify/ProductVariant/57666251325824",
-    "shopifyProductHandle": "apple-ipad-air-512gb-space-grey",
+    "shopifyProductId": "gid://shopify/Product/15841343242624",
+    "shopifyVariantId": "58482887557504",
+    "merchandiseId": "gid://shopify/ProductVariant/58482887557504",
+    "shopifyProductHandle": "apple-ipad-air-512gb-space-grey-11-cellular-2025-1857954",
     "shopifyProductTitle": "Apple iPad Air 512GB space grey",
     "shopifyCreateStatus": "updated-existing",
     "shopifyMatchStatus": "variant-id",
-    "shopifySyncStatus": "not-found",
+    "shopifySyncStatus": "synced",
     "shopifyImageSyncStatus": "not-found",
     "shopifyVariantTitle": "Default Title",
     "shopifyProductStatus": "ACTIVE",
     "storefrontVisible": true,
     "storefrontReason": "ok",
-    "_score": 1850
+    "_score": 1850,
+    "basePrice": 887.9,
+    "marginRate": 0.2,
+    "priceRule": "base_price_plus_20_percent_rounded_to_90",
+    "stockQty": 14
   },
   {
     "sku": "PC DE PRO MICRO PLUS DFVJP",

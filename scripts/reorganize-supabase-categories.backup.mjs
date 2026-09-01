@@ -1,0 +1,457 @@
+import "dotenv/config";
+import fs from "node:fs";
+import path from "node:path";
+import { createClient } from "@supabase/supabase-js";
+
+const APPLY = process.argv.includes("--apply");
+
+const SUPABASE_URL =
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||
+  process.env.SUPABASE_URL;
+
+const SUPABASE_KEY =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.SUPABASE_SERVICE_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+if (!SUPABASE_URL || !SUPABASE_KEY) {
+  throw new Error("Supabase URL/key não encontrados no .env.local/.env");
+}
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const OUT = path.resolve(
+  "integrations",
+  "alltron",
+  "out"
+);
+
+fs.mkdirSync(OUT, { recursive: true });
+
+function txt(v) {
+  return String(v ?? "").trim();
+}
+
+function norm(v) {
+  return txt(v)
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "");
+}
+
+function containsAny(text, words) {
+  return words.some((w) => text.includes(w));
+}
+
+function classifyPeripheral(title) {
+  const t = norm(title);
+
+  if (containsAny(t, [
+    "monitor", "display", "bildschirm"
+  ]))
+    return ["Peripherie", "Monitore"];
+
+  if (containsAny(t, [
+    "tastatur", "keyboard"
+  ]))
+    return ["Peripherie", "Tastaturen"];
+
+  if (containsAny(t, [
+    "maus", "mouse"
+  ]))
+    return ["Peripherie", "Mäuse"];
+
+  if (containsAny(t, [
+    "headset", "kopfhorer", "kopfhörer"
+  ]))
+    return ["Peripherie", "Headsets"];
+
+  if (containsAny(t, [
+    "webcam", "web camera"
+  ]))
+    return ["Peripherie", "Webcams"];
+
+  if (containsAny(t, [
+    "dock", "dockingstation", "docking station"
+  ]))
+    return ["Peripherie", "Dockingstationen"];
+
+  if (containsAny(t, [
+    "drucker", "printer", "scanner"
+  ]))
+    return ["Office & Business", "Drucker & Scanner"];
+
+  if (containsAny(t, [
+    "gamepad", "controller", "joystick",
+    "gaming chair", "gaming-stuhl", "gaming stuhl"
+  ]))
+    return ["Peripherie", "Gaming-Zubehör"];
+
+  return ["Peripherie", "Zubehör"];
+}
+
+function classifyGaming(title) {
+  const t = norm(title);
+
+  if (containsAny(t, [
+    "grafikkarte", "graphics card", "geforce", "radeon", "gpu",
+    "prozessor", "processor", "cpu",
+    "mainboard", "motherboard",
+    "ram", "ddr4", "ddr5",
+    "netzteil", "power supply", "psu",
+    "kuhler", "kühler", "cooler"
+  ]))
+    return ["PC-Komponenten", "Gaming-Komponenten"];
+
+  return classifyPeripheral(title);
+}
+
+function classifyComputerMixed(title) {
+  const t = norm(title);
+
+  if (containsAny(t, [
+    "notebook", "laptop", "macbook"
+  ]))
+    return ["Computer", "Laptops"];
+
+  if (containsAny(t, [
+    "tablet", "ipad"
+  ]))
+    return ["Mobile", "Tablets"];
+
+  if (containsAny(t, [
+    "mini pc", "mini-pc", "nuc"
+  ]))
+    return ["Computer", "Mini-PCs"];
+
+  if (containsAny(t, [
+    "desktop", "workstation", "tower pc"
+  ]))
+    return ["Computer", "Desktop-PCs"];
+
+  return ["Computer", "Computer-Zubehör"];
+}
+
+function classifyMobileTelephony(title) {
+  const t = norm(title);
+
+  if (containsAny(t, [
+    "iphone", "smartphone", "galaxy", "pixel", "handy"
+  ]))
+    return ["Mobile", "Smartphones"];
+
+  if (containsAny(t, [
+    "tablet", "ipad"
+  ]))
+    return ["Mobile", "Tablets"];
+
+  return ["Mobile", "Mobile Zubehör"];
+}
+
+function mapProduct(p) {
+  const c = txt(p.category);
+  const s = txt(p.subcategory);
+  const title = txt(p.title);
+
+  // COMPUTER
+  if (c === "Computer" && s === "Laptops")
+    return ["Computer", "Laptops", "direct"];
+
+  if (c === "Computer" && s === "Desktop-PCs")
+    return ["Computer", "Desktop-PCs", "direct"];
+
+  if (c === "Computer" && s === "Mini PCs")
+    return ["Computer", "Mini-PCs", "direct"];
+
+  // COMPUTING & SOFTWARE
+  if (c === "Computing & Software" && s === "Peripherie") {
+    const [nc, ns] = classifyPeripheral(title);
+    return [nc, ns, "title-rule"];
+  }
+
+  if (c === "Computing & Software" && s === "PC-Komponenten")
+    return ["PC-Komponenten", "Komponenten", "direct"];
+
+  if (c === "Computing & Software" && s === "PC-Kabel & -Adapter")
+    return ["PC-Komponenten", "Kabel & Adapter", "direct"];
+
+  if (c === "Computing & Software" && s === "Gaming") {
+    const [nc, ns] = classifyGaming(title);
+    return [nc, ns, "title-rule"];
+  }
+
+  if (c === "Computing & Software" && s === "PC, Notebooks & Tablets") {
+    const [nc, ns] = classifyComputerMixed(title);
+    return [nc, ns, "title-rule"];
+  }
+
+  if (c === "Computing & Software" && s === "Software")
+    return ["Office & Business", "Software", "direct"];
+
+  // BUILDING / ELECTRICAL
+  if (c === "Gebäude- & Elektrotechnik" && s === "Beleuchtung")
+    return ["Smart Home", "Beleuchtung", "direct"];
+
+  if (c === "Gebäude- & Elektrotechnik" && s === "Gebäudetechnik")
+    return ["Smart Home", "Gebäudetechnik", "direct"];
+
+  if (c === "Gebäude- & Elektrotechnik" && s === "Energie & Stromverteilung")
+    return ["Smart Home", "Energie & Strom", "direct"];
+
+  if (c === "Gebäude- & Elektrotechnik" && s === "Sicherheit")
+    return ["Smart Home", "Sicherheit", "direct"];
+
+  // MOBILE
+  if (c === "Mobile" && s === "Smartphones")
+    return ["Mobile", "Smartphones", "direct"];
+
+  if (c === "Mobile" && s === "Tablets")
+    return ["Mobile", "Tablets", "direct"];
+
+  // NETWORK
+  if (c === "Netzwerk & Server" && s === "Netzwerkkabel/-adapter")
+    return ["Netzwerk", "Kabel & Adapter", "direct"];
+
+  if (c === "Netzwerk & Server" && s === "Netzwerk")
+    return ["Netzwerk", "Netzwerk", "direct"];
+
+  if (c === "Netzwerk & Server" && s === "Sicherheit & Überwachung")
+    return ["Smart Home", "Sicherheit & Überwachung", "direct"];
+
+  if (c === "Netzwerk & Server" && s === "Server")
+    return ["Netzwerk", "Server", "direct"];
+
+  if (c === "Netzwerk & Server" && s === "IT Sicherheit")
+    return ["Netzwerk", "IT-Sicherheit", "direct"];
+
+  if (c === "Netzwerk & Server" && s === "Storage")
+    return ["Datenspeicher", "Storage", "direct"];
+
+  // PERIPHERIE
+  if (c === "Peripherie" && s === "Monitors")
+    return ["Peripherie", "Monitore", "direct"];
+
+  // PRO AV
+  if (c === "Pro AV & Multimedia" && s === "Foto- & Videografie")
+    return ["Foto & Video", "Foto & Videografie", "direct"];
+
+  if (c === "Pro AV & Multimedia" && s === "Audio")
+    return ["TV & Audio", "Audio", "direct"];
+
+  if (c === "Pro AV & Multimedia" && s === "Kabel & Adapter")
+    return ["TV & Audio", "Kabel & Adapter", "direct"];
+
+  if (c === "Pro AV & Multimedia" && s === "Sound & Light")
+    return ["TV & Audio", "Sound & Light", "direct"];
+
+  if (c === "Pro AV & Multimedia" && s === "Professional AV")
+    return ["Office & Business", "Professional AV", "direct"];
+
+  if (c === "Pro AV & Multimedia" && s === "TV & Home Cinema")
+    return ["TV & Audio", "TV & Home Cinema", "direct"];
+
+  if (c === "Pro AV & Multimedia" && s === "Projektion")
+    return ["TV & Audio", "Projektoren", "direct"];
+
+  if (c === "Pro AV & Multimedia" && s === "Professional Audio")
+    return ["TV & Audio", "Professional Audio", "direct"];
+
+  // TELCO
+  if (c === "Telco & UCC" && s === "Mobiltelefonie") {
+    const [nc, ns] = classifyMobileTelephony(title);
+    return [nc, ns, "title-rule"];
+  }
+
+  if (c === "Telco & UCC" && s === "Headsets")
+    return ["Peripherie", "Headsets", "direct"];
+
+  if (c === "Telco & UCC" && s === "Telefonie")
+    return ["Office & Business", "Telefonie", "direct"];
+
+  if (c === "Telco & UCC" && s === "Conferencing & Collaboration")
+    return ["Office & Business", "Conferencing & Collaboration", "direct"];
+
+  if (c === "Telco & UCC" && s === "Telefonsysteme")
+    return ["Office & Business", "Telefonsysteme", "direct"];
+
+  return [c || "Unsortiert", s || "Sonstiges", "unchanged"];
+}
+
+async function getAllProducts() {
+  const all = [];
+  const pageSize = 1000;
+
+  for (let from = 0; ; from += pageSize) {
+    const to = from + pageSize - 1;
+
+    const { data, error } = await supabase
+      .from("products")
+      .select("sku,title,brand,category,subcategory")
+      .range(from, to);
+
+    if (error) throw error;
+
+    all.push(...(data || []));
+
+    console.log(`Lidos: ${all.length}`);
+
+    if (!data || data.length < pageSize) break;
+  }
+
+  return all;
+}
+
+function csvEscape(v) {
+  const s = String(v ?? "");
+  return `"${s.replaceAll('"', '""')}"`;
+}
+
+const products = await getAllProducts();
+
+const results = [];
+
+let changed = 0;
+let unchanged = 0;
+let errors = 0;
+
+const distribution = new Map();
+
+for (const p of products) {
+  const [newCategory, newSubcategory, reason] = mapProduct(p);
+
+  const isChanged =
+    txt(p.category) !== newCategory ||
+    txt(p.subcategory) !== newSubcategory;
+
+  if (isChanged) changed++;
+  else unchanged++;
+
+  const key = `${newCategory}|||${newSubcategory}`;
+  distribution.set(
+    key,
+    (distribution.get(key) || 0) + 1
+  );
+
+  results.push({
+    sku: p.sku,
+    title: p.title,
+    brand: p.brand,
+    old_category: p.category,
+    old_subcategory: p.subcategory,
+    new_category: newCategory,
+    new_subcategory: newSubcategory,
+    reason,
+    changed: isChanged ? "YES" : "NO"
+  });
+}
+
+console.log("");
+console.log("========== IUMATEC CATEGORY REORGANIZATION ==========");
+console.log(`Produtos analisados: ${products.length}`);
+console.log(`A alterar: ${changed}`);
+console.log(`Sem alteração: ${unchanged}`);
+console.log(`Modo: ${APPLY ? "APPLY" : "DRY RUN"}`);
+console.log("");
+
+console.log("NOVA DISTRIBUIÇÃO:");
+console.log("");
+
+const sortedDistribution = [...distribution.entries()]
+  .map(([key, count]) => {
+    const [category, subcategory] = key.split("|||");
+    return { category, subcategory, count };
+  })
+  .sort((a, b) =>
+    a.category.localeCompare(b.category) ||
+    b.count - a.count
+  );
+
+for (const r of sortedDistribution) {
+  console.log(
+    `${String(r.count).padStart(6)} | ${r.category} > ${r.subcategory}`
+  );
+}
+
+if (APPLY) {
+  console.log("");
+  console.log("A atualizar SOMENTE category + subcategory...");
+
+  const toUpdate = results.filter(r => r.changed === "YES");
+
+  for (let i = 0; i < toUpdate.length; i++) {
+    const r = toUpdate[i];
+
+    const { error } = await supabase
+      .from("products")
+      .update({
+        category: r.new_category,
+        subcategory: r.new_subcategory
+      })
+      .eq("sku", r.sku);
+
+    if (error) {
+      errors++;
+      console.error(
+        `ERRO ${r.sku}: ${error.message}`
+      );
+    }
+
+    if ((i + 1) % 250 === 0) {
+      console.log(
+        `Atualizados ${i + 1}/${toUpdate.length}`
+      );
+    }
+  }
+}
+
+const stamp = new Date()
+  .toISOString()
+  .replaceAll(":", "-")
+  .replaceAll(".", "-");
+
+const csvPath = path.join(
+  OUT,
+  `category-reorganization-${APPLY ? "apply" : "dry-run"}-${stamp}.csv`
+);
+
+const headers = [
+  "sku",
+  "title",
+  "brand",
+  "old_category",
+  "old_subcategory",
+  "new_category",
+  "new_subcategory",
+  "reason",
+  "changed"
+];
+
+const csv = [
+  headers.join(","),
+  ...results.map(r =>
+    headers.map(h => csvEscape(r[h])).join(",")
+  )
+].join("\n");
+
+fs.writeFileSync(csvPath, csv, "utf8");
+
+console.log("");
+console.log("==============================================");
+console.log(`Alterações previstas: ${changed}`);
+console.log(`Erros: ${errors}`);
+console.log(`Relatório: ${csvPath}`);
+
+if (!APPLY) {
+  console.log("");
+  console.log("DRY RUN concluído.");
+  console.log("NENHUM produto foi alterado.");
+  console.log("");
+  console.log("Depois de rever o resultado, o APPLY será:");
+  console.log(
+    "node .\\scripts\\reorganize-supabase-categories.mjs --apply"
+  );
+} else {
+  console.log("");
+  console.log("APPLY concluído.");
+  console.log("Somente category/subcategory foram atualizados.");
+}

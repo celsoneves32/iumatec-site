@@ -1,1333 +1,1100 @@
-import Link from "next/link";
+﻿import Link from "next/link";
+import {
+  ArrowRight,
+  BadgeCheck,
+  Boxes,
+  ChevronRight,
+  Cpu,
+  HardDrive,
+  Headphones,
+  House,
+  Laptop,
+  Monitor,
+  Printer,
+  ShieldCheck,
+  Smartphone,
+  Truck,
+  Wifi,
+  Zap,
+  type LucideIcon,
+} from "lucide-react";
+
 import ProductCard from "@/components/ProductCard";
 import HomepageCarousel from "@/components/HomepageCarousel";
-import { classifyProduct } from "@/lib/categoryRules";
+import HomeCategoryGrid from "@/components/HomeCategoryGrid";
+
 import {
-  getPurchasableProducts,
-  getTopProducts,
+  queryCatalogProducts,
+  type CatalogQuery,
+  type CatalogResponse,
   type Product,
-} from "@/lib/productData";
+} from "@/lib/supabaseCatalog";
 
-// Revalidate hourly so the featured product can rotate once per calendar day.
-export const revalidate = 3600;
+export const revalidate = 300;
 
-const mainCategories = [
-  {
-    title: "Computer",
-    subtitle: "Laptops, Desktop-PCs und Mini-PCs",
-    href: "/produkte?category=Computer",
-    icon: "💻",
+const EMPTY: CatalogResponse = {
+  products: [],
+  total: 0,
+  catalogTotal: 0,
+  offset: 0,
+  limit: 0,
+  hasMore: false,
+  facets: {
+    categories: [],
+    subcategories: [],
+    brands: [],
+    available: 0,
+    minPrice: 0,
+    maxPrice: 0,
   },
-  {
-    title: "PC-Komponenten",
-    subtitle: "Grafikkarten, RAM, SSD, Mainboards",
-    href: "/produkte?category=PC-Komponenten",
-    icon: "⚙️",
-  },
-  {
-    title: "Peripherie",
-    subtitle: "Monitore, Tastaturen, Mäuse, Headsets",
-    href: "/produkte?category=Peripherie",
-    icon: "🖥️",
-  },
-  {
-    title: "Netzwerk",
-    subtitle: "Router, Switches, WLAN Mesh",
-    href: "/produkte?category=Netzwerk",
-    icon: "🌐",
-  },
-  {
-    title: "Mobile",
-    subtitle: "Smartphones, Tablets und Zubehör",
-    href: "/produkte?category=Mobile",
-    icon: "📱",
-  },
-  {
-    title: "Datenspeicher",
-    subtitle: "SSD, HDD, NAS und externe Speicher",
-    href: "/produkte?category=Datenspeicher",
-    icon: "💾",
-  },
-];
+};
 
-function getProductSlug(product: Product) {
-  const p = product as any;
-  return String(
-    p.slug || p.shopifyProductHandle || p.productHandle || "",
-  ).trim();
-}
+async function safeCatalog(
+  query: CatalogQuery,
+): Promise<CatalogResponse> {
+  try {
+    return await queryCatalogProducts(query);
+  } catch (error) {
+    console.error(
+      "Homepage catalog query failed:",
+      query,
+      error,
+    );
 
-function getMerchandiseId(product: Product) {
-  const p = product as any;
-  return p.merchandiseId || p.shopifyVariantId || null;
-}
-
-function getStockQty(product: Product) {
-  const p = product as any;
-  return Number(p.stockQty ?? p.stock ?? 0);
-}
-
-function getPrice(product: Product) {
-  return Number((product as any).price || 0);
-}
-
-function getCategory(product: Product) {
-  const p = product as any;
-
-  return String(
-    p.category ||
-      p?.iumatecCategory?.main ||
-      p?.rawCategory?.cat1 ||
-      "",
-  ).trim();
-}
-
-function getSubcategory(product: Product) {
-  const p = product as any;
-
-  return String(
-    p.subcategory ||
-      p?.iumatecCategory?.sub ||
-      p?.rawCategory?.cat2 ||
-      "",
-  ).trim();
-}
-
-function categoryText(product: Product) {
-  return normalize(`${getCategory(product)} ${getSubcategory(product)}`);
-}
-
-function categoryIncludes(product: Product, values: string[]) {
-  const value = categoryText(product);
-
-  return values.some((entry) => value.includes(normalize(entry)));
-}
-
-function normalize(value: unknown) {
-  return String(value || "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/ä/g, "a")
-    .replace(/ö/g, "o")
-    .replace(/ü/g, "u")
-    .replace(/ß/g, "ss")
-    .trim();
-}
-
-function productText(product: Product) {
-  const p = product as any;
-
-  return normalize(
-    `${p.title || ""} ${p.brand || ""} ${p.category || ""} ${
-      p.subcategory || ""
-    } ${p.description || ""} ${p.description2 || ""}`,
-  );
-}
-
-function isBuyable(product: Product) {
-  const p = product as any;
-
-  return (
-    Boolean(getProductSlug(product)) &&
-    Boolean(getMerchandiseId(product)) &&
-    Boolean(p.image) &&
-    getPrice(product) > 0 &&
-    getStockQty(product) > 0
-  );
-}
-
-function familyKey(product: Product) {
-  return productText(product)
-    .replace(
-      /\b(schwarz|black|midnight|mitternacht|sky blue|sky-blue|silber|silver|grau|gray|grey|blau|blue|weiss|white|gold|rose|rot|red|grun|green|starlight|space black|space schwarz)\b/g,
-      "",
-    )
-    .replace(
-      /\b(64gb|128gb|256gb|512gb|1tb|2tb|4tb|8gb|16gb|24gb|32gb|64 gb|128 gb|256 gb|512 gb|1 tb|2 tb|4 tb|8 gb|16 gb|24 gb|32 gb)\b/g,
-      "",
-    )
-    .replace(/\b(wifi|wi fi|wi-fi|5g|cellular|lte)\b/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function uniqueBySlug(products: Product[]) {
-  const seen = new Set<string>();
-
-  return products.filter((product) => {
-    const slug = getProductSlug(product);
-    if (!slug || seen.has(slug)) return false;
-    seen.add(slug);
-    return true;
-  });
-}
-
-function uniqueFamilies(products: Product[]) {
-  const seen = new Set<string>();
-
-  return products.filter((product) => {
-    const key = familyKey(product);
-    if (!key) return true;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-}
-
-function productNameText(product: Product) {
-  const p = product as any;
-
-  return normalize(
-    `${p.title || ""} ${p.fullTitle || ""} ${p.shopifyProductTitle || ""} ${p.brand || ""}`,
-  );
-}
-
-function hasProductWords(product: Product, words: string[]) {
-  const text = productNameText(product);
-  return words.some((word) => text.includes(normalize(word)));
-}
-
-function hasBlockedWords(product: Product, words: string[]) {
-  const text = productNameText(product);
-  return words.some((word) => text.includes(normalize(word)));
-}
-
-const nonComputerWords = [
-  "rucksack",
-  "backpack",
-  "tasche",
-  "sleeve",
-  "adapter",
-  "akku",
-  "battery",
-  "netzteil",
-  "charger",
-  "dock",
-  "docking",
-  "privacy",
-  "schutz",
-  "filter",
-  "ssd",
-  "hdd",
-  "kabel",
-  "cable",
-  "halterung",
-  "stand",
-  "monitor",
-  "display",
-  "tablet",
-  "smartphone",
-  "iphone",
-  "case",
-  "cover",
-];
-
-const nonMonitorWords = [
-  "radio",
-  "dab+",
-  "dab plus",
-  "audizio",
-  "tuner",
-  "receiver",
-  "smallrig",
-  "kamera",
-  "camera",
-  "mikrofon",
-  "microphone",
-  "adapter",
-  "dock",
-  "docking",
-  "hub",
-  "switch",
-  "kvm",
-  "kabel",
-  "cable",
-  "halterung",
-  "stand",
-  "arm",
-  "lautsprecher",
-  "speaker",
-  "soundbar",
-  "headset",
-  "webcam",
-  "tablet",
-  "ipad",
-  "smartphone",
-  "iphone",
-  "galaxy tab",
-  "schutz",
-  "folie",
-  "glass",
-  "case",
-  "cover",
-];
-
-const nonSmartphoneWords = [
-  "monitor",
-  "display",
-  "tv",
-  "tablet",
-  "galaxy tab",
-  "ipad",
-  "clear glass",
-  "panzerglass",
-  "schutzglas",
-  "screen protector",
-  "schutzfolie",
-  "case",
-  "cover",
-  "hulle",
-  "hülle",
-  "adapter",
-  "charger",
-  "ladegerät",
-  "ladegerat",
-  "kabel",
-  "cable",
-  "halterung",
-  "dock",
-  "docking",
-  "notepad",
-  "reader",
-  "radio",
-  "autoradio",
-  "receiver",
-  "powerstation",
-  "power station",
-  "ecoflow",
-  "notebook",
-  "laptop",
-  "macbook",
-  "telefonhalter",
-  "car holder",
-  "ersatzteil",
-];
-
-const nonTabletWords = [
-  "case",
-  "cover",
-  "keyboard",
-  "tastatur",
-  "akku",
-  "battery",
-  "adapter",
-  "notepad",
-  "reader",
-  "monitor",
-  "display",
-  "schutz",
-  "folie",
-  "glass",
-  "smartphone",
-  "iphone",
-  "notebook",
-  "laptop",
-  "macbook",
-  "ladegerät",
-  "ladegerat",
-  "charger",
-  "kabel",
-  "cable",
-  "halterung",
-  "stand",
-  "stylus",
-  "pencil",
-];
-
-const nonStorageWords = [
-  "adapter",
-  "charger",
-  "ladegerät",
-  "ladegerat",
-  "netzteil",
-  "usb-c",
-  "usb c",
-  "kitchen",
-  "küche",
-  "kuche",
-  "kitchenaid",
-  "mixer",
-  "maschine",
-  "printer",
-  "drucker",
-  "toner",
-];
-
-const completeComputerWords = [
-  "desktop",
-  "desktop-pc",
-  "desktop pc",
-  "gaming-pc",
-  "gaming pc",
-  "gaming computer",
-  "notebook",
-  "laptop",
-  "workstation",
-  "mini-pc",
-  "mini pc",
-  "all-in-one",
-  "all in one",
-  "aio pc",
-  "tower pc",
-  "predator orion",
-  "legion tower",
-  "ideacentre",
-  "optiplex",
-  "prodesk",
-  "elitedesk",
-  "thinkcentre",
-  "windows 11",
-  "win11",
-  "omnistudio",
-  "pavilion desktop",
-  "inspiron desktop",
-  "vivobook",
-  "zenbook",
-  "aspire ",
-  "travelmate",
-  "probook",
-  "elitebook",
-  "thinkpad",
-  "latitude",
-  "precision ",
-  "macbook",
-];
-
-const nonGpuWords = [
-  ...completeComputerWords,
-  "egpu enclosure",
-  "gpu enclosure",
-  "grafikkartenhalter",
-  "gpu holder",
-  "gpu bracket",
-  "riser cable",
-  "riser kabel",
-  "wasserkühler",
-  "wasserkuhler",
-  "waterblock",
-  "backplate",
-];
-
-const nonNetworkDeviceWords = [
-  ...completeComputerWords,
-  "kabel",
-  "cable",
-  "patchkabel",
-  "patch cable",
-  "stecker",
-  "connector",
-  "adapter",
-  "netzteil",
-  "power supply",
-  "halterung",
-  "mount",
-  "rack",
-  "schrank",
-  "cabinet",
-  "antenne",
-  "antenna",
-  "sfp modul",
-  "sfp module",
-  "transceiver",
-  "injector",
-  "abdeckung",
-  "cover",
-];
-
-const nonStorageDeviceWords = [
-  ...completeComputerWords,
-  ...nonStorageWords,
-  "gehäuse",
-  "gehause",
-  "enclosure",
-  "case",
-  "cover",
-  "halterung",
-  "mount",
-  "tray",
-  "caddy",
-  "controller",
-  "kabel",
-  "cable",
-  "duplicator",
-  "dock",
-  "docking",
-];
-
-function isLaptop(product: Product) {
-  const result = classifyProduct(product as any);
-  const hasLaptopName = hasProductWords(product, [
-    "notebook",
-    "laptop",
-    "macbook",
-    "thinkpad",
-    "elitebook",
-    "probook",
-    "latitude",
-    "chromebook",
-    "surface laptop",
-  ]);
-
-  return (
-    result.main === "Computer" &&
-    result.sub === "Laptops" &&
-    hasLaptopName &&
-    !hasBlockedWords(product, nonComputerWords)
-  );
-}
-
-function isMonitor(product: Product) {
-  const result = classifyProduct(product as any);
-  const hasMonitorCategory = categoryIncludes(product, [
-    "monitore",
-    "monitor",
-    "bildschirme",
-    "displays",
-  ]);
-  const hasMonitorName = hasProductWords(product, [
-    " monitor",
-    "monitor ",
-    "bildschirm",
-  ]);
-
-  return (
-    result.main === "Peripherie" &&
-    result.sub === "Monitore" &&
-    (hasMonitorCategory || hasMonitorName) &&
-    !hasBlockedWords(product, nonMonitorWords)
-  );
-}
-
-function isSmartphone(product: Product) {
-  const result = classifyProduct(product as any);
-  const hasSmartphoneName = hasProductWords(product, [
-    "smartphone",
-    "iphone",
-    "galaxy s",
-    "galaxy a",
-    "galaxy z",
-    "google pixel",
-    "pixel phone",
-    "xiaomi ",
-    "redmi ",
-    "oppo ",
-    "motorola ",
-    "nothing phone",
-    "fairphone",
-  ]);
-
-  return (
-    result.main === "Mobile" &&
-    result.sub === "Smartphones" &&
-    hasSmartphoneName &&
-    !hasBlockedWords(product, nonSmartphoneWords)
-  );
-}
-
-function isTablet(product: Product) {
-  const result = classifyProduct(product as any);
-  const hasTabletName = hasProductWords(product, [
-    "tablet",
-    "ipad",
-    "galaxy tab",
-    "surface pro",
-    "tab s",
-    "tab a",
-    "lenovo tab",
-    "honor pad",
-    "matepad",
-  ]);
-
-  return (
-    result.main === "Mobile" &&
-    result.sub === "Tablets" &&
-    hasTabletName &&
-    !hasBlockedWords(product, nonTabletWords)
-  );
-}
-
-function isGpu(product: Product) {
-  const result = classifyProduct(product as any);
-  const hasGpuCategory = categoryIncludes(product, [
-    "grafikkarten",
-    "graphics cards",
-    "video cards",
-  ]);
-  const hasGpuName = hasProductWords(product, [
-    "grafikkarte",
-    "graphics card",
-    "video card",
-    "geforce",
-    "radeon rx",
-    "radeon pro",
-    "nvidia quadro",
-    "nvidia rtx",
-    "intel arc",
-  ]);
-
-  return (
-    result.main === "PC-Komponenten" &&
-    result.sub === "Grafikkarten" &&
-    (hasGpuCategory || hasGpuName) &&
-    hasGpuName &&
-    !hasBlockedWords(product, nonGpuWords)
-  );
-}
-
-function isNetwork(product: Product) {
-  const result = classifyProduct(product as any);
-  const hasNetworkDeviceName = hasProductWords(product, [
-    "router",
-    "switch",
-    "gateway",
-    "access point",
-    "accesspoint",
-    "wlan mesh",
-    "wifi mesh",
-    "wi-fi mesh",
-    "firewall",
-    "security appliance",
-  ]);
-
-  return (
-    result.main === "Netzwerk" &&
-    hasNetworkDeviceName &&
-    !hasBlockedWords(product, nonNetworkDeviceWords)
-  );
-}
-
-function isStorage(product: Product) {
-  const result = classifyProduct(product as any);
-  const hasStorageDeviceName = hasProductWords(product, [
-    " ssd",
-    "ssd ",
-    "solid state",
-    " hdd",
-    "hdd ",
-    "hard disk",
-    "harddrive",
-    "festplatte",
-    "nas ",
-    " nas",
-    "network attached storage",
-    "usb stick",
-    "usb-stick",
-    "memory card",
-    "speicherkarte",
-  ]);
-
-  return (
-    result.main === "Datenspeicher" &&
-    hasStorageDeviceName &&
-    !hasBlockedWords(product, nonStorageDeviceWords)
-  );
-}
-
-function isAccessory(product: Product) {
-  const result = classifyProduct(product as any);
-
-  return (
-    result.sub === "Monitor-Zubehör" ||
-    result.sub === "Docking & Hubs" ||
-    result.sub === "Tastaturen" ||
-    result.sub === "Mäuse" ||
-    result.sub === "Headsets" ||
-    result.sub === "Webcams" ||
-    result.sub === "Zubehör"
-  );
-}
-
-function scoreShowcaseProduct(product: Product) {
-  const text = productNameText(product);
-  let score = 0;
-
-  score += Math.min(getStockQty(product), 20) * 10;
-
-  if (getPrice(product) >= 100) score += 100;
-  if (getPrice(product) >= 250) score += 120;
-  if (getPrice(product) >= 500) score += 80;
-
-  if (
-    [
-      "apple",
-      "samsung",
-      "lenovo",
-      "hp",
-      "dell",
-      "asus",
-      "acer",
-      "msi",
-      "lg",
-      "philips",
-      "ubiquiti",
-      "tp-link",
-      "kingston",
-      "crucial",
-      "western digital",
-      "wd",
-    ].some((brand) => text.includes(brand))
-  ) {
-    score += 180;
+    return EMPTY;
   }
-
-  if (text.includes("rtx")) score += 160;
-  if (text.includes("iphone")) score += 160;
-  if (text.includes("galaxy")) score += 140;
-  if (
-    text.includes("thinkpad") ||
-    text.includes("elitebook") ||
-    text.includes("latitude")
-  )
-    score += 120;
-  if (
-    text.includes('27"') ||
-    text.includes('32"') ||
-    text.includes("qhd") ||
-    text.includes("uhd")
-  )
-    score += 120;
-  if (text.includes("nvme") || text.includes("m.2") || text.includes("ssd"))
-    score += 120;
-
-  return score;
 }
 
-function compareShowcaseProducts(a: Product, b: Product) {
-  const scoreDifference = scoreShowcaseProduct(b) - scoreShowcaseProduct(a);
-  if (scoreDifference !== 0) return scoreDifference;
+function uniqueProducts(products: Product[]) {
+  const seen = new Set<string>();
 
-  const stockDifference = getStockQty(b) - getStockQty(a);
-  if (stockDifference !== 0) return stockDifference;
+  return products.filter((product) => {
+    const key = String(
+      product.slug || product.sku || "",
+    ).trim();
 
-  return getPrice(a) - getPrice(b);
+    if (!key || seen.has(key)) {
+      return false;
+    }
+
+    seen.add(key);
+
+    return true;
+  });
 }
 
-function pickShowcaseProduct(
-  products: Product[],
-  matcher: (product: Product) => boolean,
-) {
-  return products
-    .filter((product) => isBuyable(product) && matcher(product))
-    .sort((a, b) => scoreShowcaseProduct(b) - scoreShowcaseProduct(a))[0];
+function isCardReady(
+  product?: Product | null,
+): product is Product {
+  return Boolean(
+    product?.slug &&
+      product?.title &&
+      Number(product?.price || 0) > 0 &&
+      product?.image,
+  );
+}
+
+function cardProduct(product: Product) {
+  return {
+    sku: product.sku,
+    slug: product.slug,
+    title: product.title,
+    brand: product.brand,
+    price: Number(product.price || 0),
+    image: product.image ?? null,
+    category: product.category,
+    subcategory: product.subcategory,
+    inStock: product.inStock,
+    stockQty: product.stockQty,
+    merchandiseId:
+      product.merchandiseId ||
+      product.shopifyVariantId ||
+      null,
+    productHandle:
+      product.shopifyProductHandle ||
+      product.slug,
+    energyLabel: product.energyLabel,
+  };
 }
 
 function formatPrice(price: number) {
   return new Intl.NumberFormat("de-CH", {
     style: "currency",
     currency: "CHF",
-  }).format(price || 0);
+  }).format(Number(price || 0));
 }
 
-function SectionHeader({
+type CategoryTile = {
+  title: string;
+  subtitle: string;
+  href: string;
+  icon: LucideIcon;
+  product?: Product;
+  tone?: "neutral" | "red";
+};
+
+function CategoryTile({
+  title,
+  subtitle,
+  href,
+  icon: Icon,
+  product,
+  tone = "neutral",
+}: CategoryTile) {
+  return (
+    <Link
+      href={href}
+      className="
+        group
+        relative
+        min-h-[180px]
+        overflow-hidden
+        rounded-[22px]
+        border
+        border-neutral-200
+        bg-white
+        p-5
+        transition
+        duration-300
+        hover:-translate-y-0.5
+        hover:border-neutral-300
+        hover:shadow-[0_18px_50px_rgba(15,23,42,0.08)]
+      "
+    >
+      <div
+        className={`
+          absolute
+          inset-x-0
+          top-0
+          h-1
+          ${
+            tone === "red"
+              ? "bg-red-600"
+              : "bg-neutral-950"
+          }
+        `}
+      />
+
+      <div className="relative z-10 max-w-[58%]">
+        <div
+          className={`
+            inline-flex
+            h-10
+            w-10
+            items-center
+            justify-center
+            rounded-xl
+            ${
+              tone === "red"
+                ? "bg-red-50 text-red-600"
+                : "bg-neutral-100 text-neutral-800"
+            }
+          `}
+        >
+          <Icon
+            size={19}
+            strokeWidth={1.9}
+          />
+        </div>
+
+        <h3 className="mt-4 text-[17px] font-black tracking-tight text-neutral-950">
+          {title}
+        </h3>
+
+        <p className="mt-1.5 text-xs leading-5 text-neutral-500">
+          {subtitle}
+        </p>
+
+        <span className="mt-4 inline-flex items-center gap-1 text-xs font-black text-neutral-900 transition group-hover:text-red-600">
+          Entdecken
+
+          <ArrowRight size={13} />
+        </span>
+      </div>
+
+      <div className="absolute bottom-1 right-1 flex h-[118px] w-[118px] items-center justify-center rounded-full bg-neutral-50 p-4 sm:h-[126px] sm:w-[126px]">
+        {product?.image ? (
+          <img
+            src={product.image}
+            alt={product.title}
+            loading="lazy"
+            decoding="async"
+            className="max-h-full max-w-full object-contain transition duration-500 group-hover:scale-105"
+          />
+        ) : (
+          <Icon
+            size={38}
+            className="text-neutral-200"
+            strokeWidth={1.3}
+          />
+        )}
+      </div>
+    </Link>
+  );
+}
+
+function SectionHeading({
   eyebrow,
   title,
   subtitle,
   href,
+  linkLabel = "Alle ansehen",
 }: {
-  eyebrow?: string;
+  eyebrow: string;
   title: string;
   subtitle: string;
   href: string;
+  linkLabel?: string;
 }) {
   return (
-    <div className="mb-6 flex items-end justify-between gap-4">
+    <div className="mb-6 flex items-end justify-between gap-5">
       <div>
-        {eyebrow ? (
-          <div className="mb-2 text-sm font-black uppercase tracking-wide text-red-600">
-            {eyebrow}
-          </div>
-        ) : null}
+        <div className="text-[11px] font-black uppercase tracking-[0.18em] text-red-600">
+          {eyebrow}
+        </div>
 
-        <h2 className="text-3xl font-black tracking-tight text-neutral-950 md:text-4xl">
+        <h2 className="mt-2 text-2xl font-black tracking-[-0.025em] text-neutral-950 md:text-[32px]">
           {title}
         </h2>
 
-        <p className="mt-2 max-w-2xl text-neutral-500">{subtitle}</p>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-neutral-500 md:text-[15px]">
+          {subtitle}
+        </p>
       </div>
 
       <Link
         href={href}
-        className="hidden shrink-0 rounded-full border border-neutral-300 px-5 py-3 text-sm font-black text-neutral-900 transition hover:bg-neutral-50 sm:inline-flex"
+        className="
+          hidden
+          shrink-0
+          items-center
+          gap-2
+          rounded-xl
+          border
+          border-neutral-200
+          bg-white
+          px-4
+          py-2.5
+          text-sm
+          font-black
+          text-neutral-800
+          transition
+          hover:border-neutral-950
+          hover:bg-neutral-950
+          hover:text-white
+          sm:inline-flex
+        "
       >
-        Alle ansehen →
+        {linkLabel}
+
+        <ArrowRight size={15} />
       </Link>
     </div>
   );
 }
 
-function ProductCarousel({
+function ProductRail({
   products,
-  uniqueFamily = true,
 }: {
   products: Product[];
-  uniqueFamily?: boolean;
 }) {
-  const items = (
-    uniqueFamily ? uniqueFamilies(products) : uniqueBySlug(products)
-  )
-    .filter(isBuyable)
+  const items = uniqueProducts(products)
+    .filter(isCardReady)
     .slice(0, 16);
 
-  if (!items.length) return null;
+  if (!items.length) {
+    return null;
+  }
 
   return (
     <HomepageCarousel>
-      {items.map((product) => {
-        const p = product as any;
-        const slug = getProductSlug(product);
-
-        return (
-          <div key={`${p.sku || slug}-${slug}`} className="w-[320px] shrink-0">
-            <ProductCard
-              product={{
-                sku: p.sku,
-                slug,
-                title: p.title,
-                brand: p.brand,
-                price: getPrice(product),
-                image: p.image ?? null,
-                category: p.category,
-                subcategory: p.subcategory,
-                inStock: true,
-                stockQty: getStockQty(product),
-                merchandiseId: getMerchandiseId(product),
-                productHandle:
-                  p.shopifyProductHandle ?? p.productHandle ?? slug,
-                energyLabel: p.energyLabel,
-              }}
-            />
-          </div>
-        );
-      })}
+      {items.map((product) => (
+        <div
+          key={product.slug}
+          className="w-[246px] shrink-0 snap-start sm:w-[260px] lg:w-[272px]"
+        >
+          <ProductCard
+            product={cardProduct(product)}
+          />
+        </div>
+      ))}
     </HomepageCarousel>
   );
 }
 
-function HeroProduct({ product }: { product?: Product }) {
-  if (!product) return null;
+/* =========================================================
+   HERO PRINCIPAL
+   SÃ³ o botÃ£o "Jetzt entdecken" Ã© clicÃ¡vel
+   ========================================================= */
 
-  const p = product as any;
-  const slug = getProductSlug(product);
+function MarketingHero() {
+  return (
+    <div className="relative overflow-hidden rounded-[28px] border border-neutral-200 bg-white shadow-[0_16px_50px_rgba(15,23,42,0.06)]">
+      <img
+        src="/images/home/iumatec-hero-technik.png"
+        alt="IUMATEC Schweiz â€“ Technik. Schnell. ZuverlÃ¤ssig."
+        className="block h-auto w-full"
+      />
+
+      <Link
+        href="/produkte"
+        aria-label="Jetzt entdecken"
+        title="Jetzt entdecken"
+        className="
+          absolute
+          left-[5.5%]
+          top-[62%]
+          h-[11%]
+          w-[21%]
+          cursor-pointer
+          rounded-xl
+          focus-visible:ring-4
+          focus-visible:ring-red-300
+        "
+      >
+        <span className="sr-only">
+          Jetzt entdecken
+        </span>
+      </Link>
+    </div>
+  );
+}
+
+/* =========================================================
+   BANNERS PC + SMART HOME
+   SÃ³ a Ã¡rea do botÃ£o desenhado Ã© clicÃ¡vel
+   ========================================================= */
+
+function MarketingPromo({
+  href,
+  image,
+  alt,
+  buttonLabel,
+}: {
+  href: string;
+  image: string;
+  alt: string;
+  buttonLabel: string;
+}) {
+  return (
+    <div className="relative overflow-hidden rounded-[24px] border border-neutral-200 bg-white shadow-[0_14px_42px_rgba(15,23,42,0.055)]">
+      <img
+        src={image}
+        alt={alt}
+        loading="lazy"
+        decoding="async"
+        className="block h-auto w-full"
+      />
+
+      <Link
+        href={href}
+        aria-label={buttonLabel}
+        title={buttonLabel}
+        className="
+          absolute
+          left-[5.5%]
+          top-[62%]
+          h-[12%]
+          w-[21%]
+          cursor-pointer
+          rounded-xl
+          focus-visible:ring-4
+          focus-visible:ring-red-300
+        "
+      >
+        <span className="sr-only">
+          {buttonLabel}
+        </span>
+      </Link>
+    </div>
+  );
+}
+
+/* =========================================================
+   COMPONENTES EXISTENTES
+   ========================================================= */
+
+function HeroProduct({
+  product,
+}: {
+  product?: Product;
+}) {
+  if (!isCardReady(product)) {
+    return (
+      <div className="flex min-h-[490px] items-center justify-center rounded-[28px] bg-neutral-100 text-neutral-300">
+        <Laptop
+          size={92}
+          strokeWidth={1}
+        />
+      </div>
+    );
+  }
 
   return (
     <Link
-      href={`/produkte/${slug}`}
-      className="group relative overflow-hidden rounded-[2rem] border border-white/70 bg-white p-5 shadow-xl transition hover:-translate-y-1 hover:shadow-2xl"
+      href={`/produkte/${product.slug}`}
+      className="group relative grid min-h-[490px] overflow-hidden rounded-[28px] bg-[#f5f5f3] lg:grid-cols-[1.02fr_.98fr]"
     >
-      <div className="absolute left-5 top-5 z-10 rounded-full bg-green-50 px-3 py-1 text-xs font-black text-green-700 ring-1 ring-green-100">
-        CH Lager
-      </div>
-
-      <div className="flex h-48 items-center justify-center rounded-3xl bg-white p-5">
-        {p.image ? (
-          <img
-            src={p.image}
-            alt={p.title}
-            className="max-h-full max-w-full object-contain transition duration-300 group-hover:scale-105"
+      <div className="relative z-10 flex flex-col justify-center p-7 sm:p-10 lg:p-12">
+        <span className="inline-flex w-fit items-center gap-2 rounded-full border border-red-100 bg-white px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.15em] text-red-600 shadow-sm">
+          <Zap
+            size={12}
+            fill="currentColor"
           />
-        ) : null}
+
+          IUMATEC Empfehlung
+        </span>
+
+        <div className="mt-7 text-[11px] font-black uppercase tracking-[0.15em] text-neutral-500">
+          {product.brand || "IUMATEC"}
+        </div>
+
+        <h1 className="mt-2 line-clamp-4 max-w-[760px] text-[38px] font-black leading-[1.01] tracking-[-0.045em] text-neutral-950 sm:text-[48px] lg:text-[54px]">
+          {product.title}
+        </h1>
+
+        <div className="mt-6 flex flex-wrap items-end gap-x-4 gap-y-2">
+          <div className="text-[30px] font-black tracking-tight text-neutral-950">
+            {formatPrice(product.price)}
+          </div>
+
+          <div className="pb-1 text-xs font-semibold text-neutral-500">
+            inkl. MWST
+          </div>
+        </div>
+
+        <div className="mt-7 flex flex-wrap gap-3">
+          <span className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-5 py-3.5 text-sm font-black text-white transition group-hover:bg-red-700">
+            Produkt ansehen
+
+            <ArrowRight size={16} />
+          </span>
+
+          <span className="inline-flex items-center rounded-xl border border-neutral-300 bg-white px-4 py-3.5 text-xs font-black text-neutral-700">
+            Schweizer Sortiment
+          </span>
+        </div>
       </div>
 
-      <div className="mt-4 text-xs font-bold uppercase tracking-wide text-neutral-500">
-        {p.brand || "IUMATEC"}
-      </div>
+      <div className="relative flex min-h-[320px] items-center justify-center overflow-hidden p-8 sm:p-12">
+        <div className="absolute h-[360px] w-[360px] rounded-full bg-white/90 shadow-[0_25px_80px_rgba(15,23,42,.07)] sm:h-[420px] sm:w-[420px]" />
 
-      <div className="mt-1 line-clamp-2 text-base font-black leading-tight text-neutral-950">
-        {p.title}
-      </div>
-
-      <div className="mt-3 text-xl font-black text-neutral-950">
-        {formatPrice(getPrice(product))}
+        <img
+          src={product.image!}
+          alt={product.title}
+          className="relative z-10 max-h-[360px] max-w-[86%] object-contain drop-shadow-[0_22px_35px_rgba(15,23,42,.12)] transition duration-500 group-hover:scale-[1.04]"
+        />
       </div>
     </Link>
   );
 }
 
-function PremiumHero({
-  count,
-  mainProduct,
-  sideProducts,
+function PromoCard({
+  product,
+  eyebrow,
+  title,
+  icon: Icon,
 }: {
-  count: number;
-  mainProduct?: Product;
-  sideProducts: Product[];
+  product?: Product;
+  eyebrow: string;
+  title: string;
+  icon: LucideIcon;
 }) {
-  const p = mainProduct as any;
-  const mainSlug = mainProduct ? getProductSlug(mainProduct) : "";
+  const href = product?.slug
+    ? `/produkte/${product.slug}`
+    : "/produkte";
 
   return (
-    <section className="relative overflow-hidden border-b border-neutral-200 bg-neutral-950 text-white">
-      <div className="absolute -right-40 -top-40 h-[34rem] w-[34rem] rounded-full bg-red-600/30 blur-3xl" />
-      <div className="absolute -bottom-48 left-0 h-[30rem] w-[30rem] rounded-full bg-white/10 blur-3xl" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.16),transparent_36%),linear-gradient(135deg,rgba(255,255,255,0.08),transparent_45%)]" />
-
-      <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-12 lg:grid-cols-[1.02fr_0.98fr] lg:items-center lg:py-16">
-        <div>
-          <div className="inline-flex flex-wrap gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-black text-white ring-1 ring-white/15">
-            <span>🇨🇭 Schweizer Tech-Shop</span>
-            <span className="text-white/50">•</span>
-            <span>
-              {count.toLocaleString("de-CH")} sofort kaufbare Produkte
-            </span>
-          </div>
-
-          <h1 className="mt-6 max-w-3xl text-5xl font-black leading-[0.92] tracking-tight md:text-7xl">
-            Technik für dein Business, Gaming und Zuhause.
-          </h1>
-
-          <p className="mt-6 max-w-2xl text-lg leading-8 text-white/75">
-            Laptops, Komponenten, Monitore, Smartphones, Netzwerk und Zubehör.
-            Direkt aus der Schweiz, mit klaren Preisen und sicherer Bezahlung.
-          </p>
-
-          <div className="mt-8 flex flex-wrap gap-4">
-            <Link
-              href="/produkte"
-              className="rounded-2xl bg-red-600 px-8 py-4 text-base font-black text-white shadow-lg shadow-red-950/30 transition hover:bg-red-700"
-            >
-              Jetzt einkaufen
-            </Link>
-
-            <Link
-              href="/produkte?sort=price-asc"
-              className="rounded-2xl border border-white/20 bg-white/10 px-8 py-4 text-base font-black text-white transition hover:bg-white/15"
-            >
-              Angebote entdecken
-            </Link>
-          </div>
-
-          <div className="mt-8 grid max-w-3xl gap-3 sm:grid-cols-3">
-            {["CH Versand", "MWST inklusive", "Sichere Zahlung"].map((item) => (
-              <div
-                key={item}
-                className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm font-black text-white/90"
-              >
-                ✓ {item}
-              </div>
-            ))}
-          </div>
-
+    <Link
+      href={href}
+      className="group relative grid min-h-[235px] overflow-hidden rounded-[24px] border border-neutral-200 bg-white p-6 transition hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-[0_18px_50px_rgba(15,23,42,0.08)]"
+    >
+      <div className="relative z-10 max-w-[58%]">
+        <div className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-neutral-100 text-neutral-800">
+          <Icon size={18} />
         </div>
 
-        <div className="grid gap-5">
-          {mainProduct ? (
-            <Link
-              href={`/produkte/${mainSlug}`}
-              className="group overflow-hidden rounded-[2.2rem] border border-white/15 bg-white text-neutral-950 shadow-2xl shadow-black/30 transition hover:-translate-y-1 hover:shadow-black/40"
+        <div className="mt-5 text-[10px] font-black uppercase tracking-[0.16em] text-red-600">
+          {eyebrow}
+        </div>
+
+        <div className="mt-2 line-clamp-3 text-xl font-black leading-tight tracking-tight text-neutral-950">
+          {product?.title || title}
+        </div>
+
+        {product ? (
+          <div className="mt-3 text-sm font-black text-neutral-900">
+            {formatPrice(product.price)}
+          </div>
+        ) : null}
+
+        <span className="mt-4 inline-flex items-center gap-1 text-xs font-black text-neutral-600 transition group-hover:text-red-600">
+          Mehr erfahren
+
+          <ArrowRight size={13} />
+        </span>
+      </div>
+
+      <div className="absolute bottom-3 right-3 flex h-[145px] w-[145px] items-center justify-center rounded-full bg-neutral-50 p-4">
+        {product?.image ? (
+          <img
+            src={product.image}
+            alt={product.title}
+            loading="lazy"
+            className="max-h-full max-w-full object-contain transition duration-500 group-hover:scale-105"
+          />
+        ) : (
+          <Icon
+            size={42}
+            strokeWidth={1.25}
+            className="text-neutral-200"
+          />
+        )}
+      </div>
+    </Link>
+  );
+}
+
+function FeatureStrip({
+  catalogTotal,
+}: {
+  catalogTotal: number;
+}) {
+  const totalLabel =
+    catalogTotal > 0
+      ? `${catalogTotal.toLocaleString(
+          "de-CH",
+        )} Produkte`
+      : "Grosses Sortiment";
+
+  const features = [
+    {
+      icon: Truck,
+      title: "Versand Schweiz",
+      text: "Standardversand ab CHF 49.â€“ gratis",
+    },
+    {
+      icon: ShieldCheck,
+      title: "Sicher einkaufen",
+      text: "GeschÃ¼tzter Checkout",
+    },
+    {
+      icon: BadgeCheck,
+      title: "Transparente Preise",
+      text: "Alle Preise inkl. MWST",
+    },
+    {
+      icon: Boxes,
+      title: totalLabel,
+      text: "Technik fÃ¼r Privat & Business",
+    },
+  ];
+
+  return (
+    <section className="border-y border-neutral-200 bg-white">
+      <div className="mx-auto grid max-w-[1440px] grid-cols-2 divide-x divide-y divide-neutral-200 px-4 sm:grid-cols-4 sm:divide-y-0 xl:px-6">
+        {features.map(
+          ({
+            icon: Icon,
+            title,
+            text,
+          }) => (
+            <div
+              key={title}
+              className="flex min-h-[92px] items-center gap-3 px-3 py-5 sm:px-5"
             >
-              <div className="grid gap-6 p-6 sm:grid-cols-[1fr_0.95fr] sm:items-center">
-                <div>
-                  <div className="inline-flex rounded-full bg-green-50 px-3 py-1 text-xs font-black text-green-700 ring-1 ring-green-100">
-                    Sofort lieferbar
-                  </div>
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-600">
+                <Icon
+                  size={20}
+                  strokeWidth={1.8}
+                />
+              </div>
 
-                  <div className="mt-4 text-xs font-black uppercase tracking-wide text-neutral-500">
-                    {p.brand || "IUMATEC"}
-                  </div>
-
-                  <h2 className="mt-2 line-clamp-3 text-2xl font-black leading-tight text-neutral-950">
-                    {p.title}
-                  </h2>
-
-                  <div className="mt-5 text-3xl font-black">
-                    {formatPrice(getPrice(mainProduct))}
-                  </div>
-
-                  <div className="mt-1 text-sm text-neutral-500">
-                    inkl. MWST · Lieferung Schweiz
-                  </div>
-
-                  <div className="mt-6 inline-flex rounded-2xl bg-red-600 px-6 py-3 text-sm font-black text-white transition group-hover:bg-red-700">
-                    Produkt ansehen →
-                  </div>
+              <div>
+                <div className="text-sm font-black text-neutral-900">
+                  {title}
                 </div>
 
-                <div className="flex h-72 items-center justify-center rounded-3xl bg-white p-6">
-                  {p.image ? (
-                    <img
-                      src={p.image}
-                      alt={p.title}
-                      className="max-h-full max-w-full object-contain transition duration-300 group-hover:scale-105"
-                    />
-                  ) : null}
+                <div className="mt-0.5 text-[11px] leading-4 text-neutral-500 sm:text-xs">
+                  {text}
                 </div>
               </div>
-            </Link>
-          ) : null}
-
-          <div className="grid gap-5 sm:grid-cols-3">
-            {sideProducts.slice(0, 3).map((product) => {
-              const item = product as any;
-              const slug = getProductSlug(product);
-
-              return (
-                <Link
-                  key={slug}
-                  href={`/produkte/${slug}`}
-                  className="group overflow-hidden rounded-[1.7rem] border border-white/15 bg-white/10 p-4 transition hover:-translate-y-1 hover:bg-white/15"
-                >
-                  <div className="flex h-28 items-center justify-center rounded-2xl bg-white p-3">
-                    {item.image ? (
-                      <img
-                        src={item.image}
-                        alt={item.title}
-                        className="max-h-full max-w-full object-contain transition duration-300 group-hover:scale-105"
-                      />
-                    ) : null}
-                  </div>
-
-                  <div className="mt-3 line-clamp-2 text-sm font-black text-white">
-                    {item.title}
-                  </div>
-
-                  <div className="mt-2 text-sm font-black text-white/80">
-                    {formatPrice(getPrice(product))}
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        </div>
+            </div>
+          ),
+        )}
       </div>
     </section>
   );
 }
 
-function CategoryCard({
-  title,
-  subtitle,
-  href,
-  icon,
-  product,
-}: {
-  title: string;
-  subtitle: string;
-  href: string;
-  icon: string;
-  product?: Product;
-}) {
-  const productData = product as any;
-  const image = productData?.image || null;
-  const alt = productData?.title || title;
+/* =========================================================
+   HOMEPAGE
+   ========================================================= */
+
+export default async function HomePage() {
+  const [
+    all,
+    laptops,
+    gpus,
+    monitors,
+    smartphones,
+    network,
+    storage,
+    office,
+    smartHome,
+    offers,
+  ] = await Promise.all([
+    safeCatalog({
+      limit: 1,
+    }),
+
+    safeCatalog({
+      category: "Computer",
+      subcategory: "Laptops",
+      inStock: true,
+      minPrice: 300,
+      limit: 16,
+      sort: "featured",
+    }),
+
+    safeCatalog({
+      category: "PC-Komponenten",
+      inStock: true,
+      minPrice: 120,
+      limit: 16,
+      sort: "featured",
+    }),
+
+    safeCatalog({
+      category: "Peripherie",
+      subcategory: "Monitore",
+      inStock: true,
+      minPrice: 80,
+      limit: 16,
+      sort: "featured",
+    }),
+
+    safeCatalog({
+      category: "Mobile",
+      subcategory: "Smartphones",
+      inStock: true,
+      minPrice: 180,
+      limit: 16,
+      sort: "featured",
+    }),
+
+    safeCatalog({
+      category: "Netzwerk",
+      inStock: true,
+      minPrice: 30,
+      limit: 16,
+      sort: "featured",
+    }),
+
+    safeCatalog({
+      category: "Datenspeicher",
+      inStock: true,
+      minPrice: 30,
+      limit: 16,
+      sort: "featured",
+    }),
+
+    safeCatalog({
+      q: "Drucker",
+      inStock: true,
+      minPrice: 40,
+      limit: 16,
+      sort: "featured",
+    }),
+
+    safeCatalog({
+      category: "Smart Home",
+      inStock: true,
+      minPrice: 20,
+      limit: 16,
+      sort: "featured",
+    }),
+
+    safeCatalog({
+      inStock: true,
+      minPrice: 50,
+      maxPrice: 500,
+      limit: 16,
+      sort: "price-asc",
+    }),
+  ]);
+
+  const categoryTiles: CategoryTile[] = [
+    {
+      title: "Computer",
+      subtitle:
+        "Laptops, Desktop-PCs und Mini PCs",
+      href: "/produkte?category=Computer",
+      icon: Laptop,
+      product:
+        laptops.products.find(isCardReady),
+      tone: "red",
+    },
+
+    {
+      title: "PC-Komponenten",
+      subtitle:
+        "Komponenten, Kabel, Gaming und mehr",
+      href:
+        "/produkte?category=PC-Komponenten",
+      icon: Cpu,
+      product:
+        gpus.products.find(isCardReady),
+    },
+
+    {
+      title: "Peripherie",
+      subtitle:
+        "Monitore, EingabegerÃ¤te und ZubehÃ¶r",
+      href:
+        "/produkte?category=Peripherie",
+      icon: Monitor,
+      product:
+        monitors.products.find(isCardReady),
+    },
+
+    {
+      title: "Mobile",
+      subtitle:
+        "Smartphones, Tablets und ZubehÃ¶r",
+      href: "/produkte?category=Mobile",
+      icon: Smartphone,
+      product:
+        smartphones.products.find(
+          isCardReady,
+        ),
+      tone: "red",
+    },
+
+    {
+      title: "Netzwerk",
+      subtitle:
+        "Router, Switches und Netzwerktechnik",
+      href:
+        "/produkte?category=Netzwerk",
+      icon: Wifi,
+      product:
+        network.products.find(isCardReady),
+    },
+
+    {
+      title: "Datenspeicher",
+      subtitle:
+        "SSD, HDD, NAS und externe Speicher",
+      href:
+        "/produkte?category=Datenspeicher",
+      icon: HardDrive,
+      product:
+        storage.products.find(isCardReady),
+      tone: "red",
+    },
+
+    {
+      title: "Office & Business",
+      subtitle:
+        "Drucker, Verbrauchsmaterial und BÃ¼ro-Technik",
+      href: "/produkte?q=Drucker",
+      icon: Printer,
+      product:
+        office.products.find(isCardReady),
+    },
+
+    {
+      title: "Smart Home",
+      subtitle:
+        "Sicherheit, Beleuchtung und GebÃ¤udetechnik",
+      href:
+        "/produkte?category=Smart%20Home",
+      icon: House,
+      product:
+        smartHome.products.find(isCardReady),
+    },
+  ];
+
+  const topSelection = uniqueProducts([
+    ...laptops.products.slice(0, 4),
+    ...monitors.products.slice(0, 4),
+    ...smartphones.products.slice(0, 4),
+    ...gpus.products.slice(0, 4),
+  ]);
+
+  const catalogTotal = Number(
+    all.catalogTotal ||
+      all.total ||
+      0,
+  );
 
   return (
-    <Link
-      href={href}
-      className="group overflow-hidden rounded-[2rem] border border-neutral-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
-    >
-      <div className="flex h-48 items-center justify-center bg-white p-6">
-        {image ? (
-          <img
-            src={image}
-            alt={alt}
-            className="max-h-full max-w-full object-contain transition duration-300 group-hover:scale-105"
-          />
-        ) : (
-          <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-neutral-100 text-3xl transition group-hover:bg-red-50">
-            {icon}
+    <main className="bg-[#f7f7f6] text-neutral-950">
+      {/* ================= HERO ================= */}
+
+      <section className="bg-white">
+        <div className="mx-auto max-w-[1440px] px-4 py-5 xl:px-6 xl:py-6">
+          <div className="grid gap-4 xl:grid-cols-[242px_minmax(0,1fr)]">
+            <aside className="hidden overflow-hidden rounded-[24px] border border-neutral-200 bg-white xl:block">
+              <div className="flex items-center justify-between border-b border-neutral-200 px-5 py-4">
+                <div>
+                  <div className="text-[10px] font-black uppercase tracking-[0.16em] text-red-600">
+                    Sortiment
+                  </div>
+
+                  <div className="mt-1 text-sm font-black text-neutral-950">
+                    Beliebte Kategorien
+                  </div>
+                </div>
+
+                <Boxes
+                  size={18}
+                  className="text-neutral-400"
+                />
+              </div>
+
+              <nav className="p-2.5">
+                {categoryTiles.map(
+                  ({
+                    title,
+                    href,
+                    icon: Icon,
+                  }) => (
+                    <Link
+                      key={title}
+                      href={href}
+                      className="group flex items-center gap-3 rounded-xl px-3 py-3 text-[13px] font-bold text-neutral-700 transition hover:bg-neutral-50 hover:text-red-600"
+                    >
+                      <Icon
+                        size={17}
+                        strokeWidth={1.8}
+                        className="shrink-0"
+                      />
+
+                      <span className="flex-1">
+                        {title}
+                      </span>
+
+                      <ChevronRight
+                        size={14}
+                        className="text-neutral-300 transition group-hover:translate-x-0.5 group-hover:text-red-500"
+                      />
+                    </Link>
+                  ),
+                )}
+
+                <Link
+                  href="/produkte"
+                  className="mt-2 flex items-center gap-3 rounded-xl bg-neutral-950 px-3 py-3.5 text-[13px] font-black text-white transition hover:bg-red-600"
+                >
+                  <Boxes size={17} />
+
+                  <span className="flex-1">
+                    Alle Produkte
+                  </span>
+
+                  <ArrowRight size={14} />
+                </Link>
+              </nav>
+            </aside>
+
+            <MarketingHero />
           </div>
-        )}
-      </div>
-
-      <div className="p-6">
-        <h3 className="text-xl font-black text-neutral-950">{title}</h3>
-
-        <p className="mt-2 min-h-[48px] text-sm leading-6 text-neutral-500">
-          {subtitle}
-        </p>
-
-        <div className="mt-5 text-sm font-black text-red-600">
-          Jetzt entdecken →
         </div>
-      </div>
-    </Link>
-  );
-}
+      </section>
 
-export default function HomePage() {
-  const purchasable = getPurchasableProducts();
-  const fallback = getTopProducts(1000);
-  const rawProducts = purchasable.length ? purchasable : fallback;
+      {/* ================= TRUST STRIP ================= */}
 
-  const allBuyable = uniqueBySlug(rawProducts.filter(isBuyable));
-
-  const laptops = allBuyable
-    .filter((p) => isLaptop(p) && getPrice(p) >= 300)
-    .sort(compareShowcaseProducts);
-
-  const monitors = allBuyable
-    .filter((p) => isMonitor(p) && getPrice(p) >= 80)
-    .sort(compareShowcaseProducts);
-
-  const smartphones = allBuyable
-    .filter((p) => isSmartphone(p) && getPrice(p) >= 250)
-    .sort(compareShowcaseProducts);
-
-  const tablets = allBuyable
-    .filter((p) => isTablet(p) && getPrice(p) >= 200)
-    .sort(compareShowcaseProducts);
-
-  const gpus = allBuyable
-    .filter((p) => isGpu(p) && getPrice(p) >= 150)
-    .sort(compareShowcaseProducts);
-
-  const network = allBuyable
-    .filter((p) => isNetwork(p) && getPrice(p) >= 30)
-    .sort(compareShowcaseProducts);
-
-  const storage = allBuyable
-    .filter((p) => isStorage(p) && getPrice(p) >= 30)
-    .sort(compareShowcaseProducts);
-
-  const topDeals = uniqueFamilies(allBuyable)
-    .filter((p) => getPrice(p) >= 250 && !isAccessory(p))
-    .sort(compareShowcaseProducts);
-
-  const accessories = allBuyable
-    .filter((p) => isAccessory(p) && getPrice(p) <= 300)
-    .sort((a, b) => getPrice(a) - getPrice(b));
-
-  const immediatelyAvailable = uniqueFamilies(allBuyable)
-    .filter((p) => getStockQty(p) >= 2 && getPrice(p) >= 250)
-    .sort((a, b) => getStockQty(b) - getStockQty(a));
-
-  const heroProducts = [
-    laptops[0],
-    monitors[0],
-    smartphones[0],
-    gpus[0],
-  ].filter(Boolean) as Product[];
-
-  const dayNumber = Math.floor(Date.now() / 86_400_000);
-  const heroMainProduct = heroProducts.length
-    ? heroProducts[dayNumber % heroProducts.length]
-    : undefined;
-  const heroMainSlug = heroMainProduct
-    ? getProductSlug(heroMainProduct)
-    : "";
-
-  const categoryShowcase: Record<string, Product | undefined> = {
-    Computer: pickShowcaseProduct(allBuyable, isLaptop),
-    "PC-Komponenten": pickShowcaseProduct(allBuyable, isGpu),
-    Peripherie: pickShowcaseProduct(allBuyable, isMonitor),
-    Netzwerk: pickShowcaseProduct(allBuyable, isNetwork),
-    Mobile: pickShowcaseProduct(allBuyable, isSmartphone),
-    Datenspeicher: pickShowcaseProduct(allBuyable, isStorage),
-  };
-
-  const heroSideProducts = [
-    pickShowcaseProduct(allBuyable, isLaptop),
-    pickShowcaseProduct(allBuyable, isMonitor),
-    pickShowcaseProduct(allBuyable, isSmartphone),
-  ].filter(
-    (product): product is Product =>
-      Boolean(product) && getProductSlug(product as Product) !== heroMainSlug,
-  );
-
-  return (
-    <main className="bg-white">
-      <PremiumHero
-        count={allBuyable.length}
-        mainProduct={heroMainProduct}
-        sideProducts={heroSideProducts}
+      <FeatureStrip
+        catalogTotal={catalogTotal}
       />
 
-      <section className="mx-auto max-w-7xl px-4 py-12">
-        <SectionHeader
-          eyebrow="Kategorien"
-          title="Alles für dein Setup"
-          subtitle="Schnell zu den wichtigsten Produktwelten der IUMATEC."
+      {/* ================= BANNERS ================= */}
+
+      <section className="bg-[#f7f7f6]">
+        <div className="mx-auto grid max-w-[1440px] gap-4 px-4 py-7 lg:grid-cols-2 xl:px-6 xl:py-8">
+          <MarketingPromo
+            href="/produkte?category=PC-Komponenten"
+            image="/images/home/iumatec-pc-performance.png"
+            alt="IUMATEC PC-Komponenten â€“ Performance fÃ¼r deinen Build"
+            buttonLabel="Jetzt shoppen"
+          />
+
+          <MarketingPromo
+            href="/produkte?category=Smart%20Home"
+            image="/images/home/iumatec-smart-home.png"
+            alt="IUMATEC Smart Home â€“ Smarte Technik fÃ¼r dein Zuhause"
+            buttonLabel="Mehr entdecken"
+          />
+        </div>
+      </section>
+
+      {/* ================= CATEGORIES ================= */}
+
+      <section className="mx-auto max-w-[1440px] px-4 py-11 xl:px-6">
+        <SectionHeading
+          eyebrow="Shop by Category"
+          title="Alles fÃ¼r dein digitales Setup"
+          subtitle="Schneller Einstieg in die wichtigsten Bereiche des IUMATEC Sortiments."
           href="/produkte"
+          linkLabel="Alle Kategorien"
         />
 
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {mainCategories.map((item) => (
-            <CategoryCard
-              key={item.title}
-              {...item}
-              product={categoryShowcase[item.title]}
+        <HomeCategoryGrid />
+      </section>
+
+      {/* ================= DEALS ================= */}
+
+      {offers.products.length > 0 ? (
+        <section className="border-y border-neutral-200 bg-white">
+          <div className="mx-auto max-w-[1440px] px-4 py-11 xl:px-6">
+            <SectionHeading
+              eyebrow="Deals"
+              title="Aktuelle Preisvorteile"
+              subtitle="Sofort verfÃ¼gbare Technik mit attraktiven Preisen."
+              href="/produkte?sort=price-asc"
+              linkLabel="Alle Angebote"
             />
-          ))}
-        </div>
-      </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-12">
-        <SectionHeader
-          eyebrow="Top Auswahl"
-          title="Aktuelle Angebote"
-          subtitle="Sofort kaufbare Produkte mit starken Preisen."
-          href="/produkte?sort=price-asc"
-        />
-        <ProductCarousel products={topDeals} />
-      </section>
-
-      <section className="bg-neutral-50">
-        <div className="mx-auto max-w-7xl px-4 py-12">
-          <SectionHeader
-            eyebrow="Computer"
-            title="Business Laptops"
-            subtitle="HP, Dell, Lenovo, Apple und weitere Geräte für Arbeit und Office."
-            href="/produkte?category=Computer&subcategory=Laptops"
-          />
-          <ProductCarousel products={laptops} />
-        </div>
-      </section>
-
-      {monitors.length > 0 && (
-        <section className="mx-auto max-w-7xl px-4 py-12">
-          <SectionHeader
-            eyebrow="Peripherie"
-            title="Monitore"
-            subtitle="Displays für Homeoffice, Gaming und produktive Arbeitsplätze."
-            href="/produkte?category=Peripherie&subcategory=Monitore"
-          />
-          <ProductCarousel products={monitors} uniqueFamily={false} />
+            <ProductRail
+              products={offers.products}
+            />
+          </div>
         </section>
-      )}
+      ) : null}
 
-      <section className="bg-neutral-50">
-        <div className="mx-auto max-w-7xl px-4 py-12">
-          <SectionHeader
+      {/* ================= TOP AUSWAHL ================= */}
+
+      {topSelection.length > 0 ? (
+        <section className="mx-auto max-w-[1440px] px-4 py-11 xl:px-6">
+          <SectionHeading
+            eyebrow="Top Auswahl"
+            title="Aktuell gefragt"
+            subtitle="Eine kompakte Auswahl aus Computer, Mobile, Displays und Komponenten."
+            href="/produkte"
+          />
+
+          <ProductRail
+            products={topSelection}
+          />
+        </section>
+      ) : null}
+
+      {/* ================= LAPTOPS ================= */}
+
+      {laptops.products.length > 0 ? (
+        <section className="border-y border-neutral-200 bg-white">
+          <div className="mx-auto max-w-[1440px] px-4 py-11 xl:px-6">
+            <SectionHeading
+              eyebrow="Computer"
+              title="Laptops fÃ¼r Arbeit und Alltag"
+              subtitle="LeistungsfÃ¤hige GerÃ¤te fÃ¼r Business, Homeoffice und unterwegs."
+              href="/produkte?category=Computer&subcategory=Laptops"
+            />
+
+            <ProductRail
+              products={laptops.products}
+            />
+          </div>
+        </section>
+      ) : null}
+
+      {/* ================= PC COMPONENTS ================= */}
+
+      {gpus.products.length > 0 ? (
+        <section className="mx-auto max-w-[1440px] px-4 py-11 xl:px-6">
+          <SectionHeading
+            eyebrow="PC-Komponenten"
+            title="Mehr Leistung fÃ¼r deinen PC"
+            subtitle="Komponenten, ZubehÃ¶r und Performance-Upgrades fÃ¼r dein System."
+            href="/produkte?category=PC-Komponenten"
+          />
+
+          <ProductRail
+            products={gpus.products}
+          />
+        </section>
+      ) : null}
+
+      {/* ================= MONITORS ================= */}
+
+      {monitors.products.length > 0 ? (
+        <section className="border-y border-neutral-200 bg-white">
+          <div className="mx-auto max-w-[1440px] px-4 py-11 xl:px-6">
+            <SectionHeading
+              eyebrow="Peripherie"
+              title="Monitore fÃ¼r jedes Setup"
+              subtitle="Displays fÃ¼r produktives Arbeiten, Content und Gaming."
+              href="/produkte?category=Peripherie&subcategory=Monitore"
+            />
+
+            <ProductRail
+              products={monitors.products}
+            />
+          </div>
+        </section>
+      ) : null}
+
+      {/* ================= MOBILE ================= */}
+
+      {smartphones.products.length > 0 ? (
+        <section className="mx-auto max-w-[1440px] px-4 py-11 xl:px-6">
+          <SectionHeading
             eyebrow="Mobile"
-            title="Smartphones"
-            subtitle="Apple, Samsung, Xiaomi und weitere mobile Geräte."
+            title="Smartphones fÃ¼r jeden Alltag"
+            subtitle="Aktuelle GerÃ¤te fÃ¼r Kommunikation, Arbeit, Foto und Entertainment."
             href="/produkte?category=Mobile&subcategory=Smartphones"
           />
-          <ProductCarousel products={smartphones} />
-        </div>
-      </section>
 
-      {tablets.length > 0 && (
-        <section className="mx-auto max-w-7xl px-4 py-12">
-          <SectionHeader
-            eyebrow="Mobile"
-            title="Tablets"
-            subtitle="iPad, Galaxy Tab und Tablets für Arbeit, Schule und Freizeit."
-            href="/produkte?category=Mobile&subcategory=Tablets"
+          <ProductRail
+            products={
+              smartphones.products
+            }
           />
-          <ProductCarousel products={tablets} />
         </section>
-      )}
+      ) : null}
 
-      {gpus.length > 0 && (
-        <section className="bg-neutral-50">
-          <div className="mx-auto max-w-7xl px-4 py-12">
-            <SectionHeader
-              eyebrow="PC-Komponenten"
-              title="Grafikkarten"
-              subtitle="GPUs für Gaming, Workstation und professionelle Anwendungen."
-              href="/produkte?category=PC-Komponenten&subcategory=Grafikkarten"
-            />
-            <ProductCarousel products={gpus} uniqueFamily={false} />
-          </div>
-        </section>
-      )}
+      {/* ================= BOTTOM CTA ================= */}
 
-      {network.length > 0 && (
-        <section className="mx-auto max-w-7xl px-4 py-12">
-          <SectionHeader
-            eyebrow="Netzwerk"
-            title="Netzwerk & WLAN"
-            subtitle="Router, Switches und WLAN Mesh für stabile Verbindungen."
-            href="/produkte?category=Netzwerk"
-          />
-          <ProductCarousel products={network} />
-        </section>
-      )}
-
-      {storage.length > 0 && (
-        <section className="bg-neutral-50">
-          <div className="mx-auto max-w-7xl px-4 py-12">
-            <SectionHeader
-              eyebrow="Datenspeicher"
-              title="SSD, HDD & NAS"
-              subtitle="Speicherlösungen für PCs, Server, Backups und Daten."
-              href="/produkte?category=Datenspeicher"
-            />
-            <ProductCarousel products={storage} />
-          </div>
-        </section>
-      )}
-
-      {accessories.length > 0 && (
-        <section className="mx-auto max-w-7xl px-4 py-12">
-          <SectionHeader
-            eyebrow="Zubehör"
-            title="Zubehör unter CHF 300"
-            subtitle="Adapter, Kabel, Dockingstationen, Tastaturen, Mäuse und mehr."
-            href="/produkte?category=Zubehör"
-          />
-          <ProductCarousel products={accessories} uniqueFamily={false} />
-        </section>
-      )}
-
-      <section className="bg-neutral-950 text-white">
-        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 lg:grid-cols-[1fr_1.4fr] lg:items-center">
+      <section className="border-t border-neutral-200 bg-neutral-950 text-white">
+        <div className="mx-auto grid max-w-[1440px] gap-6 px-4 py-10 md:grid-cols-[1fr_auto] md:items-center xl:px-6">
           <div>
-            <div className="inline-flex rounded-full bg-white/10 px-4 py-2 text-sm font-bold text-white">
-              Sofort lieferbar
+            <div className="text-[10px] font-black uppercase tracking-[0.17em] text-red-400">
+              IUMATEC Schweiz
             </div>
 
-            <h2 className="mt-5 max-w-xl text-4xl font-black">
-              Technik mit Lagerbestand.
+            <h2 className="mt-2 text-2xl font-black tracking-tight sm:text-3xl">
+              Technik, die einfach passt.
             </h2>
 
-            <p className="mt-4 max-w-xl text-neutral-300">
-              Produkte mit verfügbarem Bestand, transparenter Preisstruktur und
-              sicherem Checkout.
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-white/65">
+              Computer, Mobile, Netzwerk,
+              Smart Home und Business-Technik
+              in einem klaren Schweizer
+              Sortiment.
             </p>
-
-            <Link
-              href="/produkte?stock=available"
-              className="mt-8 inline-flex rounded-2xl bg-red-600 px-7 py-4 font-black text-white transition hover:bg-red-700"
-            >
-              Sofort verfügbare Produkte ansehen
-            </Link>
           </div>
 
-          <ProductCarousel products={immediatelyAvailable} />
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-7xl px-4 py-14">
-        <SectionHeader
-          eyebrow="Warum IUMATEC?"
-          title="Schweizer Shop. Klare Preise. Sicherer Checkout."
-          subtitle="Die wichtigsten Punkte für Vertrauen und saubere Bestellung."
-          href="/versand"
-        />
-
-        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-          {[
-            [
-              "🇨🇭",
-              "CH Versand",
-              "Lieferung in der Schweiz mit klaren Konditionen.",
-            ],
-            [
-              "🔒",
-              "Sichere Zahlung",
-              "Checkout über Shopify mit Kreditkarte, TWINT und mehr.",
-            ],
-            [
-              "✅",
-              "Originalware",
-              "Produkte von offiziellen Distributoren und Marken.",
-            ],
-            ["💬", "Support", "Persönlicher Support innerhalb von 24 Stunden."],
-          ].map(([icon, title, text]) => (
-            <div
-              key={title}
-              className="rounded-[2rem] border border-neutral-200 bg-white p-6 shadow-sm"
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href="/produkte"
+              className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-black text-neutral-950 transition hover:bg-red-600 hover:text-white"
             >
-              <div className="text-4xl">{icon}</div>
-              <div className="mt-4 text-xl font-black text-neutral-950">
-                {title}
-              </div>
-              <p className="mt-2 text-sm leading-6 text-neutral-500">{text}</p>
-            </div>
-          ))}
+              Sortiment entdecken
+
+              <ArrowRight size={15} />
+            </Link>
+
+            <Link
+              href="/kontakt"
+              className="inline-flex items-center gap-2 rounded-xl border border-white/15 px-5 py-3 text-sm font-black text-white transition hover:bg-white/10"
+            >
+              <Headphones size={16} />
+
+              Support
+            </Link>
+          </div>
         </div>
       </section>
     </main>

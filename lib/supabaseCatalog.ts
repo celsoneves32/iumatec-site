@@ -98,10 +98,10 @@ const RELATED_COLUMNS = [
 
 function getSupabase() {
   const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const secret = process.env.SUPABASE_SECRET_KEY;
+  const secret = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!url) throw new Error("Missing env var: SUPABASE_URL");
-  if (!secret) throw new Error("Missing env var: SUPABASE_SECRET_KEY");
+  if (!secret) throw new Error("Missing env var: SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY");
 
   return createClient(url, secret, {
     auth: { persistSession: false, autoRefreshToken: false },
@@ -306,6 +306,21 @@ export async function getRelatedProducts(
 }
 
 /** Fast path used by /api/products so visible results do not wait for facets. */
+const SUBCATEGORY_ALIASES: Record<string, string[]> = {
+  Monitore: ["Monitore", "Monitors"],
+  RAM: ["RAM", "Arbeitsspeicher"],
+  Switches: ["Switches", "Netzwerk-Switches"],
+  Dockingstationen: ["Dockingstationen", "Docking & Hubs"],
+  Steckdosen: ["Steckdosen", "Smarte Steckdosen"],
+  Beleuchtung: ["Beleuchtung", "Smarte Beleuchtung"],
+};
+
+function subcategoryValues(value?: string | null): string[] {
+  const clean = String(value || "").trim();
+  if (!clean || clean === "Alle") return [];
+  return SUBCATEGORY_ALIASES[clean] || [clean];
+}
+
 export async function queryCatalogProducts(
   query: CatalogQuery = {},
 ): Promise<CatalogResponse> {
@@ -326,7 +341,12 @@ export async function queryCatalogProducts(
     ].join(","));
   }
   if (query.category && query.category !== "Alle") request = request.eq("category", query.category);
-  if (query.subcategory && query.subcategory !== "Alle") request = request.eq("subcategory", query.subcategory);
+  if (query.subcategory && query.subcategory !== "Alle") {
+    const values = subcategoryValues(query.subcategory);
+    request = values.length > 1
+      ? request.in("subcategory", values)
+      : request.eq("subcategory", values[0]);
+  }
   if (query.brands?.length) request = request.in("brand", query.brands.filter(Boolean));
   if (Number.isFinite(query.minPrice)) request = request.gte("price", Number(query.minPrice));
   if (Number.isFinite(query.maxPrice)) request = request.lte("price", Number(query.maxPrice));

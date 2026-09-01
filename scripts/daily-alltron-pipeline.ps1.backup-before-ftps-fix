@@ -1,0 +1,249 @@
+﻿param()
+
+$ErrorActionPreference = "Stop"
+
+$ROOT = "C:\Users\celso\Documents\Projetos\iumatec-site"
+Set-Location $ROOT
+
+$DOWNLOADS = Join-Path $ROOT "integrations\alltron\downloads"
+$OUT       = Join-Path $ROOT "integrations\alltron\out"
+$LOGDIR    = Join-Path $OUT "daily-automation"
+
+New-Item -ItemType Directory -Force -Path $DOWNLOADS | Out-Null
+New-Item -ItemType Directory -Force -Path $LOGDIR | Out-Null
+
+$STAMP = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
+$LOG   = Join-Path $LOGDIR "daily-$STAMP.log"
+
+function Log($Text) {
+    $line = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')  $Text"
+    Write-Host $line
+    Add-Content -Path $LOG -Value $line
+}
+
+function Fail($Text) {
+    Log "FATAL: $Text"
+    exit 1
+}
+
+function Run-Node {
+    param(
+        [string]$Label,
+        [string[]]$Arguments
+    )
+
+    Log ""
+    Log "================================================="
+    Log $Label
+    Log "================================================="
+
+    & node @Arguments 2>&1 | Tee-Object -FilePath $LOG -Append
+
+    if ($LASTEXITCODE -ne 0) {
+        Fail "$Label falhou. Exit code: $LASTEXITCODE"
+    }
+
+    Log "$Label OK"
+}
+
+# --------------------------------------------------
+# CARREGAR .env.local
+# --------------------------------------------------
+
+$envFile = Join-Path $ROOT ".env.local"
+
+if (!(Test-Path $envFile)) {
+    Fail ".env.local não encontrado."
+}
+
+Get-Content $envFile | ForEach-Object {
+
+    $line = $_.Trim()
+
+    if (!$line) { return }
+    if ($line.StartsWith("#")) { return }
+
+    if ($line -match '^([A-Za-z_][A-Za-z0-9_]*)=(.*)$') {
+
+        $name  = $matches[1]
+        $value = $matches[2].Trim()
+
+        if (
+            ($value.StartsWith('"') -and $value.EndsWith('"')) -or
+            ($value.StartsWith("'") -and $value.EndsWith("'"))
+        ) {
+            $value = $value.Substring(1, $value.Length - 2)
+        }
+
+        [Environment]::SetEnvironmentVariable(
+            $name,
+            $value,
+            "Process"
+        )
+    }
+}
+
+if (!$env:ALLTRON_HOST) { Fail "ALLTRON_HOST não definido." }
+if (!$env:ALLTRON_USER) { Fail "ALLTRON_USER não definido." }
+if (!$env:ALLTRON_PASS) { Fail "ALLTRON_PASS não definido." }
+
+Log "================================================="
+Log "IUMATEC DAILY ALLTRON PIPELINE"
+Log "================================================="
+Log "Projeto: $ROOT"
+Log "Alltron host: $($env:ALLTRON_HOST)"
+Log "Log: $LOG"
+
+# --------------------------------------------------
+# DOWNLOAD ATÓMICO DOS 4 FEEDS ALLTRON
+# --------------------------------------------------
+
+$files = @(
+    "ArtikeldatenV2.xml",
+    "PreisdatenV2.xml",
+    "alltron-bilder-urls.csv",
+    "alltron-energielabels.xml"
+)
+
+foreach ($file in $files) {
+
+    Log ""
+    Log "Downloading Alltron: $file"
+
+    $destination = Join-Path $DOWNLOADS $file
+    $temporary   = "$destination.part"
+
+    if (Test-Path $temporary) {
+        Remove-Item $temporary -Force
+    }
+
+    $url = "ftp://$($env:ALLTRON_HOST)/dataexport/$file"
+
+    & curl.exe `
+        --fail `
+        --show-error `
+        --silent `
+        --ssl-reqd `
+        --user "$($env:ALLTRON_USER):$($env:ALLTRON_PASS)" `
+        $url `
+        --output $temporary
+
+    if ($LASTEXITCODE -ne 0) {
+        Fail "Download falhou: $file"
+    }
+
+    if (!(Test-Path $temporary)) {
+        Fail "Ficheiro temporário não criado: $file"
+    }
+
+    $size = (Get-Item $temporary).Length
+
+    if ($size -lt 100000) {
+        Fail "Feed demasiado pequeno/suspeito: $file ($size bytes)"
+    }
+
+    Move-Item $temporary $destination -Force
+
+    Log "Download OK: $file - $size bytes"
+}
+
+# --------------------------------------------------
+# VERIFICAÇÃO DOS FEEDS
+# --------------------------------------------------
+
+foreach ($file in $files) {
+
+    $path = Join-Path $DOWNLOADS $file
+
+    if (!(Test-Path $path)) {
+        Fail "Feed obrigatório em falta: $file"
+    }
+
+    $item = Get-Item $path
+    Log "$($item.Name) | $($item.Length) bytes | $($item.LastWriteTime)"
+}
+
+# --------------------------------------------------
+# 1. CRIAR TECH CATALOG A PARTIR DOS FEEDS NOVOS
+# --------------------------------------------------
+
+Run-Node `
+    "STEP 1 - PARSE ALLTRON PRODUCTS" `
+    @(
+        "--env-file=.env.local",
+        ".\scripts\parseAlltronProducts.mjs"
+    )
+
+# --------------------------------------------------
+# 2. RECONSTRUIR MASTER COM PREÇO PROTEGIDO
+# --------------------------------------------------
+
+Run-Node `
+    "STEP 2 - BUILD MASTER CATALOG" `
+    @(
+        "--env-file=.env.local",
+        ".\scripts\build-master-catalog.mjs"
+    )
+
+# --------------------------------------------------
+# 3. ATUALIZAR STOCK ALLTRON -> SUPABASE
+# PREÇOS DESTE SCRIPT ESTÃO DESATIVADOS
+# --------------------------------------------------
+
+Run-Node `
+    "STEP 3 - ALLTRON STOCK -> SUPABASE" `
+    @(
+        "--env-file=.env.local",
+        ".\scripts\sync-alltron-price-stock-to-supabase.mjs",
+        "--price-source=.\integrations\alltron\downloads\PreisdatenV2.xml",
+        "--article-source=.\integrations\alltron\downloads\ArtikeldatenV2.xml",
+        "--apply",
+        "--all",
+        "--confirm=IUMATEC-ALLTRON-SOURCE"
+    )
+
+# --------------------------------------------------
+# 4. PROTEGER MARGEM NO SUPABASE
+# SOMENTE SUBIDAS ATÉ AO MÍNIMO PROTEGIDO
+# --------------------------------------------------
+
+Run-Node `
+    "STEP 4 - PROTECTED PRICES -> SUPABASE" `
+    @(
+        "--env-file=.env.local",
+        ".\scripts\sync-master-protected-prices-to-supabase.mjs",
+        "--apply",
+        "--all",
+        "--protected-only",
+        "--confirm=IUMATEC-PROTECTED-PRICE"
+    )
+
+# --------------------------------------------------
+# 5. SUPABASE -> SHOPIFY
+# --------------------------------------------------
+
+Run-Node `
+    "STEP 5 - SUPABASE PRICES -> SHOPIFY" `
+    @(
+        "--env-file=.env.local",
+        ".\scripts\reconcile-shopify-prices-from-supabase.mjs",
+        "--apply",
+        "--limit=10000"
+    )
+
+# --------------------------------------------------
+# TERMINADO
+# --------------------------------------------------
+
+Log ""
+Log "================================================="
+Log "IUMATEC DAILY PIPELINE COMPLETED SUCCESSFULLY"
+Log "================================================="
+Log "Alltron feeds: OK"
+Log "Master catalog: OK"
+Log "Stock Supabase: OK"
+Log "Protected margin prices: OK"
+Log "Shopify prices: OK"
+Log "================================================="
+
+exit 0

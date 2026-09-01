@@ -1,0 +1,97 @@
+﻿{
+    "totalProducts":  202527,
+    "productsWithNoImage":  7,
+    "productsWith1Image":  194343,
+    "productsWith2Images":  6430,
+    "productsWith3Plus":  1747,
+    "samplesWith1Image":  [
+                              {
+                                  "title":  "onit Type-C Digital 3.5 Audio Adapter",
+                                  "litm":  "1387438",
+                                  "sku":  "TKMHA ONIT AUDIO ADAPTER TYP-C",
+                                  "image":  "https://cdn.competec.ch/images2/5/6/9/265938965/265938965_xxl3.jpg?export=Ga4PCo68TlLe9g",
+                                  "imagesCount":  1,
+                                  "images":  [
+                                                 "https://cdn.competec.ch/images2/5/6/9/265938965/265938965_xxl3.jpg?export=Ga4PCo68TlLe9g"
+                                             ],
+                                  "imageUrls":  [
+                                                    "https://cdn.competec.ch/images2/5/6/9/265938965/265938965_xxl3.jpg?export=Ga4PCo68TlLe9g"
+                                                ]
+                              },
+                              {
+                                  "title":  "Caran d`Ache Kugelschreiber 825",
+                                  "litm":  "545923",
+                                  "sku":  "BU CARAN KUGELSCHREIBER  825 S",
+                                  "image":  "https://cdn.competec.ch/images2/4/6/1/195126164/195126164_xxl3.jpg?export=Ga4PCo68TlLe9g",
+                                  "imagesCount":  1,
+                                  "images":  [
+                                                 "https://cdn.competec.ch/images2/4/6/1/195126164/195126164_xxl3.jpg?export=Ga4PCo68TlLe9g"
+                                             ],
+                                  "imageUrls":  [
+                                                    "https://cdn.competec.ch/images2/4/6/1/195126164/195126164_xxl3.jpg?export=Ga4PCo68TlLe9g"
+                                                ]
+                              },
+                              {
+                                  "title":  "Factis Radiergummi P30",
+                                  "litm":  "1400686",
+                                  "sku":  "BU FACTIS RADIERER P30",
+                                  "image":  "https://cdn.competec.ch/images2/7/6/7/227696767/227696767_xxl3.jpg?export=Ga4PCo68TlLe9g",
+                                  "imagesCount":  1,
+                                  "images":  [
+                                                 "https://cdn.competec.ch/images2/7/6/7/227696767/227696767_xxl3.jpg?export=Ga4PCo68TlLe9g"
+                                             ],
+                                  "imageUrls":  [
+                                                    "https://cdn.competec.ch/images2/7/6/7/227696767/227696767_xxl3.jpg?export=Ga4PCo68TlLe9g"
+                                                ]
+                              }
+                          ],
+    "samplesWithMultipleImages":  [
+                                      {
+                                          "title":  "Caran d\u0027Ache Schulbleistift rot",
+                                          "litm":  "1089467",
+                                          "sku":  "BU CARAN D ACHE STIFT 341.272",
+                                          "image":  "https://cdn.competec.ch/images2/3/4/8/388399843/388399843_xxl3.jpg?export=Ga4PCo68TlLe9g",
+                                          "imagesCount":  2,
+                                          "images":  [
+                                                         "https://cdn.competec.ch/images2/3/4/8/388399843/388399843_xxl3.jpg?export=Ga4PCo68TlLe9g",
+                                                         "https://cdn.competec.ch/images2/2/1/2/143385212/143385212_xxl3.jpg?export=Ga4PCo68TlLe9g"
+                                                     ],
+                                          "imageUrls":  [
+                                                            "https://cdn.competec.ch/images2/3/4/8/388399843/388399843_xxl3.jpg?export=Ga4PCo68TlLe9g",
+                                                            "https://cdn.competec.ch/images2/2/1/2/143385212/143385212_xxl3.jpg?export=Ga4PCo68TlLe9g"
+                                                        ]
+                                      },
+                                      {
+                                          "title":  "Antalis Multiline Eco 50 Kopierpapier",
+                                          "litm":  "1408646",
+                                          "sku":  "BU ANTALIS 281201",
+                                          "image":  "https://cdn.competec.ch/images2/2/5/3/372471352/372471352_xxl3.jpg?export=Ga4PCo68TlLe9g",
+                                          "imagesCount":  2,
+                                          "images":  [
+                                                         "https://cdn.competec.ch/images2/2/5/3/372471352/372471352_xxl3.jpg?export=Ga4PCo68TlLe9g",
+                                                         "https://cdn.competec.ch/images2/6/2/2/230129226/230129226_xxl3.jpg?export=Ga4PCo68TlLe9g"
+                                                     ],
+                                          "imageUrls":  [
+                                                            "https://cdn.competec.ch/images2/2/5/3/372471352/372471352_xxl3.jpg?export=Ga4PCo68TlLe9g",
+                                                            "https://cdn.competec.ch/images2/6/2/2/230129226/230129226_xxl3.jpg?export=Ga4PCo68TlLe9g"
+                                                        ]
+                                      },
+                                      {
+                                          "title":  "Revell Porsche 934 RSR JÃ¤germeister",
+                                          "litm":  "1429513",
+                                          "sku":  "BU STABILO LEUCHTMARKER 70/31",
+                                          "image":  "https://cdn.competec.ch/images2/1/2/2/309574221/309574221_xxl3.jpg?export=Ga4PCo68TlLe9g",
+                                          "imagesCount":  3,
+                                          "images":  [
+                                                         "https://cdn.competec.ch/images2/1/2/2/309574221/309574221_xxl3.jpg?export=Ga4PCo68TlLe9g",
+                                                         "https://cdn.competec.ch/images2/9/2/4/58385429/58385429_xxl3.jpg?export=Ga4PCo68TlLe9g",
+                                                         "https://cdn.competec.ch/images2/3/8/9/53524983/53524983_xxl3.jpg?export=Ga4PCo68TlLe9g"
+                                                     ],
+                                          "imageUrls":  [
+                                                            "https://cdn.competec.ch/images2/1/2/2/309574221/309574221_xxl3.jpg?export=Ga4PCo68TlLe9g",
+                                                            "https://cdn.competec.ch/images2/9/2/4/58385429/58385429_xxl3.jpg?export=Ga4PCo68TlLe9g",
+                                                            "https://cdn.competec.ch/images2/3/8/9/53524983/53524983_xxl3.jpg?export=Ga4PCo68TlLe9g"
+                                                        ]
+                                      }
+                                  ]
+}

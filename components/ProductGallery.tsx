@@ -140,7 +140,6 @@ export default function ProductGallery({
               src={activeImage}
               alt={`${title} – Produktbild ${activeIndex + 1}`}
               fill
-              unoptimized
               priority={activeIndex === 0}
               sizes="(max-width: 1024px) 100vw, 55vw"
               className="object-contain p-6 transition-transform duration-300 sm:p-10 lg:p-12"
@@ -253,8 +252,7 @@ export default function ProductGallery({
                     src={image}
                     alt={`${title} – Vorschaubild ${index + 1}`}
                     fill
-                    unoptimized
-                    sizes="96px"
+                          sizes="96px"
                     className="object-contain p-2"
                   />
                 </button>
@@ -301,7 +299,6 @@ export default function ProductGallery({
               src={activeImage}
               alt={`${title} – Vergrössertes Produktbild`}
               fill
-              unoptimized
               sizes="100vw"
               className="object-contain p-4 sm:p-8"
               priority

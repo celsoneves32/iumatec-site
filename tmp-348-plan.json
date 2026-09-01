@@ -1,0 +1,3134 @@
+[
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1059220",
+        "supabaseSku":  "TKMFO PG IP4.7 CF BLACK",
+        "currentSku":  "TKMFO PG IP4.7 CF BLACK",
+        "alltronPrice":  "39,95",
+        "alltronStock":  "79"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1059222",
+        "supabaseSku":  "TKMFO PG IP4.7 SF",
+        "currentSku":  "TKMFO PG IP4.7 SF",
+        "alltronPrice":  "34,95",
+        "alltronStock":  "680"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "110996",
+        "supabaseSku":  "NO PA ZU DC CF-LND1224A",
+        "currentSku":  "NO PA ZU DC CF-LND1224A",
+        "alltronPrice":  "326,8",
+        "alltronStock":  "36"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1155338",
+        "supabaseSku":  "ZU ITEC DOCK C31NANODOCKPROPD",
+        "currentSku":  "ZU ITEC DOCK C31NANODOCKPROPD",
+        "alltronPrice":  "109",
+        "alltronStock":  "8"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1265512",
+        "supabaseSku":  "DKZ SI DUKEN SWITCH-X GIMB DG",
+        "currentSku":  "DKZ SI DUKEN SWITCH-X GIMB DG",
+        "alltronPrice":  "74,9",
+        "alltronStock":  "1"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1293481",
+        "supabaseSku":  "ZU ITEC DOCK 4336206",
+        "currentSku":  "ZU ITEC DOCK 4336206",
+        "alltronPrice":  "149",
+        "alltronStock":  "2"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1308091",
+        "supabaseSku":  "FRZ FID 4251207402012",
+        "currentSku":  "FRZ FID 4251207402012",
+        "alltronPrice":  "44,6",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1311488",
+        "supabaseSku":  "NOZ TA DI D31878-RPET",
+        "currentSku":  "NOZ TA DI D31878-RPET",
+        "alltronPrice":  "89,9",
+        "alltronStock":  "12"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1340989",
+        "supabaseSku":  "TKMCO NEV SAM S22 CARBON MAG",
+        "currentSku":  "TKMCO NEV SAM S22 CARBON MAG",
+        "alltronPrice":  "79",
+        "alltronStock":  "1"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1346433",
+        "supabaseSku":  "FRZ QL 9348943021975",
+        "currentSku":  "FRZ QL 9348943021975",
+        "alltronPrice":  "29,9",
+        "alltronStock":  "16"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1357746",
+        "supabaseSku":  "BU KENSINGTON FILTER K51700WW",
+        "currentSku":  "BU KENSINGTON FILTER K51700WW",
+        "alltronPrice":  "77,2",
+        "alltronStock":  "18"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1393328",
+        "supabaseSku":  "TKMCO DEFEND CASE SE/7/8",
+        "currentSku":  "TKMCO DEFEND CASE SE/7/8",
+        "alltronPrice":  "29,95",
+        "alltronStock":  "9"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1404169",
+        "supabaseSku":  "TKMCO NOM IP14M ETUI NATUR NL",
+        "currentSku":  "TKMCO NOM IP14M ETUI NATUR NL",
+        "alltronPrice":  "6,7",
+        "alltronStock":  "2"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1410261",
+        "supabaseSku":  "TKMCO HI AP IP14PM SILIKON BEI",
+        "currentSku":  "TKMCO HI AP IP14PM SILIKON BEI",
+        "alltronPrice":  "38,4",
+        "alltronStock":  "4"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1410266",
+        "supabaseSku":  "TKMCO HI AP IP14M SILIKON BLA",
+        "currentSku":  "TKMCO HI AP IP14M SILIKON BLA",
+        "alltronPrice":  "27,9",
+        "alltronStock":  "2"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1410270",
+        "supabaseSku":  "TKMCO HI AP IP14M SILIKON GRE",
+        "currentSku":  "TKMCO HI AP IP14M SILIKON GRE",
+        "alltronPrice":  "35",
+        "alltronStock":  "6"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1410297",
+        "supabaseSku":  "TKMCO HI AP IP14P SEETHRU WHI",
+        "currentSku":  "TKMCO HI AP IP14P SEETHRU WHI",
+        "alltronPrice":  "27,9",
+        "alltronStock":  "15"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1410634",
+        "supabaseSku":  "TKMCO OB IP 14PM STRADA BLA",
+        "currentSku":  "TKMCO OB IP 14PM STRADA BLA",
+        "alltronPrice":  "49,95",
+        "alltronStock":  "2"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1410641",
+        "supabaseSku":  "TKMCO OB IP 14P SYMMETRY+ CLE",
+        "currentSku":  "TKMCO OB IP 14P SYMMETRY+ CLE",
+        "alltronPrice":  "39,95",
+        "alltronStock":  "10"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1425055",
+        "supabaseSku":  "TKMCO DBR COPENHAGEN IP14M TA",
+        "currentSku":  "TKMCO DBR COPENHAGEN IP14M TA",
+        "alltronPrice":  "39,95",
+        "alltronStock":  "7"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1428705",
+        "supabaseSku":  "TKMFO PG IP14P CF PRIV",
+        "currentSku":  "TKMFO PG IP14P CF PRIV",
+        "alltronPrice":  "37,95",
+        "alltronStock":  "19"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1431263",
+        "supabaseSku":  "NO NA SICHERUNG 3 VERRIEGEL ZS",
+        "currentSku":  "NO NA SICHERUNG 3 VERRIEGEL ZS",
+        "alltronPrice":  "64",
+        "alltronStock":  "6"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1451114",
+        "supabaseSku":  "TKMCO NEV AP IP 14+ CS LOGO",
+        "currentSku":  "TKMCO NEV AP IP 14+ CS LOGO",
+        "alltronPrice":  "44,15",
+        "alltronStock":  "2"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1470523",
+        "supabaseSku":  "UHR FITBIT 810038858364",
+        "currentSku":  "UHR FITBIT 810038858364",
+        "alltronPrice":  "252,9",
+        "alltronStock":  "2"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1487404",
+        "supabaseSku":  "TKMCO URB IP14P NECK ALLBLACK",
+        "currentSku":  "TKMCO URB IP14P NECK ALLBLACK",
+        "alltronPrice":  "34",
+        "alltronStock":  "1"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1487427",
+        "supabaseSku":  "TKMCO URB IP14 NECK RED",
+        "currentSku":  "TKMCO URB IP14 NECK RED",
+        "alltronPrice":  "30,8",
+        "alltronStock":  "2"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1502148",
+        "supabaseSku":  "TKMCO PG SAM S23U HARDCASE",
+        "currentSku":  "TKMCO PG SAM S23U HARDCASE",
+        "alltronPrice":  "29,95",
+        "alltronStock":  "4"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1503204",
+        "supabaseSku":  "TKMCO DBR GREENLAND S23+ BLA",
+        "currentSku":  "TKMCO DBR GREENLAND S23+ BLA",
+        "alltronPrice":  "19,95",
+        "alltronStock":  "4"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1503776",
+        "supabaseSku":  "TKMCO SAM S23+ SIL GRIP WHI",
+        "currentSku":  "TKMCO SAM S23+ SIL GRIP WHI",
+        "alltronPrice":  "38,9",
+        "alltronStock":  "6"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1519984",
+        "supabaseSku":  "TKMCO HI AP IP14P SILIKON RED",
+        "currentSku":  "TKMCO HI AP IP14P SILIKON RED",
+        "alltronPrice":  "108",
+        "alltronStock":  "1"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1527765",
+        "supabaseSku":  "TKMCO IOS IP14+ CARGOL",
+        "currentSku":  "TKMCO IOS IP14+ CARGOL",
+        "alltronPrice":  "27,45",
+        "alltronStock":  "2"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1539101",
+        "supabaseSku":  "TKMCO NEV SAM A54 VARIO BLACK",
+        "currentSku":  "TKMCO NEV SAM A54 VARIO BLACK",
+        "alltronPrice":  "16,7",
+        "alltronStock":  "170"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1542350",
+        "supabaseSku":  "NOZ LMP UBSC POWERD.5P BK",
+        "currentSku":  "NOZ LMP UBSC POWERD.5P BK",
+        "alltronPrice":  "125",
+        "alltronStock":  "17"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1558634",
+        "supabaseSku":  "PC DE ZU TA 580-AKPP",
+        "currentSku":  "PC DE ZU TA 580-AKPP",
+        "alltronPrice":  "59,7",
+        "alltronStock":  "21"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1561657",
+        "supabaseSku":  "HH EUREKA KAFFEEMUHLE 6014",
+        "currentSku":  "HH EUREKA KAFFEEMUHLE 6014",
+        "alltronPrice":  "799",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1571431",
+        "supabaseSku":  "TKMHA POP CAPS SHIELD",
+        "currentSku":  "TKMHA POP CAPS SHIELD",
+        "alltronPrice":  "23,9",
+        "alltronStock":  "2"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1579847",
+        "supabaseSku":  "NOZ DBR SLEEVE SKAGEN+ 13 BLA",
+        "currentSku":  "NOZ DBR SLEEVE SKAGEN+ 13 BLA",
+        "alltronPrice":  "79,95",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1579849",
+        "supabaseSku":  "NOZ DBR SLEEVE SKAGEN+ 14 BLA",
+        "currentSku":  "NOZ DBR SLEEVE SKAGEN+ 14 BLA",
+        "alltronPrice":  "79,95",
+        "alltronStock":  "10"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1589208",
+        "supabaseSku":  "TKMCO NUD IP15+ BOLD BEI",
+        "currentSku":  "TKMCO NUD IP15+ BOLD BEI",
+        "alltronPrice":  "25,9",
+        "alltronStock":  "110"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1589209",
+        "supabaseSku":  "TKMCO NUD IP15+ BOLD GRE",
+        "currentSku":  "TKMCO NUD IP15+ BOLD GRE",
+        "alltronPrice":  "26,9",
+        "alltronStock":  "110"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1589903",
+        "supabaseSku":  "TKMFO PG IP15PM UWF",
+        "currentSku":  "TKMFO PG IP15PM UWF",
+        "alltronPrice":  "39,95",
+        "alltronStock":  "378"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1589908",
+        "supabaseSku":  "TKMFO PG IP15P/15PM CAMERA PRO",
+        "currentSku":  "TKMFO PG IP15P/15PM CAMERA PRO",
+        "alltronPrice":  "24,95",
+        "alltronStock":  "123"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1594091",
+        "supabaseSku":  "TKMCO SAM TAB S9U BOOK WHI",
+        "currentSku":  "TKMCO SAM TAB S9U BOOK WHI",
+        "alltronPrice":  "119,9",
+        "alltronStock":  "9"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1599357",
+        "supabaseSku":  "TKMCO OB IP 15 FRE BLA",
+        "currentSku":  "TKMCO OB IP 15 FRE BLA",
+        "alltronPrice":  "89,95",
+        "alltronStock":  "11"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1601971",
+        "supabaseSku":  "TKMCO UAG IPSE WORKFLOW WHI",
+        "currentSku":  "TKMCO UAG IPSE WORKFLOW WHI",
+        "alltronPrice":  "169",
+        "alltronStock":  "1"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1615178",
+        "supabaseSku":  "TKMCO NEV IP 15+ SH BL MAG",
+        "currentSku":  "TKMCO NEV IP 15+ SH BL MAG",
+        "alltronPrice":  "18,9",
+        "alltronStock":  "13"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1616171",
+        "supabaseSku":  "TKMCO DBR COPGEN IP15 TAN",
+        "currentSku":  "TKMCO DBR COPGEN IP15 TAN",
+        "alltronPrice":  "39,95",
+        "alltronStock":  "5"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1616190",
+        "supabaseSku":  "TKMCO DBR GRLND IP15PM BLU",
+        "currentSku":  "TKMCO DBR GRLND IP15PM BLU",
+        "alltronPrice":  "19,95",
+        "alltronStock":  "17"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1616193",
+        "supabaseSku":  "TKMCO DBR ICLNDD3O IP15 CLE",
+        "currentSku":  "TKMCO DBR ICLNDD3O IP15 CLE",
+        "alltronPrice":  "39,95",
+        "alltronStock":  "29"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1616197",
+        "supabaseSku":  "TKMCO DBR ICLNDD3O IP15+ BLU",
+        "currentSku":  "TKMCO DBR ICLNDD3O IP15+ BLU",
+        "alltronPrice":  "39,95",
+        "alltronStock":  "33"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1616216",
+        "supabaseSku":  "TKMCO DBR NWYRK IP15+ GRE",
+        "currentSku":  "TKMCO DBR NWYRK IP15+ GRE",
+        "alltronPrice":  "54,95",
+        "alltronStock":  "27"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1616218",
+        "supabaseSku":  "TKMCO DBR NWYRK IP15+ BLU",
+        "currentSku":  "TKMCO DBR NWYRK IP15+ BLU",
+        "alltronPrice":  "54,95",
+        "alltronStock":  "24"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1622248",
+        "supabaseSku":  "TKMCO URB IP 15 NECK ZEBRA",
+        "currentSku":  "TKMCO URB IP 15 NECK ZEBRA",
+        "alltronPrice":  "30,8",
+        "alltronStock":  "1"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1622284",
+        "supabaseSku":  "TKMCO URB IP15 KETTE RAC",
+        "currentSku":  "TKMCO URB IP15 KETTE RAC",
+        "alltronPrice":  "72,5",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1626058",
+        "supabaseSku":  "SCB ZB MDE TC22 ZEB-196.0012",
+        "currentSku":  "SCB ZB MDE TC22 ZEB-196.0012",
+        "alltronPrice":  "769",
+        "alltronStock":  "7"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1628190",
+        "supabaseSku":  "TKMDI SAM TAG 2 SIL BLA",
+        "currentSku":  "TKMDI SAM TAG 2 SIL BLA",
+        "alltronPrice":  "25,95",
+        "alltronStock":  "2"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1638840",
+        "supabaseSku":  "TA 4S SOL IPAD PRO/AIR 11 CH",
+        "currentSku":  "TA 4S SOL IPAD PRO/AIR 11 CH",
+        "alltronPrice":  "90",
+        "alltronStock":  "202"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1641321",
+        "supabaseSku":  "TKMCO DBR ROSK S24 TAN",
+        "currentSku":  "TKMCO DBR ROSK S24 TAN",
+        "alltronPrice":  "34,95",
+        "alltronStock":  "24"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1641346",
+        "supabaseSku":  "TKMCO DBR GRLA S24U BLA",
+        "currentSku":  "TKMCO DBR GRLA S24U BLA",
+        "alltronPrice":  "19,95",
+        "alltronStock":  "14"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1644940",
+        "supabaseSku":  "TKMCO RHI IP15 MODNX RED",
+        "currentSku":  "TKMCO RHI IP15 MODNX RED",
+        "alltronPrice":  "31,9",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1644943",
+        "supabaseSku":  "TKMCO RHI IP15 MODNX GRE",
+        "currentSku":  "TKMCO RHI IP15 MODNX GRE",
+        "alltronPrice":  "61",
+        "alltronStock":  "4"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1645716",
+        "supabaseSku":  "TKMCO PG SAM G S24+ D3O HARDC",
+        "currentSku":  "TKMCO PG SAM G S24+ D3O HARDC",
+        "alltronPrice":  "39,95",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1647903",
+        "supabaseSku":  "TKMCO SAM S24+ SUIT WHI",
+        "currentSku":  "TKMCO SAM S24+ SUIT WHI",
+        "alltronPrice":  "28,9",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1647904",
+        "supabaseSku":  "TKMCO SAM S24+ SUIT YEL",
+        "currentSku":  "TKMCO SAM S24+ SUIT YEL",
+        "alltronPrice":  "33,85",
+        "alltronStock":  "6"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1648413",
+        "supabaseSku":  "ZU ITEC DOCK C31FLAT2PDPRO100W",
+        "currentSku":  "ZU ITEC DOCK C31FLAT2PDPRO100W",
+        "alltronPrice":  "139",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1657692",
+        "supabaseSku":  "TKMCO PG SAM A15 HARDCASE",
+        "currentSku":  "TKMCO PG SAM A15 HARDCASE",
+        "alltronPrice":  "29,95",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1657693",
+        "supabaseSku":  "TKMCO PG SAM A15 HARDCASE BLA",
+        "currentSku":  "TKMCO PG SAM A15 HARDCASE BLA",
+        "alltronPrice":  "29,95",
+        "alltronStock":  "54"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1664256",
+        "supabaseSku":  "DKZ SR VIDEO CAGE 4391",
+        "currentSku":  "DKZ SR VIDEO CAGE 4391",
+        "alltronPrice":  "71",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1669084",
+        "supabaseSku":  "GR PNY ADA RTX6000 PB",
+        "currentSku":  "GR PNY ADA RTX6000 PB",
+        "alltronPrice":  "7449",
+        "alltronStock":  "2"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1677051",
+        "supabaseSku":  "FRZ QL 9348943024693",
+        "currentSku":  "FRZ QL 9348943024693",
+        "alltronPrice":  "44,9",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1678457",
+        "supabaseSku":  "GEP LL O11D EVO RGB WH",
+        "currentSku":  "GEP LL O11D EVO RGB WH",
+        "alltronPrice":  "179",
+        "alltronStock":  "4"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1682032",
+        "supabaseSku":  "MON BENQ ZUB LAPTOPBAR WHITE",
+        "currentSku":  "MON BENQ ZUB LAPTOPBAR WHITE",
+        "alltronPrice":  "159",
+        "alltronStock":  "9"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1692069",
+        "supabaseSku":  "TKMCO IOS IP15PM PAMA",
+        "currentSku":  "TKMCO IOS IP15PM PAMA",
+        "alltronPrice":  "40,9",
+        "alltronStock":  "8"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1692088",
+        "supabaseSku":  "TKMCO IOS IP15PM LBC",
+        "currentSku":  "TKMCO IOS IP15PM LBC",
+        "alltronPrice":  "51,6",
+        "alltronStock":  "9"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1697231",
+        "supabaseSku":  "GR C3D Z CSV-1585",
+        "currentSku":  "GR C3D Z CSV-1585",
+        "alltronPrice":  "173,9",
+        "alltronStock":  "1"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1699621",
+        "supabaseSku":  "BU FEL MONITORSTANDE 100016565",
+        "currentSku":  "BU FEL MONITORSTANDE 100016565",
+        "alltronPrice":  "69,6",
+        "alltronStock":  "1"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1702071",
+        "supabaseSku":  "TKMCO RHI IP15+ JEL GRE",
+        "currentSku":  "TKMCO RHI IP15+ JEL GRE",
+        "alltronPrice":  "45,95",
+        "alltronStock":  "9"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1702082",
+        "supabaseSku":  "TKMCO RHI IP13 CLE",
+        "currentSku":  "TKMCO RHI IP13 CLE",
+        "alltronPrice":  "45,95",
+        "alltronStock":  "15"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1702099",
+        "supabaseSku":  "TKMCO RHI S24U SOL BLU",
+        "currentSku":  "TKMCO RHI S24U SOL BLU",
+        "alltronPrice":  "43,95",
+        "alltronStock":  "2"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1702100",
+        "supabaseSku":  "TKMCO RHI S24U SOL BEI",
+        "currentSku":  "TKMCO RHI S24U SOL BEI",
+        "alltronPrice":  "43,95",
+        "alltronStock":  "8"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1702899",
+        "supabaseSku":  "TKMCO DBR IPADA 10 LONP",
+        "currentSku":  "TKMCO DBR IPADA 10 LONP",
+        "alltronPrice":  "49,95",
+        "alltronStock":  "19"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1702914",
+        "supabaseSku":  "TKMCO DBR RISS IPADA 10 T",
+        "currentSku":  "TKMCO DBR RISS IPADA 10 T",
+        "alltronPrice":  "69,95",
+        "alltronStock":  "16"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1703970",
+        "supabaseSku":  "TKMCO SAM A35 SV WHI",
+        "currentSku":  "TKMCO SAM A35 SV WHI",
+        "alltronPrice":  "54,9",
+        "alltronStock":  "11"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1703976",
+        "supabaseSku":  "TKMCO SAM A35 CC LIM",
+        "currentSku":  "TKMCO SAM A35 CC LIM",
+        "alltronPrice":  "13,9",
+        "alltronStock":  "15"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1703981",
+        "supabaseSku":  "TKMCO SAM A55 SV LAV",
+        "currentSku":  "TKMCO SAM A55 SV LAV",
+        "alltronPrice":  "45",
+        "alltronStock":  "5"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1710615",
+        "supabaseSku":  "WZ BOP 4059952657240",
+        "currentSku":  "WZ BOP 4059952657240",
+        "alltronPrice":  "459",
+        "alltronStock":  "4"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1715653",
+        "supabaseSku":  "TC MS SF LAP6 13 512 C10/16PL",
+        "currentSku":  "TC MS SF LAP6 13 512 C10/16PL",
+        "alltronPrice":  "1279",
+        "alltronStock":  "2"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1721919",
+        "supabaseSku":  "IPADZ AP IPAD PRO 13 FOLIO WHI",
+        "currentSku":  "IPADZ AP IPAD PRO 13 FOLIO WHI",
+        "alltronPrice":  "99",
+        "alltronStock":  "4"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1721929",
+        "supabaseSku":  "IPADZ AP IPAD AIR 13 FOLIO VIO",
+        "currentSku":  "IPADZ AP IPAD AIR 13 FOLIO VIO",
+        "alltronPrice":  "99",
+        "alltronStock":  "11"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1721933",
+        "supabaseSku":  "IPADZ AP IPAD PRO 13 MAGIC BLA",
+        "currentSku":  "IPADZ AP IPAD PRO 13 MAGIC BLA",
+        "alltronPrice":  "384,9",
+        "alltronStock":  "97"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1722355",
+        "supabaseSku":  "NOZ VIS-20-PR5550EL6",
+        "currentSku":  "NOZ VIS-20-PR5550EL6",
+        "alltronPrice":  "139",
+        "alltronStock":  "1"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1722361",
+        "supabaseSku":  "NOZ VIS-45-ZBFURY1517G7G8",
+        "currentSku":  "NOZ VIS-45-ZBFURY1517G7G8",
+        "alltronPrice":  "129",
+        "alltronStock":  "4"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1723645",
+        "supabaseSku":  "IPADZ UAG IPP13 MET BOR",
+        "currentSku":  "IPADZ UAG IPP13 MET BOR",
+        "alltronPrice":  "79",
+        "alltronStock":  "5"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1723648",
+        "supabaseSku":  "IPADZ UAG IPP11 MET OLI",
+        "currentSku":  "IPADZ UAG IPP11 MET OLI",
+        "alltronPrice":  "55",
+        "alltronStock":  "4"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1727978",
+        "supabaseSku":  "ATZ MID  C1414.03",
+        "currentSku":  "ATZ MID  C1414.03",
+        "alltronPrice":  "529",
+        "alltronStock":  "1"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1732692",
+        "supabaseSku":  "TKMCO UAG IP16+ METR BLA",
+        "currentSku":  "TKMCO UAG IP16+ METR BLA",
+        "alltronPrice":  "53",
+        "alltronStock":  "4"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1732715",
+        "supabaseSku":  "TKMCO UAG IP16P PATC ICE",
+        "currentSku":  "TKMCO UAG IP16P PATC ICE",
+        "alltronPrice":  "50",
+        "alltronStock":  "9"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1732742",
+        "supabaseSku":  "TKMCO UAG IP16 PLAX BLA",
+        "currentSku":  "TKMCO UAG IP16 PLAX BLA",
+        "alltronPrice":  "63",
+        "alltronStock":  "6"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1732745",
+        "supabaseSku":  "TKMCO UAG IP16+ PLYO ICE",
+        "currentSku":  "TKMCO UAG IP16+ PLYO ICE",
+        "alltronPrice":  "44",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1734088",
+        "supabaseSku":  "TKMCO DBR IP16 COP TAN",
+        "currentSku":  "TKMCO DBR IP16 COP TAN",
+        "alltronPrice":  "39,95",
+        "alltronStock":  "27"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1734125",
+        "supabaseSku":  "TKMCO DBR IP16+ GRE BLU",
+        "currentSku":  "TKMCO DBR IP16+ GRE BLU",
+        "alltronPrice":  "19,95",
+        "alltronStock":  "25"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1734140",
+        "supabaseSku":  "TKMCO DBR IP16+ LYN TAN",
+        "currentSku":  "TKMCO DBR IP16+ LYN TAN",
+        "alltronPrice":  "59,95",
+        "alltronStock":  "25"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1734177",
+        "supabaseSku":  "TKMCO DBR IP16P ROS TAN",
+        "currentSku":  "TKMCO DBR IP16P ROS TAN",
+        "alltronPrice":  "34,95",
+        "alltronStock":  "30"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1736146",
+        "supabaseSku":  "HH ZELLER 25654",
+        "currentSku":  "HH ZELLER 25654",
+        "alltronPrice":  "40,9",
+        "alltronStock":  "4"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1736595",
+        "supabaseSku":  "TKMCO CARE IP16P FLAG STAR LIT",
+        "currentSku":  "TKMCO CARE IP16P FLAG STAR LIT",
+        "alltronPrice":  "39,95",
+        "alltronStock":  "38"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1737134",
+        "supabaseSku":  "IPADMZ DIC PRIVACY IPAD D70833",
+        "currentSku":  "IPADMZ DIC PRIVACY IPAD D70833",
+        "alltronPrice":  "79,9",
+        "alltronStock":  "5"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1738416",
+        "supabaseSku":  "FRZ QL 9348943066563",
+        "currentSku":  "FRZ QL 9348943066563",
+        "alltronPrice":  "44,9",
+        "alltronStock":  "89"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1738557",
+        "supabaseSku":  "TKMFO PG IP16 UWF GAMING",
+        "currentSku":  "TKMFO PG IP16 UWF GAMING",
+        "alltronPrice":  "44,95",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1738561",
+        "supabaseSku":  "TKMFO PG IP16 UWF",
+        "currentSku":  "TKMFO PG IP16 UWF",
+        "alltronPrice":  "39,95",
+        "alltronStock":  "613"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1738562",
+        "supabaseSku":  "TKMFO PG IP16P UWF",
+        "currentSku":  "TKMFO PG IP16P UWF",
+        "alltronPrice":  "39,95",
+        "alltronStock":  "1274"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1738595",
+        "supabaseSku":  "TKMFO PG IP16 3-IN-1 BUNDLE PR",
+        "currentSku":  "TKMFO PG IP16 3-IN-1 BUNDLE PR",
+        "alltronPrice":  "79,95",
+        "alltronStock":  "159"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1743372",
+        "supabaseSku":  "TKMCO VONM IP16P TRA PRO",
+        "currentSku":  "TKMCO VONM IP16P TRA PRO",
+        "alltronPrice":  "34,95",
+        "alltronStock":  "32"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1743395",
+        "supabaseSku":  "TKMCO VONM IP16+ SOF CHE",
+        "currentSku":  "TKMCO VONM IP16+ SOF CHE",
+        "alltronPrice":  "34,95",
+        "alltronStock":  "22"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1745504",
+        "supabaseSku":  "TKMCO OB IP16P SYMM CLE",
+        "currentSku":  "TKMCO OB IP16P SYMM CLE",
+        "alltronPrice":  "39,95",
+        "alltronStock":  "2"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1745509",
+        "supabaseSku":  "TKMCO OB IP16+ SYMK BLA",
+        "currentSku":  "TKMCO OB IP16+ SYMK BLA",
+        "alltronPrice":  "54,95",
+        "alltronStock":  "7"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1745533",
+        "supabaseSku":  "TKMCO OB IP16 DEFE BLA",
+        "currentSku":  "TKMCO OB IP16 DEFE BLA",
+        "alltronPrice":  "49,95",
+        "alltronStock":  "19"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1746412",
+        "supabaseSku":  "TKMCO NOM IP16P SPO STO",
+        "currentSku":  "TKMCO NOM IP16P SPO STO",
+        "alltronPrice":  "39",
+        "alltronStock":  "5"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1746589",
+        "supabaseSku":  "TKMCO IOS IP16+ VEG BLA",
+        "currentSku":  "TKMCO IOS IP16+ VEG BLA",
+        "alltronPrice":  "54,9",
+        "alltronStock":  "9"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1746604",
+        "supabaseSku":  "TKMCO IOS IP16 SIL BEI",
+        "currentSku":  "TKMCO IOS IP16 SIL BEI",
+        "alltronPrice":  "39",
+        "alltronStock":  "12"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1746616",
+        "supabaseSku":  "TKMCO IOS IP16 ROS MAR",
+        "currentSku":  "TKMCO IOS IP16 ROS MAR",
+        "alltronPrice":  "46",
+        "alltronStock":  "4"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1746624",
+        "supabaseSku":  "TKMCO IOS IP16 MIRROR",
+        "currentSku":  "TKMCO IOS IP16 MIRROR",
+        "alltronPrice":  "40,9",
+        "alltronStock":  "7"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1746636",
+        "supabaseSku":  "TKMCO IOS IP16 CLO WHI",
+        "currentSku":  "TKMCO IOS IP16 CLO WHI",
+        "alltronPrice":  "50,9",
+        "alltronStock":  "9"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1746647",
+        "supabaseSku":  "TKMCO IOS IP16+ COV BLA",
+        "currentSku":  "TKMCO IOS IP16+ COV BLA",
+        "alltronPrice":  "50,9",
+        "alltronStock":  "7"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1757793",
+        "supabaseSku":  "TKMCO URB IP16P NECK APE",
+        "currentSku":  "TKMCO URB IP16P NECK APE",
+        "alltronPrice":  "22,9",
+        "alltronStock":  "8"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1757819",
+        "supabaseSku":  "TKMCO URB IP16+ NECK SUM",
+        "currentSku":  "TKMCO URB IP16+ NECK SUM",
+        "alltronPrice":  "20,9",
+        "alltronStock":  "6"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1757823",
+        "supabaseSku":  "TKMCO URB IP16+ NECK FAR",
+        "currentSku":  "TKMCO URB IP16+ NECK FAR",
+        "alltronPrice":  "22,9",
+        "alltronStock":  "5"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1757836",
+        "supabaseSku":  "TKMCO URB IP16 KETTE GRE",
+        "currentSku":  "TKMCO URB IP16 KETTE GRE",
+        "alltronPrice":  "61",
+        "alltronStock":  "6"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1757842",
+        "supabaseSku":  "TKMCO URB IP16PM CASE BLA",
+        "currentSku":  "TKMCO URB IP16PM CASE BLA",
+        "alltronPrice":  "38",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1757847",
+        "supabaseSku":  "TKMCO URB IP16+ CASE PET",
+        "currentSku":  "TKMCO URB IP16+ CASE PET",
+        "alltronPrice":  "36,6",
+        "alltronStock":  "8"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1757848",
+        "supabaseSku":  "TKMCO URB IP16 CASE TAU",
+        "currentSku":  "TKMCO URB IP16 CASE TAU",
+        "alltronPrice":  "37,15",
+        "alltronStock":  "7"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1758413",
+        "supabaseSku":  "TKMCO RHI IP16+ JEL BLU",
+        "currentSku":  "TKMCO RHI IP16+ JEL BLU",
+        "alltronPrice":  "45,95",
+        "alltronStock":  "4"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1758420",
+        "supabaseSku":  "TKMCO RHI IP16PM JEL GRE",
+        "currentSku":  "TKMCO RHI IP16PM JEL GRE",
+        "alltronPrice":  "45,95",
+        "alltronStock":  "2"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1758428",
+        "supabaseSku":  "TKMCO RHI IP16 MOD LAV",
+        "currentSku":  "TKMCO RHI IP16 MOD LAV",
+        "alltronPrice":  "57",
+        "alltronStock":  "4"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1758435",
+        "supabaseSku":  "TKMCO RHI IP16+ MOD LAV",
+        "currentSku":  "TKMCO RHI IP16+ MOD LAV",
+        "alltronPrice":  "33,7",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1758447",
+        "supabaseSku":  "TKMCO RHI IP16PM MOD GRA",
+        "currentSku":  "TKMCO RHI IP16PM MOD GRA",
+        "alltronPrice":  "61",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1760201",
+        "supabaseSku":  "TKMCO NEV IP16 STYL LED",
+        "currentSku":  "TKMCO NEV IP16 STYL LED",
+        "alltronPrice":  "39",
+        "alltronStock":  "16"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1764634",
+        "supabaseSku":  "TKMHA RHI AQUA STL WHI",
+        "currentSku":  "TKMHA RHI AQUA STL WHI",
+        "alltronPrice":  "109",
+        "alltronStock":  "6"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1775424",
+        "supabaseSku":  "TKMCO AP IP16P BEAT BLU",
+        "currentSku":  "TKMCO AP IP16P BEAT BLU",
+        "alltronPrice":  "57,1",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1775429",
+        "supabaseSku":  "TKMCO AP IP16+ BEAT MID",
+        "currentSku":  "TKMCO AP IP16+ BEAT MID",
+        "alltronPrice":  "34,15",
+        "alltronStock":  "11"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1775432",
+        "supabaseSku":  "TKMCO AP IP16 BEAT MID",
+        "currentSku":  "TKMCO AP IP16 BEAT MID",
+        "alltronPrice":  "58,2",
+        "alltronStock":  "5"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1781419",
+        "supabaseSku":  "DKZ SHIFT SNAPGRIP PRO MIDNIGH",
+        "currentSku":  "DKZ SHIFT SNAPGRIP PRO MIDNIGH",
+        "alltronPrice":  "169",
+        "alltronStock":  "4"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1782031",
+        "supabaseSku":  "TKMCO DBR S25U COS BLA",
+        "currentSku":  "TKMCO DBR S25U COS BLA",
+        "alltronPrice":  "24,95",
+        "alltronStock":  "34"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1782050",
+        "supabaseSku":  "TKMFO DBR S25+ ECO D3O",
+        "currentSku":  "TKMFO DBR S25+ ECO D3O",
+        "alltronPrice":  "39,95",
+        "alltronStock":  "24"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1782052",
+        "supabaseSku":  "TKMCO DBR S25+ GRE BLA",
+        "currentSku":  "TKMCO DBR S25+ GRE BLA",
+        "alltronPrice":  "19,95",
+        "alltronStock":  "21"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1782053",
+        "supabaseSku":  "TKMCO DBR S25+ GRQI CLE",
+        "currentSku":  "TKMCO DBR S25+ GRQI CLE",
+        "alltronPrice":  "24,95",
+        "alltronStock":  "23"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1782059",
+        "supabaseSku":  "TKMCO DBR S25+ LYN BLA",
+        "currentSku":  "TKMCO DBR S25+ LYN BLA",
+        "alltronPrice":  "54,95",
+        "alltronStock":  "145"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1791777",
+        "supabaseSku":  "DKZ SR FILMOV CASE 4987",
+        "currentSku":  "DKZ SR FILMOV CASE 4987",
+        "alltronPrice":  "55",
+        "alltronStock":  "6"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1791802",
+        "supabaseSku":  "DKZ SR VIDEO KIT PRO 4704",
+        "currentSku":  "DKZ SR VIDEO KIT PRO 4704",
+        "alltronPrice":  "219",
+        "alltronStock":  "6"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1800777",
+        "supabaseSku":  "PC AP IM24/M4-10/24/512/BL",
+        "currentSku":  "PC AP IM24/M4-10/24/512/BL",
+        "alltronPrice":  "2109",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1804430",
+        "supabaseSku":  "TKMFO PG SAM S25U UWF A IN-ONE",
+        "currentSku":  "TKMFO PG SAM S25U UWF A IN-ONE",
+        "alltronPrice":  "54,95",
+        "alltronStock":  "6"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1804444",
+        "supabaseSku":  "TKMCO CARE SAM S25 FASH BLACK",
+        "currentSku":  "TKMCO CARE SAM S25 FASH BLACK",
+        "alltronPrice":  "24,95",
+        "alltronStock":  "5"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1804451",
+        "supabaseSku":  "TKMCO CARE SAM S25U FASH CHAR",
+        "currentSku":  "TKMCO CARE SAM S25U FASH CHAR",
+        "alltronPrice":  "24,95",
+        "alltronStock":  "7"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1804452",
+        "supabaseSku":  "TKMCO CARE SAM S25 FASH PURP",
+        "currentSku":  "TKMCO CARE SAM S25 FASH PURP",
+        "alltronPrice":  "24,95",
+        "alltronStock":  "6"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1804461",
+        "supabaseSku":  "TKMCO CARE SAM S25 FEA KS BLA",
+        "currentSku":  "TKMCO CARE SAM S25 FEA KS BLA",
+        "alltronPrice":  "49,95",
+        "alltronStock":  "385"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1809851",
+        "supabaseSku":  "TKMCO DBR IPSE4 ICEUD CLE",
+        "currentSku":  "TKMCO DBR IPSE4 ICEUD CLE",
+        "alltronPrice":  "22,95",
+        "alltronStock":  "16"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1810686",
+        "supabaseSku":  "TKMCO IOS S25U PAST",
+        "currentSku":  "TKMCO IOS S25U PAST",
+        "alltronPrice":  "49,9",
+        "alltronStock":  "4"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1810758",
+        "supabaseSku":  "TKMCO UAG S25U PATH BLA MS",
+        "currentSku":  "TKMCO UAG S25U PATH BLA MS",
+        "alltronPrice":  "50",
+        "alltronStock":  "2"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1810776",
+        "supabaseSku":  "TKMCO UAG S25 PLYO ICE",
+        "currentSku":  "TKMCO UAG S25 PLYO ICE",
+        "alltronPrice":  "36",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1810778",
+        "supabaseSku":  "TKMCO UAG S25U ESS BLA",
+        "currentSku":  "TKMCO UAG S25U ESS BLA",
+        "alltronPrice":  "37",
+        "alltronStock":  "2"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1813823",
+        "supabaseSku":  "TKMCO SAM S25 STGR GRA",
+        "currentSku":  "TKMCO SAM S25 STGR GRA",
+        "alltronPrice":  "60,4",
+        "alltronStock":  "18"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1813832",
+        "supabaseSku":  "TKMCO SAM S25 KIND LIG",
+        "currentSku":  "TKMCO SAM S25 KIND LIG",
+        "alltronPrice":  "65,9",
+        "alltronStock":  "9"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1813835",
+        "supabaseSku":  "TKMCO SAM S25 FLIP WHI",
+        "currentSku":  "TKMCO SAM S25 FLIP WHI",
+        "alltronPrice":  "36,9",
+        "alltronStock":  "27"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1813851",
+        "supabaseSku":  "TKMCO SAM S25+ KIND BRO",
+        "currentSku":  "TKMCO SAM S25+ KIND BRO",
+        "alltronPrice":  "59,9",
+        "alltronStock":  "9"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1813870",
+        "supabaseSku":  "TKMCO SAM S25U CLE TRA",
+        "currentSku":  "TKMCO SAM S25U CLE TRA",
+        "alltronPrice":  "31",
+        "alltronStock":  "7"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1815314",
+        "supabaseSku":  "PC AP IM24/M4-8/24/512/SI",
+        "currentSku":  "PC AP IM24/M4-8/24/512/SI",
+        "alltronPrice":  "1869,9",
+        "alltronStock":  "1"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1815533",
+        "supabaseSku":  "TKMCO NEV SAM S25 VAR BLA",
+        "currentSku":  "TKMCO NEV SAM S25 VAR BLA",
+        "alltronPrice":  "26,95",
+        "alltronStock":  "12"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1815868",
+        "supabaseSku":  "SP MTG 00195166278759",
+        "currentSku":  "SP MTG 00195166278759",
+        "alltronPrice":  "339",
+        "alltronStock":  "4"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1819713",
+        "supabaseSku":  "NO AC CB511 R757TN-TCO-C6EW",
+        "currentSku":  "NO AC CB511 R757TN-TCO-C6EW",
+        "alltronPrice":  "529",
+        "alltronStock":  "5"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1835605",
+        "supabaseSku":  "DKZ PP LCP16-MAX-EXO",
+        "currentSku":  "DKZ PP LCP16-MAX-EXO",
+        "alltronPrice":  "80",
+        "alltronStock":  "2"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1836344",
+        "supabaseSku":  "GES GA 753759341640",
+        "currentSku":  "GES GA 753759341640",
+        "alltronPrice":  "449,9",
+        "alltronStock":  "5"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1836353",
+        "supabaseSku":  "GES GA 753759339470",
+        "currentSku":  "GES GA 753759339470",
+        "alltronPrice":  "299,9",
+        "alltronStock":  "11"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1840158",
+        "supabaseSku":  "TKMCO NEV S25+ CS MAG",
+        "currentSku":  "TKMCO NEV S25+ CS MAG",
+        "alltronPrice":  "109",
+        "alltronStock":  "15"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1840275",
+        "supabaseSku":  "TKMFO SAFE A36 UWF",
+        "currentSku":  "TKMFO SAFE A36 UWF",
+        "alltronPrice":  "24,95",
+        "alltronStock":  "42"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1840289",
+        "supabaseSku":  "TKMCO CARE A36 COMB CLEAR",
+        "currentSku":  "TKMCO CARE A36 COMB CLEAR",
+        "alltronPrice":  "29,95",
+        "alltronStock":  "570"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1840603",
+        "supabaseSku":  "NOZ BG TG TBB65102GL",
+        "currentSku":  "NOZ BG TG TBB65102GL",
+        "alltronPrice":  "90",
+        "alltronStock":  "17"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1840667",
+        "supabaseSku":  "NOZ BG TG TBB65602GL",
+        "currentSku":  "NOZ BG TG TBB65602GL",
+        "alltronPrice":  "270",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1840955",
+        "supabaseSku":  "BU DICOTA 4WAY 23.8 D50057-4AD",
+        "currentSku":  "BU DICOTA 4WAY 23.8 D50057-4AD",
+        "alltronPrice":  "279,9",
+        "alltronStock":  "9"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1840981",
+        "supabaseSku":  "BU DICOTA 4WAY 25.0 D80065-4AD",
+        "currentSku":  "BU DICOTA 4WAY 25.0 D80065-4AD",
+        "alltronPrice":  "295,9",
+        "alltronStock":  "1"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1840988",
+        "supabaseSku":  "BU DICOTA 4WAY 24.0 D80100-4MG",
+        "currentSku":  "BU DICOTA 4WAY 24.0 D80100-4MG",
+        "alltronPrice":  "324,9",
+        "alltronStock":  "1"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1844887",
+        "supabaseSku":  "FRZ QL FEL 9348943102711",
+        "currentSku":  "FRZ QL FEL 9348943102711",
+        "alltronPrice":  "49,9",
+        "alltronStock":  "22"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1845885",
+        "supabaseSku":  "TKMCO SAM A36 CAR BLU",
+        "currentSku":  "TKMCO SAM A36 CAR BLU",
+        "alltronPrice":  "24,9",
+        "alltronStock":  "20"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1848262",
+        "supabaseSku":  "TC VM PENCIL BLACK",
+        "currentSku":  "TC VM PENCIL BLACK",
+        "alltronPrice":  "49,95",
+        "alltronStock":  "24"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1850566",
+        "supabaseSku":  "TKMMT AP 16E 128GB BLA",
+        "currentSku":  "TKMMT AP 16E 128GB BLA",
+        "alltronPrice":  "629",
+        "alltronStock":  "378"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1850567",
+        "supabaseSku":  "TKMMT AP 16E 128GB WHI",
+        "currentSku":  "TKMMT AP 16E 128GB WHI",
+        "alltronPrice":  "629",
+        "alltronStock":  "31"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1854883",
+        "supabaseSku":  "TKMCO RHI S25+ CLEAR",
+        "currentSku":  "TKMCO RHI S25+ CLEAR",
+        "alltronPrice":  "36,95",
+        "alltronStock":  "12"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1854886",
+        "supabaseSku":  "TKMCO RHI S25+ JELL BLA",
+        "currentSku":  "TKMCO RHI S25+ JELL BLA",
+        "alltronPrice":  "36,95",
+        "alltronStock":  "27"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1856819",
+        "supabaseSku":  "HH ZEP W002",
+        "currentSku":  "HH ZEP W002",
+        "alltronPrice":  "33",
+        "alltronStock":  "4"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1857910",
+        "supabaseSku":  "TC AP 128GB WIFI 25 SIL",
+        "currentSku":  "TC AP 128GB WIFI 25 SIL",
+        "alltronPrice":  "429",
+        "alltronStock":  "635"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1857912",
+        "supabaseSku":  "TC AP 128GB WIFI 25 YEL",
+        "currentSku":  "TC AP 128GB WIFI 25 YEL",
+        "alltronPrice":  "429",
+        "alltronStock":  "70"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1857918",
+        "supabaseSku":  "TC AP 256GB WIFI 25 SIL",
+        "currentSku":  "TC AP 256GB WIFI 25 SIL",
+        "alltronPrice":  "529",
+        "alltronStock":  "28"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1857931",
+        "supabaseSku":  "TC AP 512GB CEL 25 BLU",
+        "currentSku":  "TC AP 512GB CEL 25 BLU",
+        "alltronPrice":  "879",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1857995",
+        "supabaseSku":  "TC AP AIR 13 1TB CEL 25 BLU",
+        "currentSku":  "TC AP AIR 13 1TB CEL 25 BLU",
+        "alltronPrice":  "1449",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1869852",
+        "supabaseSku":  "SP IDISPLAYIT 5056842206372",
+        "currentSku":  "SP IDISPLAYIT 5056842206372",
+        "alltronPrice":  "391,6",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1876119",
+        "supabaseSku":  "BU DICOTA 4WAY D80269-4MG",
+        "currentSku":  "BU DICOTA 4WAY D80269-4MG",
+        "alltronPrice":  "99",
+        "alltronStock":  "1"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1876122",
+        "supabaseSku":  "BU DICOTA 2WAY D80269-2SM",
+        "currentSku":  "BU DICOTA 2WAY D80269-2SM",
+        "alltronPrice":  "84,9",
+        "alltronStock":  "1"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1878116",
+        "supabaseSku":  "GEP PH ENTHOO PRO TG",
+        "currentSku":  "GEP PH ENTHOO PRO TG",
+        "alltronPrice":  "159",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1878126",
+        "supabaseSku":  "GEP PH EVOLV X2 TG WH",
+        "currentSku":  "GEP PH EVOLV X2 TG WH",
+        "alltronPrice":  "169",
+        "alltronStock":  "2"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1879162",
+        "supabaseSku":  "TKMHA POPGRIP MAG 3K WHI",
+        "currentSku":  "TKMHA POPGRIP MAG 3K WHI",
+        "alltronPrice":  "48",
+        "alltronStock":  "1"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1879274",
+        "supabaseSku":  "NO AC NITRO ANV15-52-70UM 5060",
+        "currentSku":  "NO AC NITRO ANV15-52-70UM 5060",
+        "alltronPrice":  "1399",
+        "alltronStock":  "2"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1881425",
+        "supabaseSku":  "TC MS SF LAP12IN 512 C8/16PL",
+        "currentSku":  "TC MS SF LAP12IN 512 C8/16PL",
+        "alltronPrice":  "1109",
+        "alltronStock":  "6"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1881433",
+        "supabaseSku":  "TC MS ZU PRO 12IN KB KIT VI",
+        "currentSku":  "TC MS ZU PRO 12IN KB KIT VI",
+        "alltronPrice":  "219,9",
+        "alltronStock":  "15"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1884230",
+        "supabaseSku":  "TKMCO VAL IP16 PMAX BLACK FR",
+        "currentSku":  "TKMCO VAL IP16 PMAX BLACK FR",
+        "alltronPrice":  "38,95",
+        "alltronStock":  "2"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1884664",
+        "supabaseSku":  "PC AC ASP AIO C24-B BLACK",
+        "currentSku":  "PC AC ASP AIO C24-B BLACK",
+        "alltronPrice":  "829",
+        "alltronStock":  "33"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1885601",
+        "supabaseSku":  "DEV RB PI KIT PI5 8GB",
+        "currentSku":  "DEV RB PI KIT PI5 8GB",
+        "alltronPrice":  "269",
+        "alltronStock":  "6"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1889646",
+        "supabaseSku":  "TKMCO HI IP 17 AIR SIL BROWN",
+        "currentSku":  "TKMCO HI IP 17 AIR SIL BROWN",
+        "alltronPrice":  "27,5",
+        "alltronStock":  "16"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1889665",
+        "supabaseSku":  "TKMCO HI IP 17P WAVY BLACK/TRA",
+        "currentSku":  "TKMCO HI IP 17P WAVY BLACK/TRA",
+        "alltronPrice":  "45,9",
+        "alltronStock":  "20"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1890751",
+        "supabaseSku":  "BU DICOTA 4WAY D50018-4MG",
+        "currentSku":  "BU DICOTA 4WAY D50018-4MG",
+        "alltronPrice":  "139,9",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1893517",
+        "supabaseSku":  "TA LO FLIP FOLIO IPADPRO+AIR11",
+        "currentSku":  "TA LO FLIP FOLIO IPADPRO+AIR11",
+        "alltronPrice":  "189",
+        "alltronStock":  "37"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1896438",
+        "supabaseSku":  "TKMCO HA IP16+ BOOKLET BL DA",
+        "currentSku":  "TKMCO HA IP16+ BOOKLET BL DA",
+        "alltronPrice":  "21,9",
+        "alltronStock":  "9"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1896447",
+        "supabaseSku":  "TKMCO HA IP16PM CASE MAG BL FA",
+        "currentSku":  "TKMCO HA IP16PM CASE MAG BL FA",
+        "alltronPrice":  "23,9",
+        "alltronStock":  "10"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1897017",
+        "supabaseSku":  "NO HP PB 4 G1A 14 B9YM4ET",
+        "currentSku":  "NO HP PB 4 G1A 14 B9YM4ET",
+        "alltronPrice":  "1439",
+        "alltronStock":  "7"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1897019",
+        "supabaseSku":  "NO HP PB 4 G1I 16 B9YR3ET",
+        "currentSku":  "NO HP PB 4 G1I 16 B9YR3ET",
+        "alltronPrice":  "1449",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1902716",
+        "supabaseSku":  "GR PNY RTX PRO 2000 BW SB",
+        "currentSku":  "GR PNY RTX PRO 2000 BW SB",
+        "alltronPrice":  "899",
+        "alltronStock":  "14"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1903821",
+        "supabaseSku":  "HH ROBOROCK QRES02-00",
+        "currentSku":  "HH ROBOROCK QRES02-00",
+        "alltronPrice":  "999",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1904774",
+        "supabaseSku":  "TKMCO DBR IP17 GRN BLU",
+        "currentSku":  "TKMCO DBR IP17 GRN BLU",
+        "alltronPrice":  "29,95",
+        "alltronStock":  "18"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1904783",
+        "supabaseSku":  "TKMCO DBR IP17PM GRN BLA",
+        "currentSku":  "TKMCO DBR IP17PM GRN BLA",
+        "alltronPrice":  "29,95",
+        "alltronStock":  "26"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1904809",
+        "supabaseSku":  "TKMCO DBR IP17PM LYN BLA",
+        "currentSku":  "TKMCO DBR IP17PM LYN BLA",
+        "alltronPrice":  "59,95",
+        "alltronStock":  "51"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1904822",
+        "supabaseSku":  "TKMCO DBR IP17P LYIC WAT",
+        "currentSku":  "TKMCO DBR IP17P LYIC WAT",
+        "alltronPrice":  "49,95",
+        "alltronStock":  "34"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1904824",
+        "supabaseSku":  "TKMCO DBR IP17P LYIC MID",
+        "currentSku":  "TKMCO DBR IP17P LYIC MID",
+        "alltronPrice":  "49,95",
+        "alltronStock":  "45"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1904828",
+        "supabaseSku":  "TKMCO DBR IP17PM LYIC FOR",
+        "currentSku":  "TKMCO DBR IP17PM LYIC FOR",
+        "alltronPrice":  "49,95",
+        "alltronStock":  "37"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1904893",
+        "supabaseSku":  "TKMCO DBR IP17 ICED3 BLA",
+        "currentSku":  "TKMCO DBR IP17 ICED3 BLA",
+        "alltronPrice":  "39,95",
+        "alltronStock":  "48"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1905207",
+        "supabaseSku":  "TKMCO VONM IP17 FOL BRO",
+        "currentSku":  "TKMCO VONM IP17 FOL BRO",
+        "alltronPrice":  "49,95",
+        "alltronStock":  "38"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1909250",
+        "supabaseSku":  "GEP COR FRAME 4500X LX ARGB WH",
+        "currentSku":  "GEP COR FRAME 4500X LX ARGB WH",
+        "alltronPrice":  "178",
+        "alltronStock":  "12"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1910193",
+        "supabaseSku":  "MON VERB PORT TS MON 15.6 4K",
+        "currentSku":  "MON VERB PORT TS MON 15.6 4K",
+        "alltronPrice":  "309",
+        "alltronStock":  "14"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1910194",
+        "supabaseSku":  "MON VERB PORT TS MON 17.3 4K",
+        "currentSku":  "MON VERB PORT TS MON 17.3 4K",
+        "alltronPrice":  "429,3",
+        "alltronStock":  "6"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1915784",
+        "supabaseSku":  "TKMCO IOS IP17 SIL CRA",
+        "currentSku":  "TKMCO IOS IP17 SIL CRA",
+        "alltronPrice":  "49,4",
+        "alltronStock":  "2"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1916164",
+        "supabaseSku":  "HH AQUANOVA HAMTRR-43",
+        "currentSku":  "HH AQUANOVA HAMTRR-43",
+        "alltronPrice":  "119",
+        "alltronStock":  "2"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1916417",
+        "supabaseSku":  "NO AP MBA13 MW0X3SM/A-0808NX",
+        "currentSku":  "NO AP MBA13 MW0X3SM/A-0808NX",
+        "alltronPrice":  "1415",
+        "alltronStock":  "1"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1916943",
+        "supabaseSku":  "TKMCO URB IP17A KETTE OWL",
+        "currentSku":  "TKMCO URB IP17A KETTE OWL",
+        "alltronPrice":  "59",
+        "alltronStock":  "4"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1916959",
+        "supabaseSku":  "TKMCO URB IP17A KETTE SKY",
+        "currentSku":  "TKMCO URB IP17A KETTE SKY",
+        "alltronPrice":  "59",
+        "alltronStock":  "5"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1916967",
+        "supabaseSku":  "TKMCO URB IP17A NECK BEA",
+        "currentSku":  "TKMCO URB IP17A NECK BEA",
+        "alltronPrice":  "37,9",
+        "alltronStock":  "4"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1916983",
+        "supabaseSku":  "TKMCO URB IP17A NECK APE",
+        "currentSku":  "TKMCO URB IP17A NECK APE",
+        "alltronPrice":  "33,9",
+        "alltronStock":  "5"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1916991",
+        "supabaseSku":  "TKMCO URB IP17A NECK SKY",
+        "currentSku":  "TKMCO URB IP17A NECK SKY",
+        "alltronPrice":  "33,9",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1917011",
+        "supabaseSku":  "TKMCO URB IP17A NECK ZEB",
+        "currentSku":  "TKMCO URB IP17A NECK ZEB",
+        "alltronPrice":  "22,9",
+        "alltronStock":  "5"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1917015",
+        "supabaseSku":  "TKMCO URB IP17A NECK MUF",
+        "currentSku":  "TKMCO URB IP17A NECK MUF",
+        "alltronPrice":  "33,9",
+        "alltronStock":  "5"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1917017",
+        "supabaseSku":  "TKMCO URB IP17 CASE BLA",
+        "currentSku":  "TKMCO URB IP17 CASE BLA",
+        "alltronPrice":  "60,4",
+        "alltronStock":  "8"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1917024",
+        "supabaseSku":  "TKMCO URB IP17PM CASE PET",
+        "currentSku":  "TKMCO URB IP17PM CASE PET",
+        "alltronPrice":  "60,4",
+        "alltronStock":  "11"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1917459",
+        "supabaseSku":  "TKMCO OB IP17 SYM BLA",
+        "currentSku":  "TKMCO OB IP17 SYM BLA",
+        "alltronPrice":  "44,95",
+        "alltronStock":  "172"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1917484",
+        "supabaseSku":  "TKMCO OB IP17PM SYM CLE BLA",
+        "currentSku":  "TKMCO OB IP17PM SYM CLE BLA",
+        "alltronPrice":  "44,95",
+        "alltronStock":  "22"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1919108",
+        "supabaseSku":  "TKMCO CARE FLOW BLACK IP17",
+        "currentSku":  "TKMCO CARE FLOW BLACK IP17",
+        "alltronPrice":  "44,95",
+        "alltronStock":  "6"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1922897",
+        "supabaseSku":  "GEP HAVN HS 420 TG WH",
+        "currentSku":  "GEP HAVN HS 420 TG WH",
+        "alltronPrice":  "219",
+        "alltronStock":  "2"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1922899",
+        "supabaseSku":  "GEP HAVN HS 420 VGPU TG WH",
+        "currentSku":  "GEP HAVN HS 420 VGPU TG WH",
+        "alltronPrice":  "279",
+        "alltronStock":  "1"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1931447",
+        "supabaseSku":  "TKMCO CARE X-RAY CAS TRAN A17",
+        "currentSku":  "TKMCO CARE X-RAY CAS TRAN A17",
+        "alltronPrice":  "24,95",
+        "alltronStock":  "152"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1932712",
+        "supabaseSku":  "TKMCO UAG IP17PM MON CAR",
+        "currentSku":  "TKMCO UAG IP17PM MON CAR",
+        "alltronPrice":  "76,9",
+        "alltronStock":  "11"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1932717",
+        "supabaseSku":  "TKMCO UAG IP17PM MET BLA",
+        "currentSku":  "TKMCO UAG IP17PM MET BLA",
+        "alltronPrice":  "49,4",
+        "alltronStock":  "21"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1932727",
+        "supabaseSku":  "TKMCO UAG IP17 PLA BLA",
+        "currentSku":  "TKMCO UAG IP17 PLA BLA",
+        "alltronPrice":  "50",
+        "alltronStock":  "14"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1932732",
+        "supabaseSku":  "TKMCO UAG IP17PM PLA ASH",
+        "currentSku":  "TKMCO UAG IP17PM PLA ASH",
+        "alltronPrice":  "76,9",
+        "alltronStock":  "23"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1932750",
+        "supabaseSku":  "TKMCO UAG IP17 DOT ASH",
+        "currentSku":  "TKMCO UAG IP17 DOT ASH",
+        "alltronPrice":  "33",
+        "alltronStock":  "18"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1932756",
+        "supabaseSku":  "TKMCO UAG IP17PM ESS BLA",
+        "currentSku":  "TKMCO UAG IP17PM ESS BLA",
+        "alltronPrice":  "43,9",
+        "alltronStock":  "25"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1932757",
+        "supabaseSku":  "TKMCO UAG IP17PM ESS BLU",
+        "currentSku":  "TKMCO UAG IP17PM ESS BLU",
+        "alltronPrice":  "31",
+        "alltronStock":  "14"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1932766",
+        "supabaseSku":  "TKMCO UAG IP17PM CIV BLA",
+        "currentSku":  "TKMCO UAG IP17PM CIV BLA",
+        "alltronPrice":  "49,4",
+        "alltronStock":  "23"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1932771",
+        "supabaseSku":  "TKMCO UAG IP17 CIV OLI",
+        "currentSku":  "TKMCO UAG IP17 CIV OLI",
+        "alltronPrice":  "41",
+        "alltronStock":  "8"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1932777",
+        "supabaseSku":  "TKMCO UAG IP17PM PAT BLA",
+        "currentSku":  "TKMCO UAG IP17PM PAT BLA",
+        "alltronPrice":  "60,4",
+        "alltronStock":  "24"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1932788",
+        "supabaseSku":  "TKMCO UAG IP17P PAT LAN BLU",
+        "currentSku":  "TKMCO UAG IP17P PAT LAN BLU",
+        "alltronPrice":  "48,4",
+        "alltronStock":  "17"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1932789",
+        "supabaseSku":  "TKMCO UAG IP17PM PAT ASH",
+        "currentSku":  "TKMCO UAG IP17PM PAT ASH",
+        "alltronPrice":  "40",
+        "alltronStock":  "21"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1932794",
+        "supabaseSku":  "TKMCO UAG IP17PM SCO ICE",
+        "currentSku":  "TKMCO UAG IP17PM SCO ICE",
+        "alltronPrice":  "37,1",
+        "alltronStock":  "16"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1934140",
+        "supabaseSku":  "TKMCO NEV IP17 STYLESHOCK BL",
+        "currentSku":  "TKMCO NEV IP17 STYLESHOCK BL",
+        "alltronPrice":  "26,45",
+        "alltronStock":  "18"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1934148",
+        "supabaseSku":  "TKMCO NEV 17 SSSF MS TRANS",
+        "currentSku":  "TKMCO NEV 17 SSSF MS TRANS",
+        "alltronPrice":  "29,95",
+        "alltronStock":  "54"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1934163",
+        "supabaseSku":  "TKMCO NEV 17PM SS INV MS BL",
+        "currentSku":  "TKMCO NEV 17PM SS INV MS BL",
+        "alltronPrice":  "27,95",
+        "alltronStock":  "11"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1934195",
+        "supabaseSku":  "TKMCO OB DEFFEN MS IP16E FG GR",
+        "currentSku":  "TKMCO OB DEFFEN MS IP16E FG GR",
+        "alltronPrice":  "49,95",
+        "alltronStock":  "12"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1935935",
+        "supabaseSku":  "PC HP WS Z2 G1I MINI A40PLET",
+        "currentSku":  "PC HP WS Z2 G1I MINI A40PLET",
+        "alltronPrice":  "2829",
+        "alltronStock":  "60"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1935943",
+        "supabaseSku":  "PC HP WS Z2 G1I TWR A40MVET",
+        "currentSku":  "PC HP WS Z2 G1I TWR A40MVET",
+        "alltronPrice":  "3259",
+        "alltronStock":  "29"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1937291",
+        "supabaseSku":  "SP MIC LO YETI GX DYNAMIC BLK",
+        "currentSku":  "SP MIC LO YETI GX DYNAMIC BLK",
+        "alltronPrice":  "134,9",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1939999",
+        "supabaseSku":  "TKMCO SAM TS11U BOOK BLA",
+        "currentSku":  "TKMCO SAM TS11U BOOK BLA",
+        "alltronPrice":  "109,9",
+        "alltronStock":  "5"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1940009",
+        "supabaseSku":  "TKMBT SAM SPEN TAB S11U",
+        "currentSku":  "TKMBT SAM SPEN TAB S11U",
+        "alltronPrice":  "54",
+        "alltronStock":  "8"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1940015",
+        "supabaseSku":  "TKMCO SAM S25FE STGR WH",
+        "currentSku":  "TKMCO SAM S25FE STGR WH",
+        "alltronPrice":  "41,9",
+        "alltronStock":  "4"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1949593",
+        "supabaseSku":  "TKMCO OB REA S24FE BLK",
+        "currentSku":  "TKMCO OB REA S24FE BLK",
+        "alltronPrice":  "24,95",
+        "alltronStock":  "23"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1949594",
+        "supabaseSku":  "TKMCO OB REA S24FE CLE",
+        "currentSku":  "TKMCO OB REA S24FE CLE",
+        "alltronPrice":  "24,95",
+        "alltronStock":  "20"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1949615",
+        "supabaseSku":  "TKMFO OB GLA IP16E CLE",
+        "currentSku":  "TKMFO OB GLA IP16E CLE",
+        "alltronPrice":  "19,95",
+        "alltronStock":  "12"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1950532",
+        "supabaseSku":  "BU DICOTA 2WAY 34.0 D50084-2AD",
+        "currentSku":  "BU DICOTA 2WAY 34.0 D50084-2AD",
+        "alltronPrice":  "344,9",
+        "alltronStock":  "2"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1951056",
+        "supabaseSku":  "PC DE PRO MAX SLIM 0RR2N",
+        "currentSku":  "PC DE PRO MAX SLIM 0RR2N",
+        "alltronPrice":  "2599",
+        "alltronStock":  "75"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "CHANGED_SKU_NOT_FOUND_SHOPIFY",
+        "litm":  "1955343",
+        "supabaseSku":  "TKMMT AP 17 PRO M 2TB BLU DEP",
+        "currentSku":  "TKMMT AP 17 PRO MAX 2TB BLU",
+        "alltronPrice":  "1999",
+        "alltronStock":  "27"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1956055",
+        "supabaseSku":  "TKMCO AP IP17 BEAT KSC BB",
+        "currentSku":  "TKMCO AP IP17 BEAT KSC BB",
+        "alltronPrice":  "59",
+        "alltronStock":  "1"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1956082",
+        "supabaseSku":  "TKMCO AP IP17PM TECHW GR",
+        "currentSku":  "TKMCO AP IP17PM TECHW GR",
+        "alltronPrice":  "71,4",
+        "alltronStock":  "2"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1965992",
+        "supabaseSku":  "DKZ SR CAGE FE IP17P 5542",
+        "currentSku":  "DKZ SR CAGE FE IP17P 5542",
+        "alltronPrice":  "91",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1965994",
+        "supabaseSku":  "DKZ SR CAGE BE IP17P 5545",
+        "currentSku":  "DKZ SR CAGE BE IP17P 5545",
+        "alltronPrice":  "319",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1969204",
+        "supabaseSku":  "SMA DAB ROB RAMBLER UNO CREAM",
+        "currentSku":  "SMA DAB ROB RAMBLER UNO CREAM",
+        "alltronPrice":  "193,5",
+        "alltronStock":  "1"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1969210",
+        "supabaseSku":  "SMA DAB ROB RVL MINI 2 BLUE CL",
+        "currentSku":  "SMA DAB ROB RVL MINI 2 BLUE CL",
+        "alltronPrice":  "215,1",
+        "alltronStock":  "1"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1969215",
+        "supabaseSku":  "SMA DAB ROB RAMBLER MIDI CREAM",
+        "currentSku":  "SMA DAB ROB RAMBLER MIDI CREAM",
+        "alltronPrice":  "215,1",
+        "alltronStock":  "1"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1969217",
+        "supabaseSku":  "SMA DAB ROB RAMBLER MAX BLUE",
+        "currentSku":  "SMA DAB ROB RAMBLER MAX BLUE",
+        "alltronPrice":  "323,2",
+        "alltronStock":  "1"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1969360",
+        "supabaseSku":  "IPADMZ PL IPAD 109 2025",
+        "currentSku":  "IPADMZ PL IPAD 109 2025",
+        "alltronPrice":  "44,9",
+        "alltronStock":  "11"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1978237",
+        "supabaseSku":  "TC AP IPP11 M5 512 SG CEL SB",
+        "currentSku":  "TC AP IPP11 M5 512 SG CEL SB",
+        "alltronPrice":  "1549",
+        "alltronStock":  "4"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1978242",
+        "supabaseSku":  "TC AP IPP11 M5 1TB NG CEL SV",
+        "currentSku":  "TC AP IPP11 M5 1TB NG CEL SV",
+        "alltronPrice":  "2049",
+        "alltronStock":  "1"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1978247",
+        "supabaseSku":  "TC AP IPP13 M5 256 SG CEL SB",
+        "currentSku":  "TC AP IPP13 M5 256 SG CEL SB",
+        "alltronPrice":  "1649",
+        "alltronStock":  "39"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1978250",
+        "supabaseSku":  "TC AP IPP13 M5 512 SG CEL SV",
+        "currentSku":  "TC AP IPP13 M5 512 SG CEL SV",
+        "alltronPrice":  "1849",
+        "alltronStock":  "2"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1978257",
+        "supabaseSku":  "TC AP IPP13 M5 2TB NG CEL SB",
+        "currentSku":  "TC AP IPP13 M5 2TB NG CEL SB",
+        "alltronPrice":  "2849",
+        "alltronStock":  "1"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1978258",
+        "supabaseSku":  "TC AP IPP13 M5 2TB NG CEL SV",
+        "currentSku":  "TC AP IPP13 M5 2TB NG CEL SV",
+        "alltronPrice":  "2849",
+        "alltronStock":  "1"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1982273",
+        "supabaseSku":  "TKMCO BR AP IP 17AIR COVER CPC",
+        "currentSku":  "TKMCO BR AP IP 17AIR COVER CPC",
+        "alltronPrice":  "23,6",
+        "alltronStock":  "2"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1982278",
+        "supabaseSku":  "TKMCO BR AP IP 17P COVER MCC",
+        "currentSku":  "TKMCO BR AP IP 17P COVER MCC",
+        "alltronPrice":  "31,9",
+        "alltronStock":  "2"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1982290",
+        "supabaseSku":  "TKMCO BR AP IP 17AIR COV RC BL",
+        "currentSku":  "TKMCO BR AP IP 17AIR COV RC BL",
+        "alltronPrice":  "24,9",
+        "alltronStock":  "2"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1982479",
+        "supabaseSku":  "TKMCO BR AP IP 16E COVER HC SA",
+        "currentSku":  "TKMCO BR AP IP 16E COVER HC SA",
+        "alltronPrice":  "30,6",
+        "alltronStock":  "2"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1983090",
+        "supabaseSku":  "GEP HAVN BF 360 FLOW TG BK",
+        "currentSku":  "GEP HAVN BF 360 FLOW TG BK",
+        "alltronPrice":  "189",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1983098",
+        "supabaseSku":  "TKMCO WD AP IP 17 PM MGC",
+        "currentSku":  "TKMCO WD AP IP 17 PM MGC",
+        "alltronPrice":  "34,2",
+        "alltronStock":  "1"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1986386",
+        "supabaseSku":  "TKMFO HA AP IP 17P EP",
+        "currentSku":  "TKMFO HA AP IP 17P EP",
+        "alltronPrice":  "30,3",
+        "alltronStock":  "4"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1988628",
+        "supabaseSku":  "NOZ BE USBC HUB 8IN1 SLV",
+        "currentSku":  "NOZ BE USBC HUB 8IN1 SLV",
+        "alltronPrice":  "64,95",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1990699",
+        "supabaseSku":  "TKMCO CARE FLOW BLK QI S26U",
+        "currentSku":  "TKMCO CARE FLOW BLK QI S26U",
+        "alltronPrice":  "44,95",
+        "alltronStock":  "18"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1990702",
+        "supabaseSku":  "TKMCO CARE FLOW VAN QI S26U",
+        "currentSku":  "TKMCO CARE FLOW VAN QI S26U",
+        "alltronPrice":  "44,95",
+        "alltronStock":  "99"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1990704",
+        "supabaseSku":  "TKMCO CARE SAM BLK QI S26U",
+        "currentSku":  "TKMCO CARE SAM BLK QI S26U",
+        "alltronPrice":  "29,95",
+        "alltronStock":  "16"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1990721",
+        "supabaseSku":  "TKMCO CARE UE TR KS BK QI S26U",
+        "currentSku":  "TKMCO CARE UE TR KS BK QI S26U",
+        "alltronPrice":  "49,95",
+        "alltronStock":  "604"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1990728",
+        "supabaseSku":  "TKMCO CARE XRAY S26PR",
+        "currentSku":  "TKMCO CARE XRAY S26PR",
+        "alltronPrice":  "24,95",
+        "alltronStock":  "14"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1990764",
+        "supabaseSku":  "TKMFO PG PRI UC 3IN1 S26PR",
+        "currentSku":  "TKMFO PG PRI UC 3IN1 S26PR",
+        "alltronPrice":  "99,95",
+        "alltronStock":  "18"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1997406",
+        "supabaseSku":  "FRZ SP FEL 4028017529211",
+        "currentSku":  "FRZ SP FEL 4028017529211",
+        "alltronPrice":  "88",
+        "alltronStock":  "4"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1997408",
+        "supabaseSku":  "FRZ SP FEL 4028017529181",
+        "currentSku":  "FRZ SP FEL 4028017529181",
+        "alltronPrice":  "88",
+        "alltronStock":  "10"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1998924",
+        "supabaseSku":  "BEL HOMBLI HBIR-0409",
+        "currentSku":  "BEL HOMBLI HBIR-0409",
+        "alltronPrice":  "289",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "1999628",
+        "supabaseSku":  "GR PNY RTX PRO 5000 72GB BW SP",
+        "currentSku":  "GR PNY RTX PRO 5000 72GB BW SP",
+        "alltronPrice":  "7999",
+        "alltronStock":  "4"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "2000207",
+        "supabaseSku":  "CPU KUE LL HY 2 LCD-S360TL WH",
+        "currentSku":  "CPU KUE LL HY 2 LCD-S360TL WH",
+        "alltronPrice":  "239",
+        "alltronStock":  "2"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "2000472",
+        "supabaseSku":  "SP MTG 00195166271200",
+        "currentSku":  "SP MTG 00195166271200",
+        "alltronPrice":  "189",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "2007503",
+        "supabaseSku":  "TKMCO IOS S26U  CLEAR",
+        "currentSku":  "TKMCO IOS S26U  CLEAR",
+        "alltronPrice":  "49,4",
+        "alltronStock":  "7"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "2012888",
+        "supabaseSku":  "TKMCO CEL IP 17P SPINM",
+        "currentSku":  "TKMCO CEL IP 17P SPINM",
+        "alltronPrice":  "27,9",
+        "alltronStock":  "2"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "2012893",
+        "supabaseSku":  "TKMCO CEL IP 17P CUBEC OG",
+        "currentSku":  "TKMCO CEL IP 17P CUBEC OG",
+        "alltronPrice":  "27",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "2012901",
+        "supabaseSku":  "TKMFO CEL IP 17PM RTG",
+        "currentSku":  "TKMFO CEL IP 17PM RTG",
+        "alltronPrice":  "35",
+        "alltronStock":  "2"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "2015564",
+        "supabaseSku":  "DKZ SR CASE IP17PM GRAY 5794",
+        "currentSku":  "DKZ SR CASE IP17PM GRAY 5794",
+        "alltronPrice":  "33",
+        "alltronStock":  "10"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "2025741",
+        "supabaseSku":  "NOZ BG SA 158246-1830",
+        "currentSku":  "NOZ BG SA 158246-1830",
+        "alltronPrice":  "119",
+        "alltronStock":  "1"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "2025767",
+        "supabaseSku":  "NOZ BG SA 151635-B038",
+        "currentSku":  "NOZ BG SA 151635-B038",
+        "alltronPrice":  "199",
+        "alltronStock":  "1"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "2027237",
+        "supabaseSku":  "TKMCO OB SOLE RQ IPA",
+        "currentSku":  "TKMCO OB SOLE RQ IPA",
+        "alltronPrice":  "59,95",
+        "alltronStock":  "22"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "2028785",
+        "supabaseSku":  "TKMCO SAM S26+ RUGGED BLA",
+        "currentSku":  "TKMCO SAM S26+ RUGGED BLA",
+        "alltronPrice":  "79,9",
+        "alltronStock":  "4"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "2033018",
+        "supabaseSku":  "GR C3D Z CSV-2542",
+        "currentSku":  "GR C3D Z CSV-2542",
+        "alltronPrice":  "239",
+        "alltronStock":  "2"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "CHANGED_SKU_NOT_FOUND_SHOPIFY",
+        "litm":  "2033170",
+        "supabaseSku":  "TC AP IPP11 M5 256 SG CEL SV",
+        "currentSku":  "TC AP IPP11 M5 256 SG CEL DEP.",
+        "alltronPrice":  "1349",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "2052859",
+        "supabaseSku":  "TKMCO UAG S26U TO TAS",
+        "currentSku":  "TKMCO UAG S26U TO TAS",
+        "alltronPrice":  "65,9",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "2052866",
+        "supabaseSku":  "TKMCO UAG S26P PLAS ATT",
+        "currentSku":  "TKMCO UAG S26P PLAS ATT",
+        "alltronPrice":  "76,9",
+        "alltronStock":  "1"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "2052869",
+        "supabaseSku":  "TKMCO UAG S26U PLAS S",
+        "currentSku":  "TKMCO UAG S26U PLAS S",
+        "alltronPrice":  "82,4",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "2052876",
+        "supabaseSku":  "TKMCO UAG S26P PATH SC",
+        "currentSku":  "TKMCO UAG S26P PATH SC",
+        "alltronPrice":  "60,4",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "2053273",
+        "supabaseSku":  "TKMCO CEL SAM BOOKC 3 S26P BL",
+        "currentSku":  "TKMCO CEL SAM BOOKC 3 S26P BL",
+        "alltronPrice":  "29,95",
+        "alltronStock":  "2"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "2053276",
+        "supabaseSku":  "TKMCO CEL SAM CLEAR MAG S26P",
+        "currentSku":  "TKMCO CEL SAM CLEAR MAG S26P",
+        "alltronPrice":  "29,95",
+        "alltronStock":  "2"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "2053283",
+        "supabaseSku":  "TKMCO CEL SAM FROC S26 BL",
+        "currentSku":  "TKMCO CEL SAM FROC S26 BL",
+        "alltronPrice":  "39,95",
+        "alltronStock":  "2"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "2053293",
+        "supabaseSku":  "TKMFO CEL SAM TEMPG S26P",
+        "currentSku":  "TKMFO CEL SAM TEMPG S26P",
+        "alltronPrice":  "29,95",
+        "alltronStock":  "4"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "2053294",
+        "supabaseSku":  "TKMCO CEL SAM STRONG S26P",
+        "currentSku":  "TKMCO CEL SAM STRONG S26P",
+        "alltronPrice":  "29,95",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "2053546",
+        "supabaseSku":  "HH APS 00084",
+        "currentSku":  "HH APS 00084",
+        "alltronPrice":  "34,9",
+        "alltronStock":  "1"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "2053550",
+        "supabaseSku":  "HH APS 00384",
+        "currentSku":  "HH APS 00384",
+        "alltronPrice":  "28,9",
+        "alltronStock":  "9"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "2053737",
+        "supabaseSku":  "TKMCO OB DPXT CLR BLK S26U",
+        "currentSku":  "TKMCO OB DPXT CLR BLK S26U",
+        "alltronPrice":  "59,95",
+        "alltronStock":  "14"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "2053743",
+        "supabaseSku":  "TKMCO OB RM CLR S26",
+        "currentSku":  "TKMCO OB RM CLR S26",
+        "alltronPrice":  "29,95",
+        "alltronStock":  "22"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "2053747",
+        "supabaseSku":  "TKMCO OB SYM CM CLR S26+",
+        "currentSku":  "TKMCO OB SYM CM CLR S26+",
+        "alltronPrice":  "44,95",
+        "alltronStock":  "18"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "2054343",
+        "supabaseSku":  "TKMCO DCA BLK GS26",
+        "currentSku":  "TKMCO DCA BLK GS26",
+        "alltronPrice":  "21,95",
+        "alltronStock":  "42"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "2054759",
+        "supabaseSku":  "TKMCO HA S26P SLIPRO TRAN",
+        "currentSku":  "TKMCO HA S26P SLIPRO TRAN",
+        "alltronPrice":  "19,95",
+        "alltronStock":  "2"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "2054762",
+        "supabaseSku":  "TKMCO HA S26P FANFE SCH",
+        "currentSku":  "TKMCO HA S26P FANFE SCH",
+        "alltronPrice":  "25,8",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "2054776",
+        "supabaseSku":  "TKMCO HA S26U SUPHY SCREENP",
+        "currentSku":  "TKMCO HA S26U SUPHY SCREENP",
+        "alltronPrice":  "36",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "2054780",
+        "supabaseSku":  "TKMCO HA S26P CLEARPRO SCREENP",
+        "currentSku":  "TKMCO HA S26P CLEARPRO SCREENP",
+        "alltronPrice":  "24,4",
+        "alltronStock":  "2"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "2056066",
+        "supabaseSku":  "HH VE JJ 171112",
+        "currentSku":  "HH VE JJ 171112",
+        "alltronPrice":  "48",
+        "alltronStock":  "7"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "2080551",
+        "supabaseSku":  "TC AP AIR 13 512GB WIFI 26 SG",
+        "currentSku":  "TC AP AIR 13 512GB WIFI 26 SG",
+        "alltronPrice":  "1199",
+        "alltronStock":  "5"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "2080552",
+        "supabaseSku":  "TC AP AIR 13 1TB WIFI 26 SG",
+        "currentSku":  "TC AP AIR 13 1TB WIFI 26 SG",
+        "alltronPrice":  "1499",
+        "alltronStock":  "2"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "2081934",
+        "supabaseSku":  "NO AP MBA13 MDHK4SM/A",
+        "currentSku":  "NO AP MBA13 MDHK4SM/A",
+        "alltronPrice":  "1759",
+        "alltronStock":  "70"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "2082001",
+        "supabaseSku":  "NO AP MP14/M5P-20/24/2T/CH/SI",
+        "currentSku":  "NO AP MP14/M5P-20/24/2T/CH/SI",
+        "alltronPrice":  "3009",
+        "alltronStock":  "27"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "2082881",
+        "supabaseSku":  "GES GA 753759357153",
+        "currentSku":  "GES GA 753759357153",
+        "alltronPrice":  "449,9",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "219938",
+        "supabaseSku":  "NOZ DE PORT REPLICATOR/VIDEO 3",
+        "currentSku":  "NOZ DE PORT REPLICATOR/VIDEO 3",
+        "alltronPrice":  "169",
+        "alltronStock":  "3"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "664543",
+        "supabaseSku":  "GR C3D Z CSV-1460",
+        "currentSku":  "GR C3D Z CSV-1460",
+        "alltronPrice":  "189",
+        "alltronStock":  "2"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "752373",
+        "supabaseSku":  "SMA DAB REVO SUPERCD SI",
+        "currentSku":  "SMA DAB REVO SUPERCD SI",
+        "alltronPrice":  "668",
+        "alltronStock":  "1"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "906812",
+        "supabaseSku":  "HEA APO MUG 120 STK 3821542",
+        "currentSku":  "HEA APO MUG 120 STK 3821542",
+        "alltronPrice":  "52,6",
+        "alltronStock":  "19"
+    },
+    {
+        "action":  "CREATE_SHOPIFY_CANDIDATE",
+        "result":  "PRESENT_ALLTRON_NOT_FOUND_SHOPIFY",
+        "litm":  "961959",
+        "supabaseSku":  "TKMFO PG IP5.8 2019 CF BLACK",
+        "currentSku":  "TKMFO PG IP5.8 2019 CF BLACK",
+        "alltronPrice":  "34,95",
+        "alltronStock":  "71"
+    }
+]

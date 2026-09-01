@@ -1,4 +1,4 @@
-/** @type {import('next').NextConfig} */
+﻿/** @type {import('next').NextConfig} */
 const nextConfig = {
   staticPageGenerationTimeout: 300,
 
@@ -13,6 +13,11 @@ const nextConfig = {
 
   images: {
     remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "images.icecat.biz",
+        pathname: "/**",
+      },
       {
         protocol: "https",
         hostname: "cdn.shopify.com",
@@ -43,3 +48,4 @@ const nextConfig = {
 };
 
 export default nextConfig;
+

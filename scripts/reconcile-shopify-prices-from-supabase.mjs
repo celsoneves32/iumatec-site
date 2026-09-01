@@ -8,7 +8,7 @@ const ONLY_LAST_ACTIVATION = ARGS.includes("--only-last-activation");
 const HELP = ARGS.includes("--help") || ARGS.includes("-h");
 const PAGE_SIZE = 1000;
 const SHOPIFY_BATCH_SIZE = 100;
-const MAX_APPLY_LIMIT = 1000;
+const MAX_APPLY_LIMIT = 10000;
 const PRICE_TOLERANCE = 0.009;
 const OUT_DIR = path.join(
   ROOT,

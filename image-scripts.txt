@@ -1,0 +1,105 @@
+﻿
+Path                                                                                LineNumber Line                                                               
+----                                                                                ---------- ----                                                               
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\build-master-catalog.mjs              5   "integrations/alltron/out/iumatec-tech-catalog.json",            
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\build-master-catalog.mjs             71 function getImages(product) {                                      
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\build-master-catalog.mjs             79     product.images,                                                
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\build-master-catalog.mjs             80     product.imageUrls,                                             
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\build-master-catalog.mjs             82     product.shopifyImages,                                         
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\build-master-catalog.mjs            186     const images = getImages(incoming);                            
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\build-master-catalog.mjs            197       image: images[0] || "",                                      
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\build-master-catalog.mjs            198       images,                                                      
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\build-master-catalog.mjs            199       imageUrls: images,                                           
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\build-master-catalog.mjs            210   const images = unique([                                          
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\build-master-catalog.mjs            211     ...getImages(current),                                         
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\build-master-catalog.mjs            212     ...getImages(incoming),                                        
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\build-master-catalog.mjs            339     image: images[0] || "",                                        
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\build-master-catalog.mjs            340     images,                                                        
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\build-master-catalog.mjs            341     imageUrls: images,                                             
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\build-master-catalog.mjs            464 const withImages = masterCatalog.filter(                           
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\build-master-catalog.mjs            465   (product) => getImages(product).length > 0,                      
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\build-master-catalog.mjs            487 console.log("With images:", withImages);                           
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\build-master-catalog.mjs            512     images: getImages(product).length,                             
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\build-storefront-catalog.mjs        271 function getImages(product) {                                      
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\build-storefront-catalog.mjs        279     product.images,                                                
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\build-storefront-catalog.mjs        280     product.imageUrls,                                             
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\build-storefront-catalog.mjs        282     product.shopifyImages,                                         
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\build-storefront-catalog.mjs        390     getImages(product).length > 0                                  
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\build-storefront-catalog.mjs        430   const images = getImages(product);                               
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\build-storefront-catalog.mjs        453     image: images[0] || "",                                        
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\build-storefront-catalog.mjs        454     images,                                                        
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\build-storefront-catalog.mjs        455     imageUrls: images,                                             
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\clean-shopify-catalog.mjs             5   "integrations/alltron/out/iumatec-tech-catalog.json",            
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\clean-shopify-catalog.mjs            75 function getImages(product) {                                      
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\clean-shopify-catalog.mjs            76   const images = [];                                               
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\clean-shopify-catalog.mjs            79     images.push(product.image);                                    
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\clean-shopify-catalog.mjs            83     product.images,                                                
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\clean-shopify-catalog.mjs            84     product.imageUrls,                                             
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\clean-shopify-catalog.mjs            86     product.shopifyImages,                                         
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\clean-shopify-catalog.mjs            94         images.push(image);                                        
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\clean-shopify-catalog.mjs           100     images.push(product.shopifyImageUrl);                          
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\clean-shopify-catalog.mjs           103   return uniqueStrings(images).filter(                             
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\clean-shopify-catalog.mjs           229     const images = getImages(incoming);                            
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\clean-shopify-catalog.mjs           237       image: images[0] || "",                                      
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\clean-shopify-catalog.mjs           238       images,                                                      
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\clean-shopify-catalog.mjs           239       imageUrls: images,                                           
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\clean-shopify-catalog.mjs           250   const images = uniqueStrings([                                   
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\clean-shopify-catalog.mjs           251     ...getImages(current),                                         
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\clean-shopify-catalog.mjs           252     ...getImages(incoming),                                        
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\clean-shopify-catalog.mjs           405     image: images[0] || "",                                        
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\clean-shopify-catalog.mjs           406     images,                                                        
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\clean-shopify-catalog.mjs           407     imageUrls: images,                                             
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\clean-shopify-catalog.mjs           536 const withImages = cleanedMaster.filter(                           
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\clean-shopify-catalog.mjs           537   (product) => getImages(product).length > 0,                      
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\clean-shopify-catalog.mjs           559 console.log("With images:", withImages.length);                    
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\clean-shopify-catalog.mjs           587     images: getImages(product).length,                             
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\inspectPhilipsXml.mjs                11   "ArtikeldatenV2.xml",                                            
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\parseAlltronProducts.mjs             11   "ArtikeldatenV2.xml",                                            
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\parseAlltronProducts.mjs             35   "iumatec-tech-catalog.json",                                     
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\parseAlltronProducts.mjs            126 function getXmlImages(product) {                                   
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\parseAlltronProducts.mjs            130     ...normalizeArray(product?.images?.image),                     
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\parseAlltronProducts.mjs            131     ...normalizeArray(product?.images?.item),                      
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\parseAlltronProducts.mjs            192     const currentImages = imageMap.get(alltronSku) || [];          
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\parseAlltronProducts.mjs            194     currentImages.push(imageUrl);                                  
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\parseAlltronProducts.mjs            196     imageMap.set(alltronSku, currentImages);                       
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\parseAlltronProducts.mjs            204   console.log("Products with CSV images:", imageMap.size);         
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\parseAlltronProducts.mjs            365   const xmlImages = getXmlImages(product);                         
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\parseAlltronProducts.mjs            366   const csvImages = imageMap.get(litm) || [];                      
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\parseAlltronProducts.mjs            368   const images = uniqueUrls([                                      
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\parseAlltronProducts.mjs            369     ...csvImages,                                                  
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\parseAlltronProducts.mjs            370     ...xmlImages,                                                  
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\parseAlltronProducts.mjs            401     image: images[0] || null,                                      
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\parseAlltronProducts.mjs            402     images,                                                        
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\parseAlltronProducts.mjs            403     imageUrls: images,                                             
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\parseAlltronProducts.mjs            432 const productsWithImages = products.filter(                        
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\parseAlltronProducts.mjs            433   (product) => product.images.length > 0,                          
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\parseAlltronProducts.mjs            436 const productsWithMultipleImages = products.filter(                
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\parseAlltronProducts.mjs            437   (product) => product.images.length > 1,                          
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\parseAlltronProducts.mjs            444 const totalImages = products.reduce(                               
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\parseAlltronProducts.mjs            445   (sum, product) => sum + product.images.length,                   
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\parseAlltronProducts.mjs            454 console.log("Products with images:", productsWithImages.length);   
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\parseAlltronProducts.mjs            456   "Products with multiple images:",                                
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\parseAlltronProducts.mjs            457   productsWithMultipleImages.length,                               
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\parseAlltronProducts.mjs            459 console.log("Total image URLs:", totalImages);                     
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\parseAlltronProducts.mjs            481     images: product.images.length,                                 
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\parseAlltronProducts.mjs            482     firstImages: product.images.slice(0, 5),                       
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\select-master-products.mjs           46     ...(Array.isArray(product.images) ? product.images : []),      
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\select-master-products.mjs           47     ...(Array.isArray(product.imageUrls) ? product.imageUrls : []),
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\sync-master-shopify.mjs             103     ...(Array.isArray(p.images) ? p.images : []),                  
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\sync-master-shopify.mjs             104     ...(Array.isArray(p.imageUrls) ? p.imageUrls : []),            
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\sync-shopify-images.mjs              80   if (Array.isArray(product.images)) {                             
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\sync-shopify-images.mjs              81     const found = product.images.find(                             
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\sync-shopify-images.mjs              88   if (Array.isArray(product.imageUrls)) {                          
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\sync-shopify-images.mjs              89     const found = product.imageUrls.find(                          
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\sync-shopify-images.mjs             146 function productAlreadyHasImages(product) {                        
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\sync-shopify-images.mjs             222       product.shopifyImageSyncStatus = "skipped-missing-sku";      
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\sync-shopify-images.mjs             229       product.shopifyImageSyncStatus = "no-image";                 
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\sync-shopify-images.mjs             239         product.shopifyImageSyncStatus = "not-found";              
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\sync-shopify-images.mjs             247       if (productAlreadyHasImages(shopifyProduct)) {               
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\sync-shopify-images.mjs             249         product.shopifyImageSyncStatus = "already-has-image";      
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\sync-shopify-images.mjs             258       product.shopifyImageSyncStatus = "uploaded";                 
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\sync-shopify-images.mjs             260       product.shopifyImageSyncError = undefined;                   
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\sync-shopify-images.mjs             268       product.shopifyImageSyncStatus = "error";                    
+C:\Users\celso\Documents\Projetos\iumatec-site\scripts\sync-shopify-images.mjs             269       product.shopifyImageSyncError = message;                     
+
+

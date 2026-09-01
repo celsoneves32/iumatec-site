@@ -1,0 +1,241 @@
+﻿import fs from "node:fs";
+import path from "node:path";
+
+const ROOT = process.cwd();
+const OUT = path.join(ROOT, "integrations", "alltron", "out");
+const INPUT = process.env.AUDIT_CATALOG
+  ? path.resolve(ROOT, process.env.AUDIT_CATALOG)
+  : path.join(OUT, "iumatec-master-catalog.json");
+const REPORT_JSON = path.join(OUT, "iumatec-duplicates-prices-profit-audit.json");
+const REPORT_CSV = path.join(OUT, "iumatec-price-profit-review.csv");
+
+// Change these through PowerShell environment variables if your real fees differ.
+const VAT_RATE = finite(process.env.AUDIT_VAT_RATE, 0.081);
+const PAYMENT_RATE = finite(process.env.AUDIT_PAYMENT_RATE, 0.02);
+const PAYMENT_FIXED = finite(process.env.AUDIT_PAYMENT_FIXED, 0.30);
+const NORMAL_SUPPLIER_SHIPPING = finite(process.env.AUDIT_SUPPLIER_SHIPPING, 5.90);
+const CUSTOMER_SHIPPING_BELOW_49 = finite(process.env.AUDIT_CUSTOMER_SHIPPING, 9.90);
+const FREE_SHIPPING_FROM = finite(process.env.AUDIT_FREE_SHIPPING_FROM, 49);
+const MIN_NET_MARGIN_RATE = finite(process.env.AUDIT_MIN_MARGIN_RATE, 0.10);
+const MIN_NET_PROFIT = finite(process.env.AUDIT_MIN_PROFIT, 2);
+
+function finite(value, fallback = 0) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+function text(value) {
+  return String(value ?? "").trim();
+}
+function firstText(...values) {
+  return values.map(text).find(Boolean) || "";
+}
+function firstPositive(...values) {
+  for (const value of values) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed) && parsed > 0) return parsed;
+  }
+  return 0;
+}
+function round(value) {
+  return Math.round((value + Number.EPSILON) * 100) / 100;
+}
+function normalizeTitle(value) {
+  return text(value)
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/\b(?:neu|new|aktion|promo|schwarz|weiss|weiÃŸ|black|white)\b/g, " ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+function csv(value) {
+  const string = String(value ?? "");
+  return `"${string.replaceAll('"', '""')}"`;
+}
+function groupDuplicates(products, getter) {
+  const groups = new Map();
+  products.forEach((product, index) => {
+    const key = text(getter(product));
+    if (!key) return;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(index);
+  });
+  return [...groups.entries()]
+    .filter(([, indexes]) => indexes.length > 1)
+    .map(([value, indexes]) => ({
+      value,
+      count: indexes.length,
+      products: indexes.map((index) => identity(products[index], index)),
+    }))
+    .sort((a, b) => b.count - a.count || a.value.localeCompare(b.value));
+}
+function identity(product, index) {
+  return {
+    index,
+    litm: firstText(product.litm, product.internalId, product.merchandiseIdAlltron),
+    sku: text(product.sku),
+    ean: text(product.ean),
+    title: firstText(product.title, product.fullTitle),
+    price: firstPositive(product.price, product.shopifyPrice),
+    variantId: firstText(product.merchandiseId, product.shopifyVariantId),
+    handle: firstText(product.slug, product.productHandle, product.shopifyProductHandle),
+  };
+}
+function costFields(product) {
+  const expr = firstPositive(product.expr, product.EXPR, product.prices?.expr);
+  const inpr = firstPositive(product.inpr, product.INPR, product.prices?.inpr);
+  const ecpr = firstPositive(product.ecpr, product.ECPR, product.prices?.ecpr);
+  return { expr, inpr, ecpr };
+}
+function calculateProfit(product, index) {
+  const id = identity(product, index);
+  const { expr, inpr, ecpr } = costFields(product);
+  const sellingGross = id.price;
+  const sellingNet = sellingGross > 0 ? sellingGross / (1 + VAT_RATE) : 0;
+
+  // Preferred calculation: EXPR is treated as purchase price excluding VAT.
+  // If only INPR exists, convert it to net using the configured Swiss VAT rate.
+  const purchaseNet = expr || (inpr ? inpr / (1 + VAT_RATE) : 0);
+  const customerShipping = sellingGross > 0 && sellingGross < FREE_SHIPPING_FROM
+    ? CUSTOMER_SHIPPING_BELOW_49
+    : 0;
+  const paymentFee = sellingGross > 0
+    ? (sellingGross + customerShipping) * PAYMENT_RATE + PAYMENT_FIXED
+    : 0;
+  const supplierShipping = NORMAL_SUPPLIER_SHIPPING;
+  const netProfitWorstCase = purchaseNet > 0
+    ? sellingNet + customerShipping / (1 + VAT_RATE) - purchaseNet - paymentFee - supplierShipping
+    : null;
+  const marginRate = netProfitWorstCase === null || sellingNet <= 0
+    ? null
+    : netProfitWorstCase / sellingNet;
+  const flags = [];
+  if (!sellingGross) flags.push("MISSING_SELLING_PRICE");
+  if (!purchaseNet) flags.push("MISSING_PURCHASE_COST");
+  if (expr && inpr && Math.abs(inpr / (1 + VAT_RATE) - expr) / expr > 0.03) {
+    flags.push("EXPR_INPR_VAT_MISMATCH");
+  }
+  if (ecpr && sellingGross > ecpr * 1.5) flags.push("PRICE_OVER_150_PERCENT_ECPR");
+  if (ecpr && sellingGross < ecpr * 0.5) flags.push("PRICE_BELOW_50_PERCENT_ECPR");
+  if (netProfitWorstCase !== null && netProfitWorstCase < 0) flags.push("LOSS_WORST_CASE");
+  else if (netProfitWorstCase !== null && netProfitWorstCase < MIN_NET_PROFIT) flags.push("LOW_NET_PROFIT");
+  if (marginRate !== null && marginRate < MIN_NET_MARGIN_RATE) flags.push("LOW_NET_MARGIN");
+
+  return {
+    ...id,
+    expr: round(expr),
+    inpr: round(inpr),
+    ecpr: round(ecpr),
+    sellingGross: round(sellingGross),
+    sellingNet: round(sellingNet),
+    purchaseNet: round(purchaseNet),
+    customerShippingGross: round(customerShipping),
+    supplierShippingGross: round(supplierShipping),
+    paymentFeeEstimate: round(paymentFee),
+    netProfitWorstCase: netProfitWorstCase === null ? null : round(netProfitWorstCase),
+    netMarginRate: marginRate === null ? null : round(marginRate),
+    flags,
+  };
+}
+function histogram(rows) {
+  const result = {};
+  for (const row of rows) {
+    for (const flag of row.flags) result[flag] = (result[flag] || 0) + 1;
+  }
+  return Object.fromEntries(Object.entries(result).sort((a, b) => b[1] - a[1]));
+}
+
+if (!fs.existsSync(INPUT)) {
+  throw new Error(`Catalog not found: ${INPUT}`);
+}
+const products = JSON.parse(fs.readFileSync(INPUT, "utf8"));
+if (!Array.isArray(products)) throw new Error("Catalog must be a JSON array");
+
+const duplicateGroups = {
+  shopifyVariantId: groupDuplicates(products, (p) => firstText(p.merchandiseId, p.shopifyVariantId)),
+  litm: groupDuplicates(products, (p) => firstText(p.litm, p.internalId, p.merchandiseIdAlltron)),
+  sku: groupDuplicates(products, (p) => p.sku),
+  ean: groupDuplicates(products, (p) => p.ean),
+  normalizedTitleReviewOnly: groupDuplicates(products, (p) =>
+    normalizeTitle(firstText(p.title, p.fullTitle))
+  ),
+};
+
+const rows = products.map(calculateProfit);
+const reviewRows = rows
+  .filter((row) => row.flags.length)
+  .sort((a, b) => {
+    const aProfit = a.netProfitWorstCase ?? Number.NEGATIVE_INFINITY;
+    const bProfit = b.netProfitWorstCase ?? Number.NEGATIVE_INFINITY;
+    return aProfit - bProfit || a.title.localeCompare(b.title);
+  });
+
+const report = {
+  createdAt: new Date().toISOString(),
+  mode: "READ_ONLY_LOCAL_AUDIT",
+  shopifyWrites: 0,
+  input: path.relative(ROOT, INPUT),
+  assumptions: {
+    vatRate: VAT_RATE,
+    paymentRate: PAYMENT_RATE,
+    paymentFixed: PAYMENT_FIXED,
+    normalSupplierShippingGross: NORMAL_SUPPLIER_SHIPPING,
+    customerShippingBelow49Gross: CUSTOMER_SHIPPING_BELOW_49,
+    freeShippingFromGross: FREE_SHIPPING_FROM,
+    minimumNetMarginRate: MIN_NET_MARGIN_RATE,
+    minimumNetProfit: MIN_NET_PROFIT,
+    costRule: "EXPR preferred as purchase cost excl. VAT; otherwise INPR converted from incl. VAT",
+    warning: "Confirm EXPR/INPR definitions and actual payment fees before changing prices.",
+  },
+  totals: {
+    products: products.length,
+    productsForPriceReview: reviewRows.length,
+    duplicateVariantGroups: duplicateGroups.shopifyVariantId.length,
+    duplicateLitmGroups: duplicateGroups.litm.length,
+    duplicateSkuGroups: duplicateGroups.sku.length,
+    duplicateEanGroups: duplicateGroups.ean.length,
+    similarTitleGroupsForManualReview: duplicateGroups.normalizedTitleReviewOnly.length,
+  },
+  priceFlags: histogram(rows),
+  duplicateGroups,
+  worstPriceCases: reviewRows.slice(0, 500),
+};
+
+fs.mkdirSync(OUT, { recursive: true });
+fs.writeFileSync(REPORT_JSON, JSON.stringify(report, null, 2), "utf8");
+
+const headers = [
+  "flags", "litm", "sku", "ean", "title", "price_gross", "expr_cost_net",
+  "inpr_cost_gross", "ecpr_recommended", "purchase_cost_net_used",
+  "sale_net", "customer_shipping_gross", "supplier_shipping_gross",
+  "payment_fee_estimate", "net_profit_worst_case", "net_margin_rate",
+  "shopify_variant_id", "handle",
+];
+const csvLines = [
+  headers.map(csv).join(","),
+  ...reviewRows.map((row) => [
+    row.flags.join("|"), row.litm, row.sku, row.ean, row.title, row.sellingGross,
+    row.expr, row.inpr, row.ecpr, row.purchaseNet, row.sellingNet,
+    row.customerShippingGross, row.supplierShippingGross, row.paymentFeeEstimate,
+    row.netProfitWorstCase, row.netMarginRate, row.variantId, row.handle,
+  ].map(csv).join(",")),
+];
+fs.writeFileSync(REPORT_CSV, csvLines.join("\n"), "utf8");
+
+console.log("========== DUPLICATES / PRICES / PROFIT AUDIT ==========");
+console.log(`Products inspected: ${products.length}`);
+console.log(`Duplicate Shopify variant groups: ${duplicateGroups.shopifyVariantId.length}`);
+console.log(`Duplicate LITM groups: ${duplicateGroups.litm.length}`);
+console.log(`Duplicate SKU groups: ${duplicateGroups.sku.length}`);
+console.log(`Duplicate EAN groups: ${duplicateGroups.ean.length}`);
+console.log(`Similar title groups (manual review only): ${duplicateGroups.normalizedTitleReviewOnly.length}`);
+console.log(`Products requiring price review: ${reviewRows.length}`);
+for (const [flag, count] of Object.entries(report.priceFlags)) {
+  console.log(`${flag}: ${count}`);
+}
+console.log(`JSON report: ${path.relative(ROOT, REPORT_JSON)}`);
+console.log(`CSV review: ${path.relative(ROOT, REPORT_CSV)}`);
+console.log("Shopify changes: NONE");
+console.log("========================================================");
+
