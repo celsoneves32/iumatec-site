@@ -33,7 +33,7 @@ export default function PromoBarCompact({
 }: Props) {
   const [closed, setClosed] = useState(false);
 
-  // janela de exibição (datas)
+  // janela de exibi��o (datas)
   const inWindow = useMemo(() => {
     const now = new Date();
     const afterStart = startAt ? now >= new Date(startAt) : true;

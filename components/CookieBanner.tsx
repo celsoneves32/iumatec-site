@@ -15,7 +15,7 @@ export default function CookieBanner() {
       | ConsentValue
       | null;
 
-    // Se ainda não tiver escolha guardada, mostra o banner
+    // Se ainda n�o tiver escolha guardada, mostra o banner
     if (!stored) {
       setVisible(true);
     }

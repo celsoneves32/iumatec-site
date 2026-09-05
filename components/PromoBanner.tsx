@@ -12,7 +12,7 @@ type Props = {
   icon?: string;
   startAt?: string;
   endAt?: string;
-  storageKey: string; // permite esconder a promoção
+  storageKey: string; // permite esconder a promo��o
 };
 
 export default function PromoBanner({
@@ -29,13 +29,13 @@ export default function PromoBanner({
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    // Se o utilizador fechou antes, não mostrar
+    // Se o utilizador fechou antes, n�o mostrar
     if (typeof window !== "undefined") {
       const hidden = localStorage.getItem(storageKey);
       if (hidden === "true") return;
     }
 
-    // Datas de ativação
+    // Datas de ativa��o
     const now = new Date();
     if (startAt) {
       const start = new Date(startAt);

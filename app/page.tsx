@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import {
   ArrowRight,
   BadgeCheck,
@@ -324,7 +324,7 @@ function ProductRail({
 
 /* =========================================================
    HERO PRINCIPAL
-   SÃ³ o botÃ£o "Jetzt entdecken" Ã© clicÃ¡vel
+   Só o botão "Jetzt entdecken" é clicável
    ========================================================= */
 
 function MarketingHero() {
@@ -332,7 +332,7 @@ function MarketingHero() {
     <div className="relative overflow-hidden rounded-[28px] border border-neutral-200 bg-white shadow-[0_16px_50px_rgba(15,23,42,0.06)]">
       <img
         src="/images/home/iumatec-hero-technik.png"
-        alt="IUMATEC Schweiz â€“ Technik. Schnell. ZuverlÃ¤ssig."
+        alt="IUMATEC Schweiz – Technik. Schnell. Zuverlässig."
         className="block h-auto w-full"
       />
 
@@ -362,7 +362,7 @@ function MarketingHero() {
 
 /* =========================================================
    BANNERS PC + SMART HOME
-   SÃ³ a Ã¡rea do botÃ£o desenhado Ã© clicÃ¡vel
+   Só a área do botão desenhado é clicável
    ========================================================= */
 
 function MarketingPromo({
@@ -571,12 +571,12 @@ function FeatureStrip({
     {
       icon: Truck,
       title: "Versand Schweiz",
-      text: "Standardversand ab CHF 49.â€“ gratis",
+      text: "Standardversand ab CHF 49.– gratis",
     },
     {
       icon: ShieldCheck,
       title: "Sicher einkaufen",
-      text: "GeschÃ¼tzter Checkout",
+      text: "Geschützter Checkout",
     },
     {
       icon: BadgeCheck,
@@ -586,7 +586,7 @@ function FeatureStrip({
     {
       icon: Boxes,
       title: totalLabel,
-      text: "Technik fÃ¼r Privat & Business",
+      text: "Technik für Privat & Business",
     },
   ];
 
@@ -750,7 +750,7 @@ export default async function HomePage() {
     {
       title: "Peripherie",
       subtitle:
-        "Monitore, EingabegerÃ¤te und ZubehÃ¶r",
+        "Monitore, Eingabegeräte und Zubehör",
       href:
         "/produkte?category=Peripherie",
       icon: Monitor,
@@ -761,7 +761,7 @@ export default async function HomePage() {
     {
       title: "Mobile",
       subtitle:
-        "Smartphones, Tablets und ZubehÃ¶r",
+        "Smartphones, Tablets und Zubehör",
       href: "/produkte?category=Mobile",
       icon: Smartphone,
       product:
@@ -797,7 +797,7 @@ export default async function HomePage() {
     {
       title: "Office & Business",
       subtitle:
-        "Drucker, Verbrauchsmaterial und BÃ¼ro-Technik",
+        "Drucker, Verbrauchsmaterial und Büro-Technik",
       href: "/produkte?q=Drucker",
       icon: Printer,
       product:
@@ -807,7 +807,7 @@ export default async function HomePage() {
     {
       title: "Smart Home",
       subtitle:
-        "Sicherheit, Beleuchtung und GebÃ¤udetechnik",
+        "Sicherheit, Beleuchtung und Gebäudetechnik",
       href:
         "/produkte?category=Smart%20Home",
       icon: House,
@@ -917,14 +917,14 @@ export default async function HomePage() {
           <MarketingPromo
             href="/produkte?category=PC-Komponenten"
             image="/images/home/iumatec-pc-performance.png"
-            alt="IUMATEC PC-Komponenten â€“ Performance fÃ¼r deinen Build"
+            alt="IUMATEC PC-Komponenten – Performance für deinen Build"
             buttonLabel="Jetzt shoppen"
           />
 
           <MarketingPromo
             href="/produkte?category=Smart%20Home"
             image="/images/home/iumatec-smart-home.png"
-            alt="IUMATEC Smart Home â€“ Smarte Technik fÃ¼r dein Zuhause"
+            alt="IUMATEC Smart Home – Smarte Technik für dein Zuhause"
             buttonLabel="Mehr entdecken"
           />
         </div>
@@ -935,7 +935,7 @@ export default async function HomePage() {
       <section className="mx-auto max-w-[1440px] px-4 py-11 xl:px-6">
         <SectionHeading
           eyebrow="Shop by Category"
-          title="Alles fÃ¼r dein digitales Setup"
+          title="Alles für dein digitales Setup"
           subtitle="Schneller Einstieg in die wichtigsten Bereiche des IUMATEC Sortiments."
           href="/produkte"
           linkLabel="Alle Kategorien"
@@ -952,7 +952,7 @@ export default async function HomePage() {
             <SectionHeading
               eyebrow="Deals"
               title="Aktuelle Preisvorteile"
-              subtitle="Sofort verfÃ¼gbare Technik mit attraktiven Preisen."
+              subtitle="Sofort verfügbare Technik mit attraktiven Preisen."
               href="/produkte?sort=price-asc"
               linkLabel="Alle Angebote"
             />
@@ -988,8 +988,8 @@ export default async function HomePage() {
           <div className="mx-auto max-w-[1440px] px-4 py-11 xl:px-6">
             <SectionHeading
               eyebrow="Computer"
-              title="Laptops fÃ¼r Arbeit und Alltag"
-              subtitle="LeistungsfÃ¤hige GerÃ¤te fÃ¼r Business, Homeoffice und unterwegs."
+              title="Laptops für Arbeit und Alltag"
+              subtitle="Leistungsfähige Geräte für Business, Homeoffice und unterwegs."
               href="/produkte?category=Computer&subcategory=Laptops"
             />
 
@@ -1006,8 +1006,8 @@ export default async function HomePage() {
         <section className="mx-auto max-w-[1440px] px-4 py-11 xl:px-6">
           <SectionHeading
             eyebrow="PC-Komponenten"
-            title="Mehr Leistung fÃ¼r deinen PC"
-            subtitle="Komponenten, ZubehÃ¶r und Performance-Upgrades fÃ¼r dein System."
+            title="Mehr Leistung für deinen PC"
+            subtitle="Komponenten, Zubehör und Performance-Upgrades für dein System."
             href="/produkte?category=PC-Komponenten"
           />
 
@@ -1024,8 +1024,8 @@ export default async function HomePage() {
           <div className="mx-auto max-w-[1440px] px-4 py-11 xl:px-6">
             <SectionHeading
               eyebrow="Peripherie"
-              title="Monitore fÃ¼r jedes Setup"
-              subtitle="Displays fÃ¼r produktives Arbeiten, Content und Gaming."
+              title="Monitore für jedes Setup"
+              subtitle="Displays für produktives Arbeiten, Content und Gaming."
               href="/produkte?category=Peripherie&subcategory=Monitore"
             />
 
@@ -1042,8 +1042,8 @@ export default async function HomePage() {
         <section className="mx-auto max-w-[1440px] px-4 py-11 xl:px-6">
           <SectionHeading
             eyebrow="Mobile"
-            title="Smartphones fÃ¼r jeden Alltag"
-            subtitle="Aktuelle GerÃ¤te fÃ¼r Kommunikation, Arbeit, Foto und Entertainment."
+            title="Smartphones für jeden Alltag"
+            subtitle="Aktuelle Geräte für Kommunikation, Arbeit, Foto und Entertainment."
             href="/produkte?category=Mobile&subcategory=Smartphones"
           />
 

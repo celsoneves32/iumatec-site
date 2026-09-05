@@ -321,54 +321,635 @@ function subcategoryValues(value?: string | null): string[] {
   return SUBCATEGORY_ALIASES[clean] || [clean];
 }
 
+// -----------------------------------------------------------------------------
+// IUMATEC STRICT CATALOG V1
+// Frontend/catalog safety layer.
+//
+// Important:
+// - Does NOT write anything to Supabase.
+// - It is only activated for product subcategories where the customer expects
+//   an actual device/component.
+// - Its purpose is to stop obvious accessories/misclassified items from being
+//   shown as Smartphones, Tablets, Laptops, etc.
+// -----------------------------------------------------------------------------
+
+type StrictCatalogRule = {
+  include: RegExp[];
+  exclude?: RegExp[];
+  minPrice?: number;
+};
+
+const DEVICE_ACCESSORY_EXCLUDES: RegExp[] = [
+  /\bcase\b/,
+  /\bcover\b/,
+  /\bbackcover\b/,
+  /\bbooklet\b/,
+  /\bfolio\b/,
+  /\bbumper\b/,
+  /\bshell\b/,
+  /\bstyleshell\b/,
+  /\bskin\b/,
+  /\bhulle\b/,
+  /\bschutzhulle\b/,
+  /\bsleeve\b/,
+  /\btasche\b/,
+  /\bbag\b/,
+  /\bbackpack\b/,
+  /\brucksack\b/,
+  /\bglass\b/,
+  /\bschutzglas\b/,
+  /\bpanzerglas\b/,
+  /\btempered\b/,
+  /\bfolie\b/,
+  /\bschutzfolie\b/,
+  /\bprivacy\b/,
+  /\bprotector\b/,
+  /\bprotection\b/,
+  /\bschutzfilter\b/,
+  /\bfilter\b/,
+  /\bhalter\b/,
+  /\bholder\b/,
+  /\bmount\b/,
+  /\bwandhalter\b/,
+  /\bstand\b/,
+  /\bstativ\b/,
+  /\bstander\b/,
+  /\bclamp\b/,
+  /\bklemme\b/,
+  /\bdock\b/,
+  /\bdockingstation\b/,
+  /\bhub\b/,
+  /\badapter\b/,
+  /\bkabel\b/,
+  /\bcable\b/,
+  /\bcharger\b/,
+  /\bladegerat\b/,
+  /\bnetzteil\b/,
+  /\bpowerbank\b/,
+  /\bakku\b/,
+  /\bbattery\b/,
+  /\bersatzakku\b/,
+  /\bkeyboard\b/,
+  /\btastatur\b/,
+  /\bmouse\b/,
+  /\bmaus\b/,
+  /\bstylus\b/,
+  /\bstift\b/,
+  /\bpencil\b/,
+  /\bheadset\b/,
+  /\bheadphone\b/,
+  /\bkopfhorer\b/,
+  /\bwebcam\b/,
+  /\bcooler\b/,
+  /\bkuhler\b/,
+  /\blufter\b/,
+  /\breinigung\b/,
+  /\bcleaning\b/,
+  /\bersatz\b/,
+  /\breplacement\b/,
+  /\bstrap\b/,
+  /\bband\b/,
+  /\bkette\b/,
+];
+
+const STRICT_CATALOG_RULES: Record<string, StrictCatalogRule> = {
+  smartphones: {
+    include: [
+      /\bsmartphone\b/,
+      /\bmobiltelefon\b/,
+      /\biphone(?:\s|\d)/,
+      /\bgalaxy\s+(?:s|z|a|m|xcover)\s*[\w+-]*/,
+      /\bgoogle\s+pixel\b/,
+      /\bpixel\s+\d/,
+      /\bfairphone\b/,
+      /\bnothing\s+phone\b/,
+      /\boneplus\b/,
+      /\bxiaomi\b/,
+      /\bredmi\b/,
+      /\bpoco\b/,
+      /\bmotorola\b/,
+      /\bmoto\s+[gexr]\b/,
+      /\boppo\b/,
+      /\brealme\b/,
+      /\bhonor\b/,
+      /\bnokia\b/,
+    ],
+    exclude: [
+      ...DEVICE_ACCESSORY_EXCLUDES,
+      /\bsmartwatch\b/,
+      /\bwatch\b/,
+      /\bearbuds?\b/,
+      /\bearphones?\b/,
+    ],
+    minPrice: 70,
+  },
+
+  tablets: {
+    include: [
+      /\bipad(?:\s|\d)/,
+      /\bgalaxy\s+tab\b/,
+      /\blenovo\s+tab\b/,
+      /\bxiaomi\s+pad\b/,
+      /\bmatepad\b/,
+      /\bsurface\s+(?:pro|go)\b/,
+      /\btablet(?:-pc)?\b/,
+    ],
+    exclude: [
+      ...DEVICE_ACCESSORY_EXCLUDES,
+      /\bgrafiktablet\b/,
+      /\bdrawing\s+tablet\b/,
+      /\bpen\s+tablet\b/,
+      /\btablethalter\b/,
+      /\btabletthalter\b/,
+      /\bserviertablett\b/,
+      /\btablett\b/,
+      /\breinigungstabletten\b/,
+      /\bhandschuh\b/,
+      /\bteelicht\b/,
+      /\bkerzen?\b/,
+      /\bspiegel\b/,
+    ],
+    minPrice: 60,
+  },
+
+  laptops: {
+    include: [
+      /\blaptop\b/,
+      /\bnotebook\b/,
+      /\bmacbook\b/,
+      /\bchromebook\b/,
+      /\bthinkpad\b/,
+      /\bideapad\b/,
+      /\belitebook\b/,
+      /\bprobook\b/,
+      /\bzbook\b/,
+      /\blatitude\b/,
+      /\binspiron\b/,
+      /\bvostro\b/,
+      /\bxps\b/,
+      /\bvivobook\b/,
+      /\bzenbook\b/,
+      /\bexpertbook\b/,
+      /\btravelmate\b/,
+      /\baspire\b/,
+      /\bswift\b/,
+      /\bspectre\b/,
+      /\blegion\b/,
+      /\bomnibook\b/,
+      /\bproart\b/,
+      /\bwin(?:dows)?\s*11\b/,
+      /\bw11\b/,
+      /\b(?:13[.,]3|14|15[.,]6|16|17[.,]3)\s*["”]/,
+    ],
+    exclude: DEVICE_ACCESSORY_EXCLUDES,
+    minPrice: 120,
+  },
+
+  "desktop-pcs": {
+    include: [
+      /\bdesktop\b/,
+      /\bdesktop-pc\b/,
+      /\bworkstation\b/,
+      /\btower\b/,
+      /\ball[- ]in[- ]one\b/,
+      /\boptiplex\b/,
+      /\bprodesk\b/,
+      /\belitedesk\b/,
+      /\bprecision\b/,
+      /\bgaming\s+pc\b/,
+      /\bwin(?:dows)?\s*11\b/,
+      /\bw11\b/,
+    ],
+    exclude: DEVICE_ACCESSORY_EXCLUDES,
+    minPrice: 120,
+  },
+
+  "mini-pcs": {
+    include: [
+      /\bmini[- ]?pc\b/,
+      /\bnuc\b/,
+      /\bbarebone\b/,
+      /\bmini[- ]system\b/,
+      /\bmini\s+computer\b/,
+      /\btiny\s+pc\b/,
+    ],
+    exclude: DEVICE_ACCESSORY_EXCLUDES,
+    minPrice: 70,
+  },
+
+  "mini pcs": {
+    include: [
+      /\bmini[- ]?pc\b/,
+      /\bnuc\b/,
+      /\bbarebone\b/,
+      /\bmini[- ]system\b/,
+      /\bmini\s+computer\b/,
+      /\btiny\s+pc\b/,
+    ],
+    exclude: DEVICE_ACCESSORY_EXCLUDES,
+    minPrice: 70,
+  },
+
+  monitore: {
+    include: [
+      /\bmonitor\b/,
+      /\bdisplay\b/,
+      /\b(qhd|wqhd|uhd|oled)\b/,
+    ],
+    exclude: [
+      /\bhalter\b/,
+      /\bholder\b/,
+      /\bmount\b/,
+      /\bwandhalter\b/,
+      /\bmonitorarm\b/,
+      /\bstand\b/,
+      /\bstativ\b/,
+      /\bprivacy\b/,
+      /\bfilter\b/,
+      /\bschutz\b/,
+      /\bkabel\b/,
+      /\bcable\b/,
+      /\badapter\b/,
+      /\bdock\b/,
+      /\bdocking\b/,
+      /\bcase\b/,
+      /\bcover\b/,
+    ],
+    minPrice: 40,
+  },
+
+  monitors: {
+    include: [
+      /\bmonitor\b/,
+      /\bdisplay\b/,
+      /\b(qhd|wqhd|uhd|oled)\b/,
+    ],
+    exclude: [
+      /\bhalter\b/,
+      /\bholder\b/,
+      /\bmount\b/,
+      /\bwandhalter\b/,
+      /\bmonitorarm\b/,
+      /\bstand\b/,
+      /\bstativ\b/,
+      /\bprivacy\b/,
+      /\bfilter\b/,
+      /\bschutz\b/,
+      /\bkabel\b/,
+      /\bcable\b/,
+      /\badapter\b/,
+      /\bdock\b/,
+      /\bdocking\b/,
+      /\bcase\b/,
+      /\bcover\b/,
+    ],
+    minPrice: 40,
+  },
+
+  grafikkarten: {
+    include: [
+      /\bgrafikkarte\b/,
+      /\bgraphics\s+card\b/,
+      /\bgeforce\b/,
+      /\brtx\s*\d/,
+      /\bradeon\s+rx\b/,
+    ],
+    exclude: [
+      /\bwaterblock\b/,
+      /\bkuhler\b/,
+      /\bcooler\b/,
+      /\bbackplate\b/,
+      /\briser\b/,
+      /\badapter\b/,
+      /\bkabel\b/,
+      /\bcable\b/,
+    ],
+    minPrice: 70,
+  },
+
+  router: {
+    include: [
+      /\brouter\b/,
+      /\bfritz!?box\b/,
+      /\bdream\s+router\b/,
+      /\bgateway\b/,
+    ],
+    exclude: [
+      /\bcase\b/,
+      /\bcover\b/,
+      /\bmount\b/,
+      /\bhalter\b/,
+      /\bholder\b/,
+      /\badapter\b/,
+      /\bkabel\b/,
+      /\bcable\b/,
+      /\bnetzteil\b/,
+    ],
+    minPrice: 20,
+  },
+
+  switches: {
+    include: [
+      /\bnetwork\s+switch\b/,
+      /\bnetzwerk[- ]?switch\b/,
+      /\bunifi\s+switch\b/,
+      /\bmanaged\s+switch\b/,
+      /\bunmanaged\s+switch\b/,
+      /\bpoe\s+switch\b/,
+    ],
+    exclude: [
+      /\bnintendo\b/,
+      /\bcase\b/,
+      /\bcover\b/,
+      /\bmount\b/,
+      /\bhalter\b/,
+      /\badapter\b/,
+      /\bkabel\b/,
+      /\bcable\b/,
+    ],
+    minPrice: 15,
+  },
+
+  "drucker & scanner": {
+    include: [
+      /\bdrucker\b/,
+      /\bprinter\b/,
+      /\bscanner\b/,
+      /\bmultifunktions\b/,
+      /\blaserjet\b/,
+      /\bofficejet\b/,
+      /\becotank\b/,
+      /\bworkforce\b/,
+    ],
+    exclude: [
+      /\btoner\b/,
+      /\btinte\b/,
+      /\bink\b/,
+      /\bcartridge\b/,
+      /\bpatrone\b/,
+      /\btrommel\b/,
+      /\bdrum\b/,
+      /\bpapier\b/,
+      /\blabel\b/,
+      /\betikett\b/,
+    ],
+    minPrice: 30,
+  },
+};
+
+function strictCatalogText(product: Product): string {
+  // IMPORTANT: category/subcategory are deliberately NOT included here.
+  // Otherwise every wrongly classified product would automatically match
+  // because its subcategory already says e.g. "Smartphones".
+  return normalize([product.title, product.brand, product.sku].join(" "));
+}
+
+function strictRuleFor(subcategory?: string | null): StrictCatalogRule | null {
+  const key = normalize(subcategory);
+  return STRICT_CATALOG_RULES[key] || null;
+}
+
+function isStrictCatalogMatch(
+  product: Product,
+  subcategory?: string | null,
+): boolean {
+  const rule = strictRuleFor(subcategory);
+  if (!rule) return true;
+
+  const text = strictCatalogText(product);
+
+  if ((rule.exclude || []).some((pattern) => pattern.test(text))) {
+    return false;
+  }
+
+  if (!rule.include.some((pattern) => pattern.test(text))) {
+    return false;
+  }
+
+  if (
+    typeof rule.minPrice === "number" &&
+    Number(product.price || 0) < rule.minPrice
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
+function strictFeaturedScore(product: Product): number {
+  const text = strictCatalogText(product);
+  let score = 0;
+
+  if (product.inStock || Number(product.stockQty || 0) > 0) score += 10000;
+
+  const price = Number(product.price || 0);
+  if (price >= 100) score += 200;
+  if (price >= 250) score += 100;
+
+  if (
+    /\b(apple|samsung|hp|dell|lenovo|asus|acer|msi|microsoft|google|xiaomi|motorola|lg|philips|ubiquiti|tp-link|synology|qnap|canon|epson|brother)\b/.test(
+      text,
+    )
+  ) {
+    score += 250;
+  }
+
+  return score;
+}
+
+function sortStrictCatalogProducts(
+  products: Product[],
+  sort?: CatalogQuery["sort"],
+): Product[] {
+  return [...products].sort((a, b) => {
+    switch (sort) {
+      case "price-desc":
+        return Number(b.price || 0) - Number(a.price || 0);
+      case "price-asc":
+        return Number(a.price || 0) - Number(b.price || 0);
+      case "title-asc":
+        return a.title.localeCompare(b.title, "de");
+      case "brand-asc":
+        return (
+          String(a.brand || "").localeCompare(String(b.brand || ""), "de") ||
+          a.title.localeCompare(b.title, "de")
+        );
+      default:
+        return (
+          strictFeaturedScore(b) - strictFeaturedScore(a) ||
+          Number(a.price || 0) - Number(b.price || 0) ||
+          a.title.localeCompare(b.title, "de")
+        );
+    }
+  });
+}
+
+function applyCatalogFilters(request: any, query: CatalogQuery) {
+  const search = cleanSearch(query.q || "");
+
+  if (search) {
+    const pattern = `*${search}*`;
+    request = request.or(
+      [
+        `title.ilike.${pattern}`,
+        `brand.ilike.${pattern}`,
+        `sku.ilike.${pattern}`,
+        `ean.ilike.${pattern}`,
+        `category.ilike.${pattern}`,
+        `subcategory.ilike.${pattern}`,
+      ].join(","),
+    );
+  }
+
+  if (query.category && query.category !== "Alle") {
+    request = request.eq("category", query.category);
+  }
+
+  if (query.subcategory && query.subcategory !== "Alle") {
+    const values = subcategoryValues(query.subcategory);
+    request =
+      values.length > 1
+        ? request.in("subcategory", values)
+        : request.eq("subcategory", values[0]);
+  }
+
+  if (query.brands?.length) {
+    request = request.in("brand", query.brands.filter(Boolean));
+  }
+
+  if (Number.isFinite(query.minPrice)) {
+    request = request.gte("price", Number(query.minPrice));
+  }
+
+  if (Number.isFinite(query.maxPrice)) {
+    request = request.lte("price", Number(query.maxPrice));
+  }
+
+  if (query.inStock) {
+    request = request.gt("stock_qty", 0);
+  }
+
+  return request;
+}
+
+async function queryStrictCatalogProducts(
+  query: CatalogQuery,
+  offset: number,
+  limit: number,
+): Promise<CatalogResponse> {
+  const pageSize = 1000;
+  const maxRows = 6000;
+  const rows: ProductRow[] = [];
+
+  for (let from = 0; from < maxRows; from += pageSize) {
+    let request = getSupabase()
+      .from("products")
+      .select(CATALOG_COLUMNS);
+
+    request = applyCatalogFilters(request, query);
+    request = sellable(request);
+    request = request
+      .order("sku", { ascending: true })
+      .range(from, from + pageSize - 1);
+
+    const { data, error } = await request;
+
+    if (error) {
+      throw new Error(
+        `Supabase strict catalog query failed: ${error.message}`,
+      );
+    }
+
+    const batch = (data || []) as unknown as ProductRow[];
+    rows.push(...batch);
+
+    if (batch.length < pageSize) break;
+  }
+
+  const matched = sortStrictCatalogProducts(
+    rows
+      .map((row) => mapProduct(row))
+      .filter((product) =>
+        isStrictCatalogMatch(product, query.subcategory),
+      ),
+    query.sort,
+  );
+
+  const total = matched.length;
+
+  return {
+    products: matched.slice(offset, offset + limit),
+    total,
+    catalogTotal: total,
+    offset,
+    limit,
+    hasMore: offset + limit < total,
+    facets: EMPTY_FACETS,
+  };
+}
+
 export async function queryCatalogProducts(
   query: CatalogQuery = {},
 ): Promise<CatalogResponse> {
   const offset = Math.max(0, Math.trunc(Number(query.offset || 0)));
   const limit = Math.min(48, Math.max(1, Math.trunc(Number(query.limit || 24))));
-  let request = getSupabase().from("products").select(CATALOG_COLUMNS, { count: "exact" });
-  const search = cleanSearch(query.q || "");
 
-  if (search) {
-    const pattern = `*${search}*`;
-    request = request.or([
-      `title.ilike.${pattern}`,
-      `brand.ilike.${pattern}`,
-      `sku.ilike.${pattern}`,
-      `ean.ilike.${pattern}`,
-      `category.ilike.${pattern}`,
-      `subcategory.ilike.${pattern}`,
-    ].join(","));
+  // Strict mode is deliberately limited to subcategories where customers
+  // expect an actual device/component. It prevents obvious accessories from
+  // appearing before the real products.
+  if (
+    query.subcategory &&
+    query.subcategory !== "Alle" &&
+    strictRuleFor(query.subcategory)
+  ) {
+    return queryStrictCatalogProducts(query, offset, limit);
   }
-  if (query.category && query.category !== "Alle") request = request.eq("category", query.category);
-  if (query.subcategory && query.subcategory !== "Alle") {
-    const values = subcategoryValues(query.subcategory);
-    request = values.length > 1
-      ? request.in("subcategory", values)
-      : request.eq("subcategory", values[0]);
-  }
-  if (query.brands?.length) request = request.in("brand", query.brands.filter(Boolean));
-  if (Number.isFinite(query.minPrice)) request = request.gte("price", Number(query.minPrice));
-  if (Number.isFinite(query.maxPrice)) request = request.lte("price", Number(query.maxPrice));
-  if (query.inStock) request = request.gt("stock_qty", 0);
+
+  let request = getSupabase()
+    .from("products")
+    .select(CATALOG_COLUMNS, { count: "exact" });
+
+  request = applyCatalogFilters(request, query);
 
   switch (query.sort) {
-    case "price-desc": request = request.order("price", { ascending: false }); break;
-    case "price-asc": request = request.order("price", { ascending: true }); break;
-    case "title-asc": request = request.order("title", { ascending: true }); break;
-    case "brand-asc": request = request.order("brand", { ascending: true }).order("title", { ascending: true }); break;
-    default: request = request
-      .order("in_stock", { ascending: false })
-      .order("price", { ascending: true })
-      .order("title", { ascending: true });
+    case "price-desc":
+      request = request.order("price", { ascending: false });
+      break;
+    case "price-asc":
+      request = request.order("price", { ascending: true });
+      break;
+    case "title-asc":
+      request = request.order("title", { ascending: true });
+      break;
+    case "brand-asc":
+      request = request
+        .order("brand", { ascending: true })
+        .order("title", { ascending: true });
+      break;
+    default:
+      request = request
+        .order("in_stock", { ascending: false })
+        .order("price", { ascending: true })
+        .order("title", { ascending: true });
   }
 
-  const { data, error, count } = await request.range(offset, offset + limit - 1);
-  if (error) throw new Error(`Supabase fast catalog query failed: ${error.message}`);
+  const { data, error, count } = await request.range(
+    offset,
+    offset + limit - 1,
+  );
+
+  if (error) {
+    throw new Error(
+      `Supabase fast catalog query failed: ${error.message}`,
+    );
+  }
+
   const total = count || 0;
 
   return {
-    products: (data || []).map((row) => mapProduct(row as unknown as ProductRow)),
+    products: (data || []).map((row) =>
+      mapProduct(row as unknown as ProductRow),
+    ),
     total,
     catalogTotal: total,
     offset,

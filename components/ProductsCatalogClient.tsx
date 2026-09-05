@@ -63,6 +63,60 @@ type Shortcut = {
   q?: string;
 };
 
+const PAGE_SIZE = 24;
+
+type PaginationItem =
+  | number
+  | "ellipsis-left"
+  | "ellipsis-right";
+
+function buildPagination(
+  currentPage: number,
+  totalPages: number,
+): PaginationItem[] {
+  if (totalPages <= 7) {
+    return Array.from(
+      { length: totalPages },
+      (_, index) => index + 1,
+    );
+  }
+
+  const items: PaginationItem[] = [1];
+
+  if (currentPage <= 4) {
+    items.push(2, 3, 4, 5);
+    items.push("ellipsis-right");
+    items.push(totalPages);
+
+    return items;
+  }
+
+  if (currentPage >= totalPages - 3) {
+    items.push("ellipsis-left");
+
+    for (
+      let page = totalPages - 4;
+      page <= totalPages;
+      page += 1
+    ) {
+      items.push(page);
+    }
+
+    return items;
+  }
+
+  items.push("ellipsis-left");
+  items.push(
+    currentPage - 1,
+    currentPage,
+    currentPage + 1,
+  );
+  items.push("ellipsis-right");
+  items.push(totalPages);
+
+  return items;
+}
+
 /* =========================================================
    ATALHOS GERAIS
    ========================================================= */
@@ -424,7 +478,7 @@ function resolveInitialSubcategory(
 }
 
 /* =========================================================
-   FORMATAÇÃO
+   FORMATA  O
    ========================================================= */
 
 const formatCount = (
@@ -517,7 +571,39 @@ export default function ProductsCatalogClient({
   const [loading, setLoading] =
     useState(false);
 
+  const [
+    currentPage,
+    setCurrentPage,
+  ] = useState(1);
+
   const requestId = useRef(0);
+
+  /* =======================================================
+     PÁGINA INICIAL A PARTIR DO URL
+     ======================================================= */
+
+  useEffect(() => {
+    const url = new URL(
+      window.location.href,
+    );
+
+    const pageFromUrl = Number(
+      url.searchParams.get(
+        "page",
+      ) || "1",
+    );
+
+    if (
+      Number.isInteger(
+        pageFromUrl,
+      ) &&
+      pageFromUrl > 1
+    ) {
+      setCurrentPage(
+        pageFromUrl,
+      );
+    }
+  }, []);
 
   /* =======================================================
      SEARCH DEBOUNCE
@@ -526,10 +612,13 @@ export default function ProductsCatalogClient({
   useEffect(() => {
     const timer =
       window.setTimeout(
-        () =>
+        () => {
+          setCurrentPage(1);
+
           setDebouncedQuery(
             query.trim(),
-          ),
+          );
+        },
         400,
       );
 
@@ -611,7 +700,15 @@ export default function ProductsCatalogClient({
 
     params.set(
       "limit",
-      "24",
+      String(PAGE_SIZE),
+    );
+
+    params.set(
+      "offset",
+      String(
+        (currentPage - 1) *
+          PAGE_SIZE,
+      ),
     );
 
     return `/api/products?${params.toString()}`;
@@ -624,6 +721,7 @@ export default function ProductsCatalogClient({
     sort,
     minPrice,
     maxPrice,
+    currentPage,
   ]);
 
   /* =======================================================
@@ -738,6 +836,21 @@ export default function ProductsCatalogClient({
             );
           });
 
+        if (
+          currentPage > 1
+        ) {
+          url.searchParams.set(
+            "page",
+            String(
+              currentPage,
+            ),
+          );
+        } else {
+          url.searchParams.delete(
+            "page",
+          );
+        }
+
         window.history.replaceState(
           null,
           "",
@@ -757,6 +870,10 @@ export default function ProductsCatalogClient({
         facetsUrl.searchParams.set(
           "facets",
           "1",
+        );
+
+        facetsUrl.searchParams.delete(
+          "offset",
         );
 
         const facetsResponse =
@@ -818,58 +935,69 @@ export default function ProductsCatalogClient({
   }, [requestUrl]);
 
   /* =======================================================
-     LOAD MORE
+     PAGINAÇÃO
      ======================================================= */
 
-  async function loadMore() {
-    setLoading(true);
+  const totalPages = Math.max(
+    1,
+    Math.ceil(
+      data.total / PAGE_SIZE,
+    ),
+  );
 
-    try {
-      const url = new URL(
-        requestUrl,
-        window.location.origin,
-      );
-
-      url.searchParams.set(
-        "offset",
-        String(
-          products.length,
+  const paginationItems =
+    useMemo(
+      () =>
+        buildPagination(
+          currentPage,
+          totalPages,
         ),
+      [
+        currentPage,
+        totalPages,
+      ],
+    );
+
+  useEffect(() => {
+    if (
+      currentPage >
+      totalPages
+    ) {
+      setCurrentPage(
+        totalPages,
       );
-
-      url.searchParams.delete(
-        "facets",
-      );
-
-      const response =
-        await fetch(
-          `${url.pathname}${url.search}`,
-        );
-
-      const next: CatalogResponse =
-        await response.json();
-
-      setProducts(
-        (current) => [
-          ...current,
-          ...next.products,
-        ],
-      );
-
-      setData(
-        (current) => ({
-          ...next,
-
-          catalogTotal:
-            current.catalogTotal,
-
-          facets:
-            current.facets,
-        }),
-      );
-    } finally {
-      setLoading(false);
     }
+  }, [
+    currentPage,
+    totalPages,
+  ]);
+
+  function goToPage(
+    nextPage: number,
+  ) {
+    const safePage = Math.min(
+      Math.max(
+        nextPage,
+        1,
+      ),
+      totalPages,
+    );
+
+    if (
+      safePage ===
+      currentPage
+    ) {
+      return;
+    }
+
+    setCurrentPage(
+      safePage,
+    );
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
   }
 
   /* =======================================================
@@ -877,6 +1005,8 @@ export default function ProductsCatalogClient({
      ======================================================= */
 
   function reset() {
+    setCurrentPage(1);
+
     setQuery("");
     setDebouncedQuery("");
 
@@ -905,6 +1035,8 @@ export default function ProductsCatalogClient({
   function chooseCategory(
     nextCategory: string,
   ) {
+    setCurrentPage(1);
+
     setQuery("");
     setDebouncedQuery("");
 
@@ -928,6 +1060,8 @@ export default function ProductsCatalogClient({
   function chooseShortcut(
     shortcut: Shortcut,
   ) {
+    setCurrentPage(1);
+
     const nextQuery =
       shortcut.q || "";
 
@@ -964,9 +1098,6 @@ export default function ProductsCatalogClient({
 
   const totalShown =
     products.length;
-
-  const hasMore =
-    totalShown < data.total;
 
   const pageTitle =
     category === "Alle"
@@ -1015,12 +1146,16 @@ export default function ProductsCatalogClient({
                 value={query}
                 onChange={(
                   event,
-                ) =>
+                ) => {
+                  setCurrentPage(
+                    1,
+                  );
+
                   setQuery(
                     event.target
                       .value,
-                  )
-                }
+                  );
+                }}
                 placeholder="Suche nach Produkt, Marke oder SKU"
                 className="w-full rounded-2xl border border-neutral-300 bg-white px-4 py-3 text-sm outline-none focus:border-neutral-900"
               />
@@ -1029,12 +1164,16 @@ export default function ProductsCatalogClient({
                 value={sort}
                 onChange={(
                   event,
-                ) =>
+                ) => {
+                  setCurrentPage(
+                    1,
+                  );
+
                   setSort(
                     event.target
                       .value,
-                  )
-                }
+                  );
+                }}
                 className="rounded-2xl border border-neutral-300 bg-white px-4 py-3 text-sm font-semibold"
               >
                 <option value="featured">
@@ -1113,6 +1252,8 @@ export default function ProductsCatalogClient({
               <button
                 type="button"
                 onClick={() => {
+                  setCurrentPage(1);
+
                   setQuery("");
                   setDebouncedQuery("");
 
@@ -1187,12 +1328,16 @@ export default function ProductsCatalogClient({
                 checked={inStock}
                 onChange={(
                   event,
-                ) =>
+                ) => {
+                  setCurrentPage(
+                    1,
+                  );
+
                   setInStock(
                     event.target
                       .checked,
-                  )
-                }
+                  );
+                }}
               />
 
               Sofort lieferbar
@@ -1268,6 +1413,8 @@ export default function ProductsCatalogClient({
                       item.label
                     }
                     onClick={() => {
+                      setCurrentPage(1);
+
                       setQuery("");
                       setDebouncedQuery(
                         "",
@@ -1296,7 +1443,11 @@ export default function ProductsCatalogClient({
                 }
                 onChange={(
                   event,
-                ) =>
+                ) => {
+                  setCurrentPage(
+                    1,
+                  );
+
                   setMinPrice(
                     event.target
                       .value
@@ -1306,8 +1457,8 @@ export default function ProductsCatalogClient({
                             .value,
                         )
                       : undefined,
-                  )
-                }
+                  );
+                }}
                 className="w-full rounded-xl border px-3 py-2"
               />
 
@@ -1319,7 +1470,11 @@ export default function ProductsCatalogClient({
                 }
                 onChange={(
                   event,
-                ) =>
+                ) => {
+                  setCurrentPage(
+                    1,
+                  );
+
                   setMaxPrice(
                     event.target
                       .value
@@ -1329,8 +1484,8 @@ export default function ProductsCatalogClient({
                             .value,
                         )
                       : undefined,
-                  )
-                }
+                  );
+                }}
                 className="w-full rounded-xl border px-3 py-2"
               />
             </div>
@@ -1352,7 +1507,11 @@ export default function ProductsCatalogClient({
                         checked={brands.includes(
                           item.label,
                         )}
-                        onChange={() =>
+                        onChange={() => {
+                          setCurrentPage(
+                            1,
+                          );
+
                           setBrands(
                             (
                               current,
@@ -1372,8 +1531,8 @@ export default function ProductsCatalogClient({
 
                                     item.label,
                                   ],
-                          )
-                        }
+                          );
+                        }}
                       />
 
                       <span className="truncate text-sm font-semibold">
@@ -1451,23 +1610,106 @@ export default function ProductsCatalogClient({
                 )}
               </div>
 
-              {hasMore ? (
-                <div className="mt-10 text-center">
+              {totalPages > 1 ? (
+                <nav
+                  className="mt-10 flex flex-wrap items-center justify-center gap-2"
+                  aria-label="Produktseiten"
+                >
                   <button
                     type="button"
                     disabled={
-                      loading
+                      loading ||
+                      currentPage === 1
                     }
-                    onClick={
-                      loadMore
+                    onClick={() =>
+                      goToPage(
+                        currentPage - 1,
+                      )
                     }
-                    className="rounded-2xl bg-red-600 px-8 py-4 text-sm font-extrabold text-white disabled:opacity-60"
+                    className="rounded-xl border border-neutral-300 bg-white px-4 py-3 text-sm font-extrabold text-neutral-700 transition hover:border-red-500 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-40"
                   >
-                    {loading
-                      ? "Wird geladen…"
-                      : "Mehr Produkte laden"}
+                    ‹ Zurück
                   </button>
-                </div>
+
+                  {paginationItems.map(
+                    (item) => {
+                      if (
+                        typeof item !==
+                        "number"
+                      ) {
+                        return (
+                          <span
+                            key={item}
+                            className="px-2 py-3 text-sm font-black text-neutral-400"
+                            aria-hidden="true"
+                          >
+                            …
+                          </span>
+                        );
+                      }
+
+                      const active =
+                        item ===
+                        currentPage;
+
+                      return (
+                        <button
+                          key={item}
+                          type="button"
+                          disabled={
+                            loading
+                          }
+                          aria-current={
+                            active
+                              ? "page"
+                              : undefined
+                          }
+                          onClick={() =>
+                            goToPage(
+                              item,
+                            )
+                          }
+                          className={`
+                            min-w-11
+                            rounded-xl
+                            border
+                            px-4
+                            py-3
+                            text-sm
+                            font-extrabold
+                            transition
+                            disabled:cursor-not-allowed
+                            disabled:opacity-60
+                            ${
+                              active
+                                ? "border-red-600 bg-red-600 text-white"
+                                : "border-neutral-300 bg-white text-neutral-700 hover:border-red-500 hover:text-red-700"
+                            }
+                          `}
+                        >
+                          {item}
+                        </button>
+                      );
+                    },
+                  )}
+
+                  <button
+                    type="button"
+                    disabled={
+                      loading ||
+                      currentPage ===
+                        totalPages
+                    }
+                    onClick={() =>
+                      goToPage(
+                        currentPage + 1,
+                      )
+                    }
+                    className="rounded-xl border border-neutral-300 bg-white px-4 py-3 text-sm font-extrabold text-neutral-700 transition hover:border-red-500 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    Weiter ›
+                  </button>
+                </nav>
               ) : null}
             </>
           ) : (

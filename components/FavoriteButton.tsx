@@ -10,11 +10,11 @@ type FavoriteButtonProps = {
 
 export default function FavoriteButton({ id, className }: FavoriteButtonProps) {
   // O teu hook está tipado como FavoritesState (sem isFavorite),
-  // então tratamos como "state" e fazemos fallback para vários formatos.
+  // ent�o tratamos como "state" e fazemos fallback para v�rios formatos.
   const fav: any = useFavorites();
 
   const active = useMemo(() => {
-    // Se existir função isFavorite (alguns projetos têm)
+    // Se existir fun��o isFavorite (alguns projetos t�m)
     if (typeof fav?.isFavorite === "function") return !!fav.isFavorite(id);
 
     // Se existir array favorites / ids / items
@@ -28,11 +28,11 @@ export default function FavoriteButton({ id, className }: FavoriteButtonProps) {
   }, [fav, id]);
 
   function onToggle() {
-    // função toggle / toggleFavorite
+    // fun��o toggle / toggleFavorite
     if (typeof fav?.toggle === "function") return fav.toggle(id);
     if (typeof fav?.toggleFavorite === "function") return fav.toggleFavorite(id);
 
-    // padrão reducer: dispatch({ type: 'TOGGLE', id })
+    // padr�o reducer: dispatch({ type: 'TOGGLE', id })
     if (typeof fav?.dispatch === "function") return fav.dispatch({ type: "TOGGLE", id });
 
     // fallback: se houver setFavorites e favorites array
