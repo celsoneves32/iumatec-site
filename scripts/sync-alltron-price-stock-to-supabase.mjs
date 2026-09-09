@@ -1,4 +1,4 @@
-import crypto from "node:crypto";
+﻿import crypto from "node:crypto";
 import { spawn } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
@@ -140,7 +140,7 @@ function number(value) {
   if (value === null || value === undefined || value === "") return null;
   const clean = String(value)
     .trim()
-    .replace(/[’']/g, "")
+    .replace(/[â€™']/g, "")
     .replace(/\s/g, "")
     .replace(",", ".")
     .match(/-?\d+(?:\.\d+)?/)?.[0];
@@ -654,7 +654,38 @@ function buildPlan(products, feedRows) {
 
     const match = matchFeedRow(product, indexes);
     if (!match) {
-      unmatched.push({ catalogKey, sku: text(product.sku) });
+      const currentStock = stock(product.stock_qty);
+      const currentlySellable =
+        currentStock > 0 || product.in_stock === true;
+
+      unmatched.push({
+        catalogKey,
+        sku: text(product.sku),
+        currentStock,
+        inStock: product.in_stock === true,
+        wouldZero: currentlySellable,
+      });
+
+      // If the product no longer exists in the current Alltron article feed,
+      // it must not remain sellable with stale stock in Supabase/Shopify.
+      // In AUDIT mode this only creates a plan; no data is written.
+      if (currentlySellable) {
+        changes.push({
+          catalogKey,
+          sku: text(product.sku),
+          method: "supplier-absent",
+          currentPrice: money(product.price),
+          desiredPrice: money(product.price),
+          supplierPrice: null,
+          priceRatio: null,
+          priceQuarantined: false,
+          currentStock,
+          desiredStock: 0,
+          priceChanged: false,
+          stockChanged: true,
+        });
+      }
+
       continue;
     }
     if (match.ambiguous) {
@@ -720,9 +751,21 @@ function buildPlan(products, feedRows) {
     (stockChanged ? changes : exact).push(planned);
   }
 
-  const matched = changes.length + exact.length;
-  const priceChangeRows = changes.filter((row) => row.priceChanged);
+  // "supplier-absent" rows are deliberately NOT counted as matched.
+  // They remain unmatched for feed-quality/safety metrics, while still
+  // becoming explicit stock-to-zero candidates.
+  const supplierAbsentChanges = changes.filter(
+    (row) => row.method === "supplier-absent",
+  );
+  const matchedChanges = changes.filter(
+    (row) => row.method !== "supplier-absent",
+  );
+  const matched = matchedChanges.length + exact.length;
+  const priceChangeRows = matchedChanges.filter((row) => row.priceChanged);
   const stockChangeRows = changes.filter((row) => row.stockChanged);
+  const matchedStockChangeRows = matchedChanges.filter(
+    (row) => row.stockChanged,
+  );
   const priceIncreases = priceChangeRows.filter(
     (row) => row.currentPrice !== null && row.desiredPrice > row.currentPrice,
   );
@@ -766,9 +809,10 @@ function buildPlan(products, feedRows) {
         ? quarantinedPrices.length / matched
         : 0,
       stockChanges: stockChangeRows.length,
-      stockChangeRatio: matched ? stockChangeRows.length / matched : 0,
+      stockChangeRatio: matched ? matchedStockChangeRows.length / matched : 0,
       stockToZero: stockToZero.length,
       stockFromZero: stockFromZero.length,
+      supplierAbsentToZero: supplierAbsentChanges.length,
       unmatched: unmatched.length,
       unmatchedRatio: products.length ? unmatched.length / products.length : 0,
       ambiguous: ambiguous.length,
@@ -797,6 +841,7 @@ function buildPlan(products, feedRows) {
         .slice(0, 50),
       stockToZero: stockToZero.slice(0, 25),
       stockFromZero: stockFromZero.slice(0, 25),
+      supplierAbsentToZero: supplierAbsentChanges.slice(0, 25),
       unmatched: unmatched.slice(0, 25),
       ambiguous: ambiguous.slice(0, 25),
       invalid: invalid.slice(0, 25),
@@ -1019,3 +1064,4 @@ main().catch((error) => {
   console.error("FATAL ERROR:", error?.message || error);
   process.exit(1);
 });
+

@@ -1,4 +1,4 @@
-import "server-only";
+﻿import "server-only";
 import { createClient } from "@supabase/supabase-js";
 import { unstable_cache } from "next/cache";
 
@@ -190,7 +190,7 @@ function normalize(value?: string | null) {
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
-    .replace(/ß/g, "ss")
+    .replace(/ÃŸ/g, "ss")
     .trim();
 }
 
@@ -209,15 +209,20 @@ function sellable(query: any) {
   return query
     .or("shopify_sync_status.is.null,shopify_sync_status.neq.unmatched_shopify")
     .not("merchandise_id", "is", null)
-    .gt("price", 0);
+    .gt("price", 0)
+    .eq("in_stock", true)
+    .gt("stock_qty", 0);
 }
 
 const getProductBySlugCached = unstable_cache(async (wanted: string) => {
-  const { data, error } = await getSupabase()
+  let query = getSupabase()
     .from("products")
     .select("*")
-    .eq("slug", wanted)
-    .maybeSingle();
+    .eq("slug", wanted);
+
+  query = sellable(query);
+
+  const { data, error } = await query.maybeSingle();
 
   if (error) throw new Error(`Produkt konnte nicht geladen werden: ${error.message}`);
   return data ? mapProduct(data as ProductRow) : null;
@@ -499,7 +504,7 @@ const STRICT_CATALOG_RULES: Record<string, StrictCatalogRule> = {
       /\bproart\b/,
       /\bwin(?:dows)?\s*11\b/,
       /\bw11\b/,
-      /\b(?:13[.,]3|14|15[.,]6|16|17[.,]3)\s*["”]/,
+      /\b(?:13[.,]3|14|15[.,]6|16|17[.,]3)\s*["â€]/,
     ],
     exclude: DEVICE_ACCESSORY_EXCLUDES,
     minPrice: 120,
@@ -909,6 +914,8 @@ export async function queryCatalogProducts(
     .from("products")
     .select(CATALOG_COLUMNS, { count: "exact" });
 
+  request = sellable(request);
+
   request = applyCatalogFilters(request, query);
 
   switch (query.sort) {
@@ -978,7 +985,7 @@ export async function queryCatalog(
     p_brands: query.brands?.filter(Boolean) || [],
     p_min_price: minPrice,
     p_max_price: maxPrice,
-    p_in_stock: Boolean(query.inStock),
+    p_in_stock: true,
     p_sort: query.sort || "featured",
     p_offset: offset,
     p_limit: limit,
@@ -991,3 +998,5 @@ export async function queryCatalog(
 
   return data as CatalogResponse;
 }
+
+

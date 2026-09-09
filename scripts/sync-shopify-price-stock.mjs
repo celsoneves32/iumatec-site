@@ -1,4 +1,4 @@
-import fs from "node:fs";
+﻿import fs from "node:fs";
 import path from "node:path";
 import dotenv from "dotenv";
 
@@ -645,3 +645,4 @@ main().catch((error) => {
   console.error("FATAL ERROR:", error?.message || error);
   process.exit(1);
 });
+
