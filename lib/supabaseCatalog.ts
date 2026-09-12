@@ -1,4 +1,4 @@
-﻿import "server-only";
+import "server-only";
 import { createClient } from "@supabase/supabase-js";
 import { unstable_cache } from "next/cache";
 
@@ -214,6 +214,32 @@ function sellable(query: any) {
     .gt("stock_qty", 0);
 }
 
+const getSellableCatalogTotalCached = unstable_cache(
+  async () => {
+    let request = getSupabase()
+      .from("products")
+      .select("catalog_key", {
+        count: "exact",
+        head: true,
+      });
+
+    request = sellable(request);
+
+    const { count, error } = await request;
+
+    if (error) {
+      throw new Error(
+        `Supabase sellable catalog total failed: ${error.message}`,
+      );
+    }
+
+    return count || 0;
+  },
+  ["iumatec-sellable-catalog-total-v1"],
+  {
+    revalidate: PRODUCT_CACHE_SECONDS,
+  },
+);
 const getProductBySlugCached = unstable_cache(async (wanted: string) => {
   let query = getSupabase()
     .from("products")
@@ -956,7 +982,7 @@ async function queryStrictCatalogProducts(
   return {
     products: matched.slice(offset, offset + limit),
     total,
-    catalogTotal: total,
+    catalogTotal: await getSellableCatalogTotalCached(),
     offset,
     limit,
     hasMore: offset + limit < total,
@@ -1029,7 +1055,7 @@ export async function queryCatalogProducts(
       mapProduct(row as unknown as ProductRow),
     ),
     total,
-    catalogTotal: total,
+    catalogTotal: await getSellableCatalogTotalCached(),
     offset,
     limit,
     hasMore: offset + limit < total,
