@@ -190,7 +190,7 @@ function normalize(value?: string | null) {
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
-    .replace(/ÃƒÆ’Ã…Â¸/g, "ss")
+    .replace(/ÃƒÆ’Ã†â€™Ãƒâ€¦Ã‚Â¸/g, "ss")
     .trim();
 }
 
@@ -530,7 +530,7 @@ const STRICT_CATALOG_RULES: Record<string, StrictCatalogRule> = {
       /\bproart\b/,
       /\bwin(?:dows)?\s*11\b/,
       /\bw11\b/,
-      /\b(?:13[.,]3|14|15[.,]6|16|17[.,]3)\s*["ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â]/,
+      /\b(?:13[.,]3|14|15[.,]6|16|17[.,]3)\s*["ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â]/,
     ],
     exclude: DEVICE_ACCESSORY_EXCLUDES,
     minPrice: 120,
@@ -869,7 +869,7 @@ async function queryStrictCatalogProducts(
   limit: number,
 ): Promise<CatalogResponse> {
   const pageSize = 1000;
-  const maxRows = 6000;
+  const maxRows = 50000;
   const rows: ProductRow[] = [];
 
   for (let from = 0; from < maxRows; from += pageSize) {
