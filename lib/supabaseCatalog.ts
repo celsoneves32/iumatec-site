@@ -190,7 +190,7 @@ function normalize(value?: string | null) {
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
-    .replace(/ÃƒÆ’Ã†â€™Ãƒâ€¦Ã‚Â¸/g, "ss")
+    .replace(/ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸/g, "ss")
     .trim();
 }
 
@@ -464,6 +464,7 @@ const STRICT_CATALOG_RULES: Record<string, StrictCatalogRule> = {
       /\brealme\b/,
       /\bhonor\b/,
       /\bnokia\b/,
+    /\bemporia\b/,
     ],
     exclude: [
       ...DEVICE_ACCESSORY_EXCLUDES,
@@ -530,7 +531,7 @@ const STRICT_CATALOG_RULES: Record<string, StrictCatalogRule> = {
       /\bproart\b/,
       /\bwin(?:dows)?\s*11\b/,
       /\bw11\b/,
-      /\b(?:13[.,]3|14|15[.,]6|16|17[.,]3)\s*["ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â]/,
+      /\b(?:13[.,]3|14|15[.,]6|16|17[.,]3)\s*["ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â]/,
     ],
     exclude: DEVICE_ACCESSORY_EXCLUDES,
     minPrice: 120,
