@@ -531,14 +531,23 @@ const STRICT_CATALOG_RULES: Record<string, StrictCatalogRule> = {
       /\blegion\b/,
       /\bomnibook\b/,
       /\bproart\b/,
-      /\bwin(?:dows)?\s*11\b/,
-      /\bw11\b/,
-      /\b(?:13[.,]3|14|15[.,]6|16|17[.,]3)\s*["ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â]/,
+      /\bno\s+[a-z0-9.-]+\s+(?!zu\b)/,
     ],
-    exclude: DEVICE_ACCESSORY_EXCLUDES,
+    exclude: [
+      ...DEVICE_ACCESSORY_EXCLUDES,
+      /\blaptoplampe\b/,
+      /\blaptop\s+lampe\b/,
+      /\blaptopsafe\b/,
+      /\blaptop\s+safe\b/,
+      /\btresor\b/,
+      /\blaptoparm\b/,
+      /\blaptop\s+arm\b/,
+      /\bgelenkarm\b/,
+      /\blaptop\s+roller\b/,
+      /\btopload\b/,
+    ],
     minPrice: 120,
   },
-
   "desktop-pcs": {
     include: [
       /\bdesktop\b/,
