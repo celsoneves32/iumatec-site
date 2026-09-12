@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import {
   useEffect,
@@ -187,9 +187,9 @@ const CATEGORY_SHORTCUTS: Record<
     },
 
     {
-      label: "Computer-ZubehÃ¶r",
+      label: "Computer-Zubehör",
       category: "Computer",
-      subcategory: "Computer-ZubehÃ¶r",
+      subcategory: "Computer-Zubehör",
     },
   ],
 
@@ -239,9 +239,9 @@ const CATEGORY_SHORTCUTS: Record<
     },
 
     {
-      label: "MÃ¤use",
+      label: "Mäuse",
       category: "Peripherie",
-      subcategory: "MÃ¤use",
+      subcategory: "Mäuse",
     },
 
     {
@@ -315,9 +315,9 @@ const CATEGORY_SHORTCUTS: Record<
     },
 
     {
-      label: "Mobile ZubehÃ¶r",
+      label: "Mobile Zubehör",
       category: "Mobile",
-      subcategory: "Mobile ZubehÃ¶r",
+      subcategory: "Mobile Zubehör",
     },
   ],
 
@@ -406,9 +406,9 @@ const CATEGORY_SHORTCUTS: Record<
     },
 
     {
-      label: "GebÃ¤udetechnik",
+      label: "Gebäudetechnik",
       category: "Smart Home",
-      subcategory: "GebÃ¤udetechnik",
+      subcategory: "Gebäudetechnik",
     },
 
     {
@@ -424,10 +424,10 @@ const CATEGORY_SHORTCUTS: Record<
     },
 
     {
-      label: "Sicherheit & Ãœberwachung",
+      label: "Sicherheit & Überwachung",
       category: "Smart Home",
       subcategory:
-        "Sicherheit & Ãœberwachung",
+        "Sicherheit & Überwachung",
     },
 
     {
@@ -451,8 +451,8 @@ function defaultSubcategoryForCategory(
    * Quando o cliente clica em "Mobile",
    * queremos mostrar TELEFONES primeiro.
    *
-   * Assim evitamos abrir logo cartÃµes,
-   * suportes, capas e acessÃ³rios baratos.
+   * Assim evitamos abrir logo cartões,
+   * suportes, capas e acessórios baratos.
    */
   if (category === "Mobile") {
     return "Smartphones";
@@ -499,7 +499,7 @@ const formatCount = (
 
   return `${sign}${digits.replace(
     /\B(?=(\d{3})+(?!\d))/g,
-    "â€™",
+    "’",
   )}`;
 };
 
@@ -579,7 +579,7 @@ export default function ProductsCatalogClient({
   const requestId = useRef(0);
 
   /* =======================================================
-     PÃGINA INICIAL A PARTIR DO URL
+     PÁGINA INICIAL A PARTIR DO URL
      ======================================================= */
 
   useEffect(() => {
@@ -935,7 +935,7 @@ export default function ProductsCatalogClient({
   }, [requestUrl]);
 
   /* =======================================================
-     PAGINAÃ‡ÃƒO
+     PAGINAÇÃO
      ======================================================= */
 
   const totalPages = Math.max(
@@ -1083,7 +1083,7 @@ export default function ProductsCatalogClient({
   }
 
   /* =======================================================
-     ATALHOS VISÃVEIS
+     ATALHOS VISÍVEIS
      ======================================================= */
 
   const activeShortcuts =
@@ -1111,7 +1111,7 @@ export default function ProductsCatalogClient({
   return (
     <main className="min-h-screen bg-neutral-50">
       {/* ===========================
-          CABEÃ‡ALHO
+          CABEÇALHO
           =========================== */}
 
       <section className="border-b border-neutral-200 bg-white">
@@ -1133,7 +1133,7 @@ export default function ProductsCatalogClient({
                 {formatCount(
                   data.total,
                 )}{" "}
-                Produkte gefunden Â·{" "}
+                Produkte gefunden ·{" "}
                 {formatCount(
                   totalShown,
                 )}{" "}
@@ -1296,7 +1296,7 @@ export default function ProductsCatalogClient({
       </section>
 
       {/* ===========================
-          CONTEÃšDO
+          CONTEÚDO
           =========================== */}
 
       <section className="mx-auto grid max-w-7xl gap-8 px-4 py-8 xl:grid-cols-[320px_1fr]">
@@ -1315,7 +1315,7 @@ export default function ProductsCatalogClient({
               onClick={reset}
               className="rounded-full bg-neutral-100 px-3 py-2 text-xs font-extrabold"
             >
-              ZurÃ¼cksetzen
+              Zurücksetzen
             </button>
           </div>
 
@@ -1431,7 +1431,7 @@ export default function ProductsCatalogClient({
             </div>
           </Filter>
 
-          {/* PREÃ‡O */}
+          {/* PREÇO */}
 
           <Filter title="Preis">
             <div className="grid grid-cols-2 gap-3">
@@ -1574,7 +1574,7 @@ export default function ProductsCatalogClient({
 
               <p className="mt-4 font-bold text-neutral-600">
                 Produkte werden
-                gesuchtâ€¦
+                gesucht…
               </p>
             </div>
           ) : products.length ? (
@@ -1628,7 +1628,7 @@ export default function ProductsCatalogClient({
                     }
                     className="rounded-xl border border-neutral-300 bg-white px-4 py-3 text-sm font-extrabold text-neutral-700 transition hover:border-red-500 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-40"
                   >
-                    â€¹ ZurÃ¼ck
+                    ‹ Zurück
                   </button>
 
                   {paginationItems.map(
@@ -1643,7 +1643,7 @@ export default function ProductsCatalogClient({
                             className="px-2 py-3 text-sm font-black text-neutral-400"
                             aria-hidden="true"
                           >
-                            â€¦
+                            …
                           </span>
                         );
                       }
@@ -1707,7 +1707,7 @@ export default function ProductsCatalogClient({
                     }
                     className="rounded-xl border border-neutral-300 bg-white px-4 py-3 text-sm font-extrabold text-neutral-700 transition hover:border-red-500 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-40"
                   >
-                    Weiter â€º
+                    Weiter ›
                   </button>
                 </nav>
               ) : null}
@@ -1801,4 +1801,3 @@ function FilterButton({
     </button>
   );
 }
-
