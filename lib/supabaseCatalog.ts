@@ -190,7 +190,7 @@ function normalize(value?: string | null) {
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
-    .replace(/ÃŸ/g, "ss")
+    .replace(/ÃƒÆ’Ã…Â¸/g, "ss")
     .trim();
 }
 
@@ -530,7 +530,7 @@ const STRICT_CATALOG_RULES: Record<string, StrictCatalogRule> = {
       /\bproart\b/,
       /\bwin(?:dows)?\s*11\b/,
       /\bw11\b/,
-      /\b(?:13[.,]3|14|15[.,]6|16|17[.,]3)\s*["â€]/,
+      /\b(?:13[.,]3|14|15[.,]6|16|17[.,]3)\s*["ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â]/,
     ],
     exclude: DEVICE_ACCESSORY_EXCLUDES,
     minPrice: 120,
@@ -964,8 +964,8 @@ async function queryStrictCatalogProducts(
 
     available: matched.filter(
       (product) =>
-        product.inStock === true &&
-        Number(product.stockQty || 0) > 0,
+        product.inStock === true ||
+      Number(product.stockQty || 0) > 0,
     ).length,
 
     minPrice:
