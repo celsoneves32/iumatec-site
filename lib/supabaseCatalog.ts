@@ -882,6 +882,77 @@ async function queryStrictCatalogProducts(
 
   const total = matched.length;
 
+  const facetCounts = (
+    values: Array<string | null | undefined>,
+  ) => {
+    const counts = new Map<string, number>();
+
+    for (const rawValue of values) {
+      const value = String(rawValue || "").trim();
+      if (!value) continue;
+
+      counts.set(
+        value,
+        (counts.get(value) || 0) + 1,
+      );
+    }
+
+    return Array.from(counts.entries())
+      .map(([label, count]) => ({
+        label,
+        count,
+      }))
+      .sort(
+        (a, b) =>
+          b.count - a.count ||
+          a.label.localeCompare(b.label, "de"),
+      );
+  };
+
+  const prices = matched
+    .map((product) => Number(product.price || 0))
+    .filter(
+      (price) =>
+        Number.isFinite(price) &&
+        price > 0,
+    );
+
+  const facets = {
+    categories: facetCounts(
+      matched.map(
+        (product) => product.category,
+      ),
+    ),
+
+    subcategories: facetCounts(
+      matched.map(
+        (product) => product.subcategory,
+      ),
+    ),
+
+    brands: facetCounts(
+      matched.map(
+        (product) => product.brand,
+      ),
+    ).slice(0, 40),
+
+    available: matched.filter(
+      (product) =>
+        product.inStock === true &&
+        Number(product.stockQty || 0) > 0,
+    ).length,
+
+    minPrice:
+      prices.length > 0
+        ? Math.floor(Math.min(...prices))
+        : 0,
+
+    maxPrice:
+      prices.length > 0
+        ? Math.ceil(Math.max(...prices))
+        : 10000,
+  };
+
   return {
     products: matched.slice(offset, offset + limit),
     total,
@@ -889,7 +960,7 @@ async function queryStrictCatalogProducts(
     offset,
     limit,
     hasMore: offset + limit < total,
-    facets: EMPTY_FACETS,
+    facets,
   };
 }
 
@@ -974,6 +1045,18 @@ export async function queryCatalog(
   const minPrice = Number.isFinite(query.minPrice) ? Number(query.minPrice) : null;
   const maxPrice = Number.isFinite(query.maxPrice) ? Number(query.maxPrice) : null;
 
+  if (
+    query.subcategory &&
+    query.subcategory !== "Alle" &&
+    strictRuleFor(query.subcategory)
+  ) {
+    return queryStrictCatalogProducts(
+      query,
+      offset,
+      limit,
+    );
+  }
+
   const { data, error } = await getSupabase().rpc("query_products_catalog", {
     p_q: query.q?.trim() || null,
     p_category:
@@ -998,5 +1081,6 @@ export async function queryCatalog(
 
   return data as CatalogResponse;
 }
+
 
 
