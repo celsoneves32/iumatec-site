@@ -415,7 +415,7 @@ const DEVICE_ACCESSORY_EXCLUDES: RegExp[] = [
   /\bcable\b/,
   /\bcharger\b/,
   /\bladegerat\b/,
-  /\bnetzteil\b/,
+  /^(?!.*\bohne\s+netzteil\b).*\bnetzteil\b/,
   /\bpowerbank\b/,
   /\bakku\b/,
   /\bbattery\b/,
