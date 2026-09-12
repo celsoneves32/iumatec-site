@@ -484,6 +484,8 @@ const STRICT_CATALOG_RULES: Record<string, StrictCatalogRule> = {
       /\bxiaomi\s+pad\b/,
       /\bmatepad\b/,
       /\bsurface\s+(?:pro|go)\b/,
+      /\bboox\b/,
+      /\bsamsung\s+tab\s+active\d*(?:\s+pro)?\b/,
       /\btablet(?:-pc)?\b/,
     ],
     exclude: [
