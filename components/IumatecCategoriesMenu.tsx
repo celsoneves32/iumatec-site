@@ -15,10 +15,10 @@ const categories = [
     href: "/produkte?category=PC-Komponenten",
     items: [
       { label: "Grafikkarten", href: "/produkte?category=PC-Komponenten&subcategory=Grafikkarten" },
-      { label: "RAM", href: "/produkte?category=PC-Komponenten&subcategory=Arbeitsspeicher" },
+      { label: "RAM", href: "/produkte?category=PC-Komponenten&subcategory=RAM" },
       { label: "Mainboards", href: "/produkte?category=PC-Komponenten&subcategory=Mainboards" },
       { label: "Netzteile", href: "/produkte?category=PC-Komponenten&subcategory=Netzteile" },
-      { label: "Prozessoren", href: "/produkte?category=PC-Komponenten&q=Prozessor" },
+      { label: "Prozessoren", href: "/produkte?category=PC-Komponenten&subcategory=Prozessoren" },
     ],
   },
   {

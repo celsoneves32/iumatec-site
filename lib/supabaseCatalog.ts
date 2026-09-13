@@ -339,7 +339,11 @@ export async function getRelatedProducts(
 /** Fast path used by /api/products so visible results do not wait for facets. */
 const SUBCATEGORY_ALIASES: Record<string, string[]> = {
   Monitore: ["Monitore", "Monitors"],
-  RAM: ["RAM", "Arbeitsspeicher"],
+  RAM: ["RAM", "Arbeitsspeicher", "Komponenten"],
+  Arbeitsspeicher: ["RAM", "Arbeitsspeicher", "Komponenten"],
+  Mainboards: ["Mainboards", "Komponenten"],
+  Netzteile: ["Netzteile", "Komponenten"],
+  Prozessoren: ["Prozessoren", "Komponenten"],
   Switches: ["Switches", "Netzwerk-Switches"],
   Dockingstationen: ["Dockingstationen", "Docking & Hubs"],
   Steckdosen: ["Steckdosen", "Smarte Steckdosen"],
@@ -654,6 +658,25 @@ const STRICT_CATALOG_RULES: Record<string, StrictCatalogRule> = {
     minPrice: 40,
   },
 
+  ram: {
+    include: [/.*/],
+  },
+
+  arbeitsspeicher: {
+    include: [/.*/],
+  },
+
+  mainboards: {
+    include: [/.*/],
+  },
+
+  netzteile: {
+    include: [/.*/],
+  },
+
+  prozessoren: {
+    include: [/.*/],
+  },
   grafikkarten: {
     include: [
       /\bgrafikkarte\b/,
@@ -796,6 +819,41 @@ function isStrictCatalogMatch(
     ) {
       return false;
     }
+  } else if (strictKey === "ram" || strictKey === "arbeitsspeicher") {
+    const sku = String(product.sku || "").trim();
+    const prefix = sku.split(/\s+/)[0].toUpperCase();
+    const sourceSubcategory = normalize(product.subcategory);
+
+    if (sourceSubcategory === "komponenten") {
+      if (prefix !== "RAM") return false;
+    } else if (sourceSubcategory === "ram" || sourceSubcategory === "arbeitsspeicher") {
+      if (!["RAM", "SRAM", "NWS"].includes(prefix)) return false;
+    } else {
+      return false;
+    }
+  } else if (strictKey === "mainboards") {
+    const sku = String(product.sku || "").trim();
+    const prefix = sku.split(/\s+/)[0].toUpperCase();
+    const brand = normalize(product.brand);
+
+    if (
+      prefix !== "MB" ||
+      !["asus", "asrock", "gigabyte", "msi"].includes(brand)
+    ) {
+      return false;
+    }
+  } else if (strictKey === "netzteile") {
+    const sku = String(product.sku || "").trim();
+    const prefix = sku.split(/\s+/)[0].toUpperCase();
+
+    if (prefix !== "NT") return false;
+  } else if (strictKey === "prozessoren") {
+    const sku = String(product.sku || "").trim();
+    const prefix = sku.split(/\s+/)[0].toUpperCase();
+
+    if (prefix !== "CPU" || /^CPU\s+KUE(?:\s|$)/i.test(sku)) {
+      return false;
+    }
   } else if (!rule.include.some((pattern) => pattern.test(text))) {
     return false;
   }
@@ -808,6 +866,27 @@ function isStrictCatalogMatch(
   }
 
   return true;
+}
+
+function strictCatalogDisplayProduct(
+  product: Product,
+  requestedSubcategory?: string | null,
+): Product {
+  if (normalize(product.subcategory) !== "komponenten") return product;
+
+  const key = normalize(requestedSubcategory);
+  const recoveredLabels: Record<string, string> = {
+    ram: "RAM",
+    arbeitsspeicher: "RAM",
+    mainboards: "Mainboards",
+    netzteile: "Netzteile",
+    prozessoren: "Prozessoren",
+  };
+
+  const recoveredSubcategory = recoveredLabels[key];
+  return recoveredSubcategory
+    ? { ...product, subcategory: recoveredSubcategory }
+    : product;
 }
 
 function strictFeaturedScore(product: Product): number {
@@ -945,6 +1024,9 @@ async function queryStrictCatalogProducts(
       .map((row) => mapProduct(row))
       .filter((product) =>
         isStrictCatalogMatch(product, query.subcategory),
+      )
+      .map((product) =>
+        strictCatalogDisplayProduct(product, query.subcategory),
       ),
     query.sort,
   );
