@@ -766,7 +766,15 @@ function isStrictCatalogMatch(
     return false;
   }
 
-  if (!rule.include.some((pattern) => pattern.test(text))) {
+  const strictKey = normalize(subcategory);
+
+  if (strictKey === "desktop-pcs") {
+    const sku = String(product.sku || "").trim();
+
+    if (!/^PC\s+/i.test(sku)) {
+      return false;
+    }
+  } else if (!rule.include.some((pattern) => pattern.test(text))) {
     return false;
   }
 
