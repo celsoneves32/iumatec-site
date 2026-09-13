@@ -594,6 +594,10 @@ const STRICT_CATALOG_RULES: Record<string, StrictCatalogRule> = {
     minPrice: 70,
   },
 
+  "computer-zubehor": {
+    include: [/.*/],
+  },
+
   monitore: {
     include: [
       /\bmonitor\b/,
@@ -778,6 +782,18 @@ function isStrictCatalogMatch(
     const sku = String(product.sku || "").trim();
 
     if (!/^(?:PC|BB|MM)\s+/i.test(sku)) {
+      return false;
+    }
+  } else if (strictKey === "computer-zubehor") {
+    const sku = String(product.sku || "").trim();
+    const brand = normalize(product.brand);
+    const prefix = sku.split(/\s+/)[0].toUpperCase();
+
+    if (
+      ["IPADZ", "TKMCO", "TKMFO", "TKMAD", "NWS", "NWSW", "NWWP"].includes(prefix) ||
+      (prefix === "HH" && brand === "kikkerland") ||
+      (prefix === "SMA" && (brand === "4smarts" || brand === "rode"))
+    ) {
       return false;
     }
   } else if (!rule.include.some((pattern) => pattern.test(text))) {
