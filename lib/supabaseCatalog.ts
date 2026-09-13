@@ -774,6 +774,12 @@ function isStrictCatalogMatch(
     if (!/^PC\s+/i.test(sku)) {
       return false;
     }
+  } else if (strictKey === "mini-pcs" || strictKey === "mini pcs") {
+    const sku = String(product.sku || "").trim();
+
+    if (!/^(?:PC|BB|MM)\s+/i.test(sku)) {
+      return false;
+    }
   } else if (!rule.include.some((pattern) => pattern.test(text))) {
     return false;
   }
