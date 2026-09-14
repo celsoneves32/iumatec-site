@@ -344,7 +344,10 @@ const SUBCATEGORY_ALIASES: Record<string, string[]> = {
   Mainboards: ["Mainboards", "Komponenten"],
   Netzteile: ["Netzteile", "Komponenten"],
   Prozessoren: ["Prozessoren", "Komponenten"],
-  Switches: ["Switches", "Netzwerk-Switches"],
+  Router: ["Router", "Netzwerk"],
+  Switches: ["Switches", "Netzwerk-Switches", "Netzwerk"],
+  "Netzwerk-Switches": ["Switches", "Netzwerk-Switches", "Netzwerk"],
+  "WLAN Mesh": ["WLAN Mesh", "Netzwerk"],
   Dockingstationen: ["Dockingstationen", "Docking & Hubs"],
   Steckdosen: ["Steckdosen", "Smarte Steckdosen"],
   Beleuchtung: ["Beleuchtung", "Smarte Beleuchtung"],
@@ -674,10 +677,14 @@ const STRICT_CATALOG_RULES: Record<string, StrictCatalogRule> = {
     include: [
       /\brouter\b/,
       /\bfritz!?box\b/,
-      /\bdream\s+router\b/,
       /\bgateway\b/,
+      /\bdream\s+router\b/,
+      /\bdream\s+machine\b/,
     ],
     exclude: [
+      /\brackmount\b/,
+      /\brack\s+mount\b/,
+      /\bmount\s+kit\b/,
       /\bcase\b/,
       /\bcover\b/,
       /\bmount\b/,
@@ -695,20 +702,50 @@ const STRICT_CATALOG_RULES: Record<string, StrictCatalogRule> = {
     include: [
       /\bnetwork\s+switch\b/,
       /\bnetzwerk[- ]?switch\b/,
-      /\bunifi\s+switch\b/,
+      /\bethernet\s+switch\b/,
       /\bmanaged\s+switch\b/,
       /\bunmanaged\s+switch\b/,
-      /\bpoe\s+switch\b/,
+      /\bpoe[- ]?switch\b/,
+      /\bunifi\s+switch\b/,
+      /\bswitch\b/,
     ],
     exclude: [
       /\bnintendo\b/,
+      /\bswitch\s+2\b/,
+      /\brackmount\b/,
+      /\brack\s+mount\b/,
+      /\bmount\s+kit\b/,
       /\bcase\b/,
       /\bcover\b/,
       /\bmount\b/,
       /\bhalter\b/,
+      /\bholder\b/,
       /\badapter\b/,
       /\bkabel\b/,
       /\bcable\b/,
+    ],
+    minPrice: 15,
+  },
+
+  "wlan mesh": {
+    include: [
+      /\bmesh\b/,
+      /\bdeco\b/,
+      /\borbi\b/,
+      /\bvelop\b/,
+      /\beero\b/,
+      /\bzenwifi\b/,
+      /\baimesh\b/,
+      /\beasymesh\b/,
+    ],
+    exclude: [
+      /\brackmount\b/,
+      /\brack\s+mount\b/,
+      /\bmount\s+kit\b/,
+      /\bcase\b/,
+      /\bcover\b/,
+      /\bhalter\b/,
+      /\bholder\b/,
     ],
     minPrice: 15,
   },
@@ -945,9 +982,26 @@ function strictCatalogDisplayProduct(
   product: Product,
   requestedSubcategory?: string | null,
 ): Product {
-  if (normalize(product.subcategory) !== "komponenten") return product;
-
+  const sourceSubcategory = normalize(product.subcategory);
   const key = normalize(requestedSubcategory);
+
+  if (sourceSubcategory === "netzwerk") {
+    const networkLabels: Record<string, string> = {
+      router: "Router",
+      switches: "Switches",
+      "netzwerk-switches": "Switches",
+      "wlan mesh": "WLAN Mesh",
+    };
+
+    const recovered = networkLabels[key];
+
+    if (recovered) {
+      return { ...product, subcategory: recovered };
+    }
+  }
+
+  if (sourceSubcategory !== "komponenten") return product;
+
   const recoveredLabels: Record<string, string> = {
     ram: "RAM",
     arbeitsspeicher: "RAM",
@@ -957,6 +1011,7 @@ function strictCatalogDisplayProduct(
   };
 
   const recoveredSubcategory = recoveredLabels[key];
+
   return recoveredSubcategory
     ? { ...product, subcategory: recoveredSubcategory }
     : product;

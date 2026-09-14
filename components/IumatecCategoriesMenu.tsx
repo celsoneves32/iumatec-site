@@ -25,12 +25,12 @@ const categories = [
     title: "Peripherie",
     href: "/produkte?category=Peripherie",
     items: [
-      { label: "Monitore", href: "/produkte?category=Peripherie&q=Monitor" },
+      { label: "Monitore", href: "/produkte?category=Peripherie&subcategory=Monitore" },
       { label: "Tastaturen", href: "/produkte?category=Peripherie&subcategory=Tastaturen" },
       { label: "Mäuse", href: "/produkte?category=Peripherie&subcategory=M%C3%A4use" },
       { label: "Headsets", href: "/produkte?category=Peripherie&subcategory=Headsets" },
       { label: "Webcams", href: "/produkte?category=Peripherie&subcategory=Webcams" },
-      { label: "Dockingstationen", href: "/produkte?category=Peripherie&q=Docking" },
+      { label: "Dockingstationen", href: "/produkte?category=Peripherie&subcategory=Dockingstationen" },
       { label: "Gaming-Stühle", href: "/produkte?category=Peripherie&q=Gaming%20Stuhl" },
     ],
   },
@@ -39,8 +39,8 @@ const categories = [
     href: "/produkte?category=Netzwerk",
     items: [
       { label: "Router", href: "/produkte?category=Netzwerk&subcategory=Router" },
-      { label: "Switches", href: "/produkte?category=Netzwerk&q=Switch" },
-      { label: "WLAN Mesh", href: "/produkte?category=Netzwerk&q=Mesh" },
+      { label: "Switches", href: "/produkte?category=Netzwerk&subcategory=Switches" },
+      { label: "WLAN Mesh", href: "/produkte?category=Netzwerk&subcategory=WLAN%20Mesh" },
     ],
   },
   {

@@ -277,27 +277,21 @@ const CATEGORY_SHORTCUTS: Record<
 
   Netzwerk: [
     {
-      label: "Netzwerk",
+      label: "Router",
       category: "Netzwerk",
-      subcategory: "Netzwerk",
+      subcategory: "Router",
     },
 
     {
-      label: "Kabel & Adapter",
+      label: "Switches",
       category: "Netzwerk",
-      subcategory: "Kabel & Adapter",
+      subcategory: "Switches",
     },
 
     {
-      label: "Server",
+      label: "WLAN Mesh",
       category: "Netzwerk",
-      subcategory: "Server",
-    },
-
-    {
-      label: "IT-Sicherheit",
-      category: "Netzwerk",
-      subcategory: "IT-Sicherheit",
+      subcategory: "WLAN Mesh",
     },
   ],
 
