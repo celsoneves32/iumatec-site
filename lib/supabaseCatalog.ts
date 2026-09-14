@@ -603,59 +603,31 @@ const STRICT_CATALOG_RULES: Record<string, StrictCatalogRule> = {
   },
 
   monitore: {
-    include: [
-      /\bmonitor\b/,
-      /\bdisplay\b/,
-      /\b(qhd|wqhd|uhd|oled)\b/,
-    ],
-    exclude: [
-      /\bhalter\b/,
-      /\bholder\b/,
-      /\bmount\b/,
-      /\bwandhalter\b/,
-      /\bmonitorarm\b/,
-      /\bstand\b/,
-      /\bstativ\b/,
-      /\bprivacy\b/,
-      /\bfilter\b/,
-      /\bschutz\b/,
-      /\bkabel\b/,
-      /\bcable\b/,
-      /\badapter\b/,
-      /\bdock\b/,
-      /\bdocking\b/,
-      /\bcase\b/,
-      /\bcover\b/,
-    ],
-    minPrice: 40,
+    include: [/.*/],
   },
 
   monitors: {
-    include: [
-      /\bmonitor\b/,
-      /\bdisplay\b/,
-      /\b(qhd|wqhd|uhd|oled)\b/,
-    ],
-    exclude: [
-      /\bhalter\b/,
-      /\bholder\b/,
-      /\bmount\b/,
-      /\bwandhalter\b/,
-      /\bmonitorarm\b/,
-      /\bstand\b/,
-      /\bstativ\b/,
-      /\bprivacy\b/,
-      /\bfilter\b/,
-      /\bschutz\b/,
-      /\bkabel\b/,
-      /\bcable\b/,
-      /\badapter\b/,
-      /\bdock\b/,
-      /\bdocking\b/,
-      /\bcase\b/,
-      /\bcover\b/,
-    ],
-    minPrice: 40,
+    include: [/.*/],
+  },
+
+  headsets: {
+    include: [/.*/],
+  },
+
+  mause: {
+    include: [/.*/],
+  },
+
+  tastaturen: {
+    include: [/.*/],
+  },
+
+  dockingstationen: {
+    include: [/.*/],
+  },
+
+  webcams: {
+    include: [/.*/],
   },
 
   ram: {
@@ -795,7 +767,90 @@ function isStrictCatalogMatch(
 
   const strictKey = normalize(subcategory);
 
-  if (strictKey === "desktop-pcs") {
+  if (strictKey === "monitore" || strictKey === "monitors") {
+    const sku = String(product.sku || "").trim();
+    const prefix = sku.split(/\s+/)[0].toUpperCase();
+
+    // Alltron MON = actual computer monitors.
+    // MONZ and unrelated prefixes are stands, accessories or wrongly classified goods.
+    if (prefix !== "MON") return false;
+  } else if (strictKey === "headsets") {
+    const sku = String(product.sku || "").trim();
+    const prefix = sku.split(/\s+/)[0].toUpperCase();
+
+    if (
+      /(battery|batterie|akku|kabel|cable|adapter|case|cover|tasche|halter|ear.?pad|ohrpolster|cushion)/i.test(text)
+    ) {
+      return false;
+    }
+
+    if (
+      !["SMA", "SP", "HS", "PC"].includes(prefix) &&
+      !/(headset|kopfhorer|headphone|earbud|earphone|blackwire|voyager)/i.test(text)
+    ) {
+      return false;
+    }
+  } else if (strictKey === "mause") {
+    const sku = String(product.sku || "").trim();
+    const prefix = sku.split(/\s+/)[0].toUpperCase();
+
+    if (
+      /(mouse[ -]?pad|mousepad|mousemat|maus[ -]?pad|mauspad|mausmatte|mat case)/i.test(text)
+    ) {
+      return false;
+    }
+
+    if (
+      prefix !== "MA" &&
+      !/(maus|mouse|cadmouse|spacemouse)/i.test(text)
+    ) {
+      return false;
+    }
+  } else if (strictKey === "tastaturen") {
+    const sku = String(product.sku || "").trim();
+    const prefix = sku.split(/\s+/)[0].toUpperCase();
+
+    if (/(cover|case|folio|keycap)/i.test(text)) {
+      return false;
+    }
+
+    if (
+      prefix !== "TA" &&
+      !/(tastatur|keyboard)/i.test(text)
+    ) {
+      return false;
+    }
+  } else if (strictKey === "dockingstationen") {
+    const sku = String(product.sku || "").trim();
+    const prefix = sku.split(/\s+/)[0].toUpperCase();
+
+    if (["MON", "SP", "HDZ", "SCHN"].includes(prefix)) {
+      return false;
+    }
+
+    if (
+      /(nvme|sata|ssd|hdd|stream deck|joy-con|nintendo|xbox|playstation|charging dock|charge dock|ladestation|tasche)/i.test(text)
+    ) {
+      return false;
+    }
+
+    if (
+      !/(dockingstation|docking station|dock|usb.?c.*hub|thunderbolt.*dock)/i.test(text)
+    ) {
+      return false;
+    }
+  } else if (strictKey === "webcams") {
+    const sku = String(product.sku || "").trim();
+    const prefix = sku.split(/\s+/)[0].toUpperCase();
+
+    if (["MON", "SO"].includes(prefix)) {
+      return false;
+    }
+
+    if (!/webcam/i.test(text)) {
+      return false;
+    }
+  } else if (strictKey === "desktop-pcs") {
     const sku = String(product.sku || "").trim();
 
     if (!/^PC\s+/i.test(sku)) {
