@@ -810,10 +810,28 @@ function isStrictCatalogMatch(
     const sku = String(product.sku || "").trim();
     const prefix = sku.split(/\s+/)[0].toUpperCase();
 
-    if (/(cover|case|folio|keycap)/i.test(text)) {
+    // Clearly wrong Alltron groups for the Tastaturen category:
+    // label makers, wrist rests, monitor holders and adapters.
+    if (["BU", "PT", "MONZ", "ZAD"].includes(prefix)) {
       return false;
     }
 
+    // Accessories that mention "keyboard/tastatur" but are not keyboards.
+    if (
+      /(handgelenk|wrist.?rest|top plate|keycap|holder|halter|adapter|labelmanager|rhino|p-?touch|beschriftungs)/i.test(text)
+    ) {
+      return false;
+    }
+
+    // Tablet bundles can mention Keyboard but are not keyboards.
+    if (
+      /(idea tab plus|\bandroid\b.*\bkeyboard\b|\btablet\b)/i.test(text)
+    ) {
+      return false;
+    }
+
+    // TA is Alltron's main keyboard group.
+    // Other prefixes are accepted only when the product itself is clearly a keyboard.
     if (
       prefix !== "TA" &&
       !/(tastatur|keyboard)/i.test(text)
