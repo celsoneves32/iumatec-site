@@ -195,33 +195,33 @@ const CATEGORY_SHORTCUTS: Record<
 
   "PC-Komponenten": [
     {
-      label: "Komponenten",
-      category: "PC-Komponenten",
-      subcategory: "Komponenten",
-    },
-
-    {
-      label: "Kabel & Adapter",
-      category: "PC-Komponenten",
-      subcategory: "Kabel & Adapter",
-    },
-
-    {
-      label: "Gaming-Komponenten",
-      category: "PC-Komponenten",
-      subcategory: "Gaming-Komponenten",
-    },
-
-    {
       label: "Grafikkarten",
       category: "PC-Komponenten",
-      q: "Grafikkarte",
+      subcategory: "Grafikkarten",
+    },
+
+    {
+      label: "RAM",
+      category: "PC-Komponenten",
+      subcategory: "RAM",
+    },
+
+    {
+      label: "Mainboards",
+      category: "PC-Komponenten",
+      subcategory: "Mainboards",
+    },
+
+    {
+      label: "Netzteile",
+      category: "PC-Komponenten",
+      subcategory: "Netzteile",
     },
 
     {
       label: "Prozessoren",
       category: "PC-Komponenten",
-      q: "Prozessor",
+      subcategory: "Prozessoren",
     },
   ],
 
