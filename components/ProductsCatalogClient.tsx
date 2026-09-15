@@ -1210,7 +1210,7 @@ export default function ProductsCatalogClient({
               },
             )}
 
-            {category !== "Alle" && category !== "Datenspeicher" && category !== "Office & Business" && category !== "Smart Home" ? (
+            {category !== "Alle" && category !== "Netzwerk" && category !== "Datenspeicher" && category !== "Office & Business" && category !== "Smart Home" ? (
               <button
                 type="button"
                 onClick={() => {

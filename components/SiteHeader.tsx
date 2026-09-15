@@ -56,7 +56,7 @@ const quickCategories = [
     href: "/produkte?category=Peripherie",
     icon: Monitor,
   },
-  { label: "Netzwerk", href: "/produkte?category=Netzwerk", icon: Wifi },
+  { label: "Netzwerk", href: "/produkte?category=Netzwerk&subcategory=Router", icon: Wifi },
   { label: "Mobile", href: "/produkte?category=Mobile", icon: Smartphone },
   {
     label: "Office & Business",
@@ -112,12 +112,11 @@ const CATEGORY_GROUPS: CategoryGroup[] = [
   },
   {
     name: "Netzwerk",
-    href: "/produkte?category=Netzwerk",
+    href: "/produkte?category=Netzwerk&subcategory=Router",
     items: [
-      { label: "Netzwerk", href: "/produkte?category=Netzwerk&subcategory=Netzwerk" },
-      { label: "Kabel & Adapter", href: "/produkte?category=Netzwerk&subcategory=Kabel%20%26%20Adapter" },
-      { label: "Server", href: "/produkte?category=Netzwerk&subcategory=Server" },
-      { label: "IT-Sicherheit", href: "/produkte?category=Netzwerk&subcategory=IT-Sicherheit" },
+      { label: "Router", href: "/produkte?category=Netzwerk&subcategory=Router" },
+      { label: "Switches", href: "/produkte?category=Netzwerk&subcategory=Switches" },
+      { label: "WLAN Mesh", href: "/produkte?category=Netzwerk&subcategory=WLAN%20Mesh" },
     ],
   },
   {

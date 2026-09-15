@@ -36,7 +36,7 @@ const categories = [
   },
   {
     title: "Netzwerk",
-    href: "/produkte?category=Netzwerk",
+    href: "/produkte?category=Netzwerk&subcategory=Router",
     items: [
       { label: "Router", href: "/produkte?category=Netzwerk&subcategory=Router" },
       { label: "Switches", href: "/produkte?category=Netzwerk&subcategory=Switches" },

@@ -71,8 +71,8 @@ const CATEGORIES: CategoryItem[] = [
 
   {
     title: "Netzwerk",
-    subtitle: "Router, Switches und Netzwerktechnik",
-    href: "/produkte?category=Netzwerk",
+    subtitle: "Router, Switches und WLAN Mesh",
+    href: "/produkte?category=Netzwerk&subcategory=Router",
     image: "/images/categories/netzwerk.png",
     icon: Wifi,
     accent: "black",

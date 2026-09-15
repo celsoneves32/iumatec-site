@@ -798,7 +798,7 @@ export default async function HomePage() {
       subtitle:
         "Router, Switches und Netzwerktechnik",
       href:
-        "/produkte?category=Netzwerk",
+        "/produkte?category=Netzwerk&subcategory=Router",
       icon: Wifi,
       product:
         network.products.find(isCardReady),
