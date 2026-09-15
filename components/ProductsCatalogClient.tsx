@@ -153,9 +153,9 @@ const GENERIC_SHORTCUTS: Shortcut[] = [
   },
 
   {
-    label: "Drucker & Scanner",
+    label: "Drucker",
     category: "Office & Business",
-    subcategory: "Drucker & Scanner",
+    subcategory: "Drucker",
   },
 ];
 
@@ -317,52 +317,27 @@ const CATEGORY_SHORTCUTS: Record<
 
   "Office & Business": [
     {
-      label: "Drucker & Scanner",
+      label: "Drucker",
       category: "Office & Business",
-      subcategory: "Drucker & Scanner",
+      subcategory: "Drucker",
     },
 
     {
-      label: "Software",
+      label: "Scanner",
       category: "Office & Business",
-      subcategory: "Software",
+      subcategory: "Scanner",
     },
 
     {
-      label: "Telefonie",
+      label: "Tinte & Toner",
       category: "Office & Business",
-      subcategory: "Telefonie",
+      subcategory: "Tinte & Toner",
     },
 
     {
-      label: "Conferencing",
+      label: "Papier & Etiketten",
       category: "Office & Business",
-      subcategory:
-        "Conferencing & Collaboration",
-    },
-
-    {
-      label: "Professional AV",
-      category: "Office & Business",
-      subcategory: "Professional AV",
-    },
-
-    {
-      label: "Professional Audio",
-      category: "Office & Business",
-      subcategory: "Professional Audio",
-    },
-
-    {
-      label: "Projektoren",
-      category: "Office & Business",
-      subcategory: "Projektoren",
-    },
-
-    {
-      label: "Telefonsysteme",
-      category: "Office & Business",
-      subcategory: "Telefonsysteme",
+      subcategory: "Papier & Etiketten",
     },
   ],
 
@@ -454,6 +429,10 @@ function defaultSubcategoryForCategory(
 
   if (category === "Datenspeicher") {
     return "SSD";
+  }
+
+  if (category === "Office & Business") {
+    return "Drucker";
   }
 
   return "Alle";
@@ -1246,7 +1225,7 @@ export default function ProductsCatalogClient({
               },
             )}
 
-            {category !== "Alle" && category !== "Datenspeicher" ? (
+            {category !== "Alle" && category !== "Datenspeicher" && category !== "Office & Business" ? (
               <button
                 type="button"
                 onClick={() => {

@@ -94,7 +94,7 @@ const CATEGORIES: CategoryItem[] = [
   {
     title: "Office & Business",
     subtitle: "Drucker, Verbrauchsmaterial und Büro-Technik",
-    href: "/produkte?category=Office%20%26%20Business",
+    href: "/produkte?category=Office%20%26%20Business&subcategory=Drucker",
     image: "/images/categories/office-business.png",
     icon: Printer,
     accent: "black",

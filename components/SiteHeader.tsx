@@ -131,13 +131,12 @@ const CATEGORY_GROUPS: CategoryGroup[] = [
   },
   {
     name: "Office & Business",
-    href: "/produkte?category=Office%20%26%20Business",
+    href: "/produkte?category=Office%20%26%20Business&subcategory=Drucker",
     items: [
-      { label: "Drucker & Scanner", href: "/produkte?category=Office%20%26%20Business&subcategory=Drucker%20%26%20Scanner" },
-      { label: "Telefonie", href: "/produkte?category=Office%20%26%20Business&subcategory=Telefonie" },
-      { label: "Software", href: "/produkte?category=Office%20%26%20Business&subcategory=Software" },
-      { label: "Projektoren", href: "/produkte?category=Office%20%26%20Business&subcategory=Projektoren" },
-      { label: "Professional AV", href: "/produkte?category=Office%20%26%20Business&subcategory=Professional%20AV" },
+      { label: "Drucker", href: "/produkte?category=Office%20%26%20Business&subcategory=Drucker" },
+      { label: "Scanner", href: "/produkte?category=Office%20%26%20Business&subcategory=Scanner" },
+      { label: "Tinte & Toner", href: "/produkte?category=Office%20%26%20Business&subcategory=Tinte%20%26%20Toner" },
+      { label: "Papier & Etiketten", href: "/produkte?category=Office%20%26%20Business&subcategory=Papier%20%26%20Etiketten" },
     ],
   },
   {

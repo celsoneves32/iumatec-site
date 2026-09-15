@@ -54,11 +54,12 @@ const categories = [
   },
   {
     title: "Office & Business",
-    href: "/produkte?q=Drucker",
+    href: "/produkte?category=Office%20%26%20Business&subcategory=Drucker",
     items: [
-      { label: "Drucker", href: "/produkte?q=Drucker" },
-      { label: "Tinte & Toner", href: "/produkte?q=Toner" },
-      { label: "Papier & Etiketten", href: "/produkte?q=Etiketten" },
+      { label: "Drucker", href: "/produkte?category=Office%20%26%20Business&subcategory=Drucker" },
+      { label: "Scanner", href: "/produkte?category=Office%20%26%20Business&subcategory=Scanner" },
+      { label: "Tinte & Toner", href: "/produkte?category=Office%20%26%20Business&subcategory=Tinte%20%26%20Toner" },
+      { label: "Papier & Etiketten", href: "/produkte?category=Office%20%26%20Business&subcategory=Papier%20%26%20Etiketten" },
     ],
   },
   {

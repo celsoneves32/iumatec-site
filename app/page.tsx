@@ -798,7 +798,7 @@ export default async function HomePage() {
       title: "Office & Business",
       subtitle:
         "Drucker, Verbrauchsmaterial und Büro-Technik",
-      href: "/produkte?q=Drucker",
+      href: "/produkte?category=Office%20%26%20Business&subcategory=Drucker",
       icon: Printer,
       product:
         office.products.find(isCardReady),

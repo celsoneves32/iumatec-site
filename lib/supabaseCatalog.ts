@@ -766,6 +766,22 @@ const STRICT_CATALOG_RULES: Record<string, StrictCatalogRule> = {
     minPrice: 15,
   },
 
+  drucker: {
+    include: [/.*/],
+  },
+
+  scanner: {
+    include: [/.*/],
+  },
+
+  "tinte & toner": {
+    include: [/.*/],
+  },
+
+  "papier & etiketten": {
+    include: [/.*/],
+  },
+
   "drucker & scanner": {
     include: [
       /\bdrucker\b/,
@@ -1027,6 +1043,148 @@ function isStrictCatalogMatch(
         return false;
       }
     }
+  } else if (
+    strictKey === "drucker" ||
+    strictKey === "scanner" ||
+    strictKey === "tinte & toner" ||
+    strictKey === "papier & etiketten"
+  ) {
+    const sku = String(product.sku || "").trim();
+    const prefix = sku.split(/\s+/)[0].toUpperCase();
+
+    const sourceCategory =
+      normalize(product.category);
+
+    const sourceSubcategory =
+      normalize(product.subcategory);
+
+    const title =
+      normalize(product.title);
+
+    if (strictKey === "drucker") {
+      const officePrinter =
+        sourceCategory === "office & business" &&
+        sourceSubcategory === "drucker & scanner" &&
+        (
+          ["TI", "TH", "LA", "FL"].includes(prefix) ||
+          (
+            ["DK", "SEC", "PT", "PEA", "BU"].includes(prefix) &&
+            /(drucker|printer|labelprinter|belegdrucker)/i.test(text)
+          )
+        );
+
+      const peripheralPrinter =
+        sourceCategory === "peripherie" &&
+        sourceSubcategory === "zubehor" &&
+        prefix === "TI" &&
+        /(drucker|printer|ecotank|workforce)/i.test(text);
+
+      const cardPrinter =
+        sourceCategory === "peripherie" &&
+        sourceSubcategory === "monitore" &&
+        prefix === "TH" &&
+        /(drucker|printer)/i.test(text);
+
+      const consumableOrAccessory =
+        /(toner|tinte|patrone|cartridge|farbband|ribbon|reinigung|cleaner|druckerbildeinheit|kabel|cable|printserver)/i.test(text);
+
+      if (
+        (!officePrinter &&
+          !peripheralPrinter &&
+          !cardPrinter) ||
+        consumableOrAccessory
+      ) {
+        return false;
+      }
+    }
+
+    else if (strictKey === "scanner") {
+      const validSource =
+        sourceCategory === "office & business" &&
+        sourceSubcategory === "drucker & scanner";
+
+      const validPrefix =
+        ["SCA", "SCB"].includes(prefix) ||
+        (
+          ["DK", "BU"].includes(prefix) &&
+          /(scanner|scan)/i.test(text)
+        );
+
+      const accessory =
+        /(kabel|cable|consumable|tasche|bag|reiniger|cleaner|druckkopfreiniger)/i.test(text);
+
+      if (
+        !validSource ||
+        !validPrefix ||
+        accessory
+      ) {
+        return false;
+      }
+    }
+
+    else if (strictKey === "tinte & toner") {
+      const validSource =
+        (
+          sourceCategory === "peripherie" &&
+          sourceSubcategory === "zubehor" &&
+          ["ZTO", "ZTOFL", "ZTI", "TH"].includes(prefix)
+        ) ||
+        (
+          sourceCategory === "office & business" &&
+          sourceSubcategory === "drucker & scanner" &&
+          ["ZTO", "ZTOFL", "ZTI"].includes(prefix)
+        );
+
+      const actualInkOrToner =
+        /(toner|tinte|tintenpatrone|tonerkassette|resttoner|druckerpatrone|ink[\s-]*(cartridge|tank)|cartridge[\s-]*ink)/i.test(text);
+
+      if (
+        !validSource ||
+        !actualInkOrToner
+      ) {
+        return false;
+      }
+    }
+
+    else if (strictKey === "papier & etiketten") {
+      const peripheralLabels =
+        sourceCategory === "peripherie" &&
+        sourceSubcategory === "zubehor" &&
+        (
+          ["THZ", "PTZ", "PCZ", "PEA"].includes(prefix) ||
+          (
+            prefix === "BU" &&
+            /(etikett|label)/i.test(text)
+          ) ||
+          (
+            prefix === "TH" &&
+            /(etikett|label|papier|paper)/i.test(text)
+          )
+        );
+
+      const officeLabels =
+        sourceCategory === "office & business" &&
+        sourceSubcategory === "drucker & scanner" &&
+        prefix === "PTZ";
+
+      const photoPaper =
+        sourceCategory === "peripherie" &&
+        sourceSubcategory === "foto & video" &&
+        prefix === "PA" &&
+        /(fotopapier|photo paper|zink)/i.test(text);
+
+      const wrongProduct =
+        /(labelprinter|etikettendrucker|printer|drucker|labelmanager|beschriftungsgerat|q-label|rauchmelder|lto)/i.test(text);
+
+      if (
+        (!peripheralLabels &&
+          !officeLabels &&
+          !photoPaper) ||
+        wrongProduct
+      ) {
+        return false;
+      }
+    }
   } else if (strictKey === "desktop-pcs") {
     const sku = String(product.sku || "").trim();
 
@@ -1121,6 +1279,24 @@ function strictCatalogDisplayProduct(
       ...product,
       category: "Datenspeicher",
       subcategory: recoveredStorage,
+    };
+  }
+
+  const officeLabels: Record<string, string> = {
+    drucker: "Drucker",
+    scanner: "Scanner",
+    "tinte & toner": "Tinte & Toner",
+    "papier & etiketten": "Papier & Etiketten",
+  };
+
+  const recoveredOffice =
+    officeLabels[key];
+
+  if (recoveredOffice) {
+    return {
+      ...product,
+      category: "Office & Business",
+      subcategory: recoveredOffice,
     };
   }
 
@@ -1314,6 +1490,70 @@ async function queryStrictCatalogProducts(
   const storageSources =
     storageSourcesByKey[storageRecoveryKey] || null;
 
+  const officeRecoveryKey =
+    normalize(query.category) === "office & business"
+      ? normalize(query.subcategory)
+      : "";
+
+  const officeSourcesByKey: Record<
+    string,
+    Array<{ category: string; subcategory: string }>
+  > = {
+    drucker: [
+      {
+        category: "Office & Business",
+        subcategory: "Drucker & Scanner",
+      },
+      {
+        category: "Peripherie",
+        subcategory: "Zubehör",
+      },
+      {
+        category: "Peripherie",
+        subcategory: "Monitore",
+      },
+    ],
+
+    scanner: [
+      {
+        category: "Office & Business",
+        subcategory: "Drucker & Scanner",
+      },
+    ],
+
+    "tinte & toner": [
+      {
+        category: "Peripherie",
+        subcategory: "Zubehör",
+      },
+      {
+        category: "Office & Business",
+        subcategory: "Drucker & Scanner",
+      },
+    ],
+
+    "papier & etiketten": [
+      {
+        category: "Peripherie",
+        subcategory: "Zubehör",
+      },
+      {
+        category: "Office & Business",
+        subcategory: "Drucker & Scanner",
+      },
+      {
+        category: "Peripherie",
+        subcategory: "Foto & Video",
+      },
+    ],
+  };
+
+  const officeSources =
+    officeSourcesByKey[officeRecoveryKey] || null;
+
+  const recoverySources =
+    storageSources || officeSources;
+
   const fetchStrictSource = async (
     source?: { category: string; subcategory: string },
   ) => {
@@ -1359,8 +1599,8 @@ async function queryStrictCatalogProducts(
     }
   };
 
-  if (storageSources) {
-    for (const source of storageSources) {
+  if (recoverySources) {
+    for (const source of recoverySources) {
       await fetchStrictSource(source);
     }
   } else {
