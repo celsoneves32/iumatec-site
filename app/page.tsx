@@ -665,7 +665,7 @@ export default async function HomePage() {
       limit: 1,
     }),
 
-    safeCatalog({
+    safeStrictCatalog({
       category: "Computer",
       subcategory: "Laptops",
       inStock: true,
@@ -683,7 +683,7 @@ export default async function HomePage() {
       sort: "featured",
     }),
 
-    safeCatalog({
+    safeStrictCatalog({
       category: "Peripherie",
       subcategory: "Monitore",
       inStock: true,
@@ -692,7 +692,7 @@ export default async function HomePage() {
       sort: "featured",
     }),
 
-    safeCatalog({
+    safeStrictCatalog({
       category: "Mobile",
       subcategory: "Smartphones",
       inStock: true,
@@ -701,32 +701,36 @@ export default async function HomePage() {
       sort: "featured",
     }),
 
-    safeCatalog({
+    safeStrictCatalog({
       category: "Netzwerk",
+      subcategory: "Router",
       inStock: true,
       minPrice: 30,
       limit: 16,
       sort: "featured",
     }),
 
-    safeCatalog({
+    safeStrictCatalog({
       category: "Datenspeicher",
+      subcategory: "SSD",
       inStock: true,
       minPrice: 30,
       limit: 16,
       sort: "featured",
     }),
 
-    safeCatalog({
-      q: "Drucker",
+    safeStrictCatalog({
+      category: "Office & Business",
+      subcategory: "Drucker",
       inStock: true,
       minPrice: 40,
       limit: 16,
       sort: "featured",
     }),
 
-    safeCatalog({
+    safeStrictCatalog({
       category: "Smart Home",
+      subcategory: "Kameras",
       inStock: true,
       minPrice: 20,
       limit: 16,
@@ -968,11 +972,11 @@ export default async function HomePage() {
         <section className="border-y border-neutral-200 bg-white">
           <div className="mx-auto max-w-[1440px] px-4 py-11 xl:px-6">
             <SectionHeading
-              eyebrow="Deals"
-              title="Aktuelle Preisvorteile"
-              subtitle="Sofort verfügbare Technik mit attraktiven Preisen."
+              eyebrow="Preis-Tipps"
+              title="Technik zu attraktiven Preisen"
+              subtitle="Sofort verfügbare Produkte, übersichtlich nach Preis sortiert."
               href="/produkte?sort=price-asc"
-              linkLabel="Alle Angebote"
+              linkLabel="Alle Produkte"
             />
 
             <ProductRail
