@@ -70,7 +70,7 @@ const quickCategories = [
   },
   {
     label: "Smart Home",
-    href: "/produkte?category=Smart%20Home",
+    href: "/produkte?category=Smart%20Home&subcategory=Kameras",
     icon: House,
   },
 ];
@@ -151,13 +151,11 @@ const CATEGORY_GROUPS: CategoryGroup[] = [
   },
   {
     name: "Smart Home",
-    href: "/produkte?category=Smart%20Home",
+    href: "/produkte?category=Smart%20Home&subcategory=Kameras",
     items: [
+      { label: "Kameras", href: "/produkte?category=Smart%20Home&subcategory=Kameras" },
+      { label: "Steckdosen", href: "/produkte?category=Smart%20Home&subcategory=Steckdosen" },
       { label: "Beleuchtung", href: "/produkte?category=Smart%20Home&subcategory=Beleuchtung" },
-      { label: "Gebäudetechnik", href: "/produkte?category=Smart%20Home&subcategory=Geb%C3%A4udetechnik" },
-      { label: "Energie & Strom", href: "/produkte?category=Smart%20Home&subcategory=Energie%20%26%20Strom" },
-      { label: "Sicherheit", href: "/produkte?category=Smart%20Home&subcategory=Sicherheit" },
-      { label: "Sicherheit & Überwachung", href: "/produkte?category=Smart%20Home&subcategory=Sicherheit%20%26%20%C3%9Cberwachung" },
     ],
   },
 ];

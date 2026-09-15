@@ -809,7 +809,7 @@ export default async function HomePage() {
       subtitle:
         "Sicherheit, Beleuchtung und Gebäudetechnik",
       href:
-        "/produkte?category=Smart%20Home",
+        "/produkte?category=Smart%20Home&subcategory=Kameras",
       icon: House,
       product:
         smartHome.products.find(isCardReady),
@@ -922,7 +922,7 @@ export default async function HomePage() {
           />
 
           <MarketingPromo
-            href="/produkte?category=Smart%20Home"
+            href="/produkte?category=Smart%20Home&subcategory=Kameras"
             image="/images/home/iumatec-smart-home.png"
             alt="IUMATEC Smart Home – Smarte Technik für dein Zuhause"
             buttonLabel="Mehr entdecken"

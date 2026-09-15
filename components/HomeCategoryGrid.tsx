@@ -105,7 +105,7 @@ const CATEGORIES: CategoryItem[] = [
   {
     title: "Smart Home",
     subtitle: "Sicherheit, Beleuchtung und Gebäudetechnik",
-    href: "/produkte?category=Smart%20Home",
+    href: "/produkte?category=Smart%20Home&subcategory=Kameras",
     image: "/images/categories/smart-home.png",
     icon: House,
     accent: "black",

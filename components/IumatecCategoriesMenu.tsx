@@ -74,11 +74,11 @@ const categories = [
   },
   {
     title: "Smart Home",
-    href: "/produkte?category=Smart%20Home",
+    href: "/produkte?category=Smart%20Home&subcategory=Kameras",
     items: [
       { label: "Kameras", href: "/produkte?category=Smart%20Home&subcategory=Kameras" },
-      { label: "Steckdosen", href: "/produkte?category=Smart%20Home&q=Steckdose" },
-      { label: "Beleuchtung", href: "/produkte?category=Smart%20Home&q=Beleuchtung" },
+      { label: "Steckdosen", href: "/produkte?category=Smart%20Home&subcategory=Steckdosen" },
+      { label: "Beleuchtung", href: "/produkte?category=Smart%20Home&subcategory=Beleuchtung" },
     ],
   },
 ];

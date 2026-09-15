@@ -369,40 +369,21 @@ const CATEGORY_SHORTCUTS: Record<
 
   "Smart Home": [
     {
+      label: "Kameras",
+      category: "Smart Home",
+      subcategory: "Kameras",
+    },
+
+    {
+      label: "Steckdosen",
+      category: "Smart Home",
+      subcategory: "Steckdosen",
+    },
+
+    {
       label: "Beleuchtung",
       category: "Smart Home",
       subcategory: "Beleuchtung",
-    },
-
-    {
-      label: "Gebäudetechnik",
-      category: "Smart Home",
-      subcategory: "Gebäudetechnik",
-    },
-
-    {
-      label: "Energie & Strom",
-      category: "Smart Home",
-      subcategory: "Energie & Strom",
-    },
-
-    {
-      label: "Sicherheit",
-      category: "Smart Home",
-      subcategory: "Sicherheit",
-    },
-
-    {
-      label: "Sicherheit & Überwachung",
-      category: "Smart Home",
-      subcategory:
-        "Sicherheit & Überwachung",
-    },
-
-    {
-      label: "TV & Home Cinema",
-      category: "Smart Home",
-      subcategory: "TV & Home Cinema",
     },
   ],
 };
@@ -433,6 +414,10 @@ function defaultSubcategoryForCategory(
 
   if (category === "Office & Business") {
     return "Drucker";
+  }
+
+  if (category === "Smart Home") {
+    return "Kameras";
   }
 
   return "Alle";
@@ -1225,7 +1210,7 @@ export default function ProductsCatalogClient({
               },
             )}
 
-            {category !== "Alle" && category !== "Datenspeicher" && category !== "Office & Business" ? (
+            {category !== "Alle" && category !== "Datenspeicher" && category !== "Office & Business" && category !== "Smart Home" ? (
               <button
                 type="button"
                 onClick={() => {

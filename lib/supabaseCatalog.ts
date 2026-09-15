@@ -349,6 +349,7 @@ const SUBCATEGORY_ALIASES: Record<string, string[]> = {
   "Netzwerk-Switches": ["Switches", "Netzwerk-Switches", "Netzwerk"],
   "WLAN Mesh": ["WLAN Mesh", "Netzwerk"],
   Dockingstationen: ["Dockingstationen", "Docking & Hubs"],
+  Kameras: ["Kameras", "Sicherheit & Überwachung"],
   Steckdosen: ["Steckdosen", "Smarte Steckdosen"],
   Beleuchtung: ["Beleuchtung", "Smarte Beleuchtung"],
 };
@@ -766,6 +767,18 @@ const STRICT_CATALOG_RULES: Record<string, StrictCatalogRule> = {
     minPrice: 15,
   },
 
+  kameras: {
+    include: [/.*/],
+  },
+
+  steckdosen: {
+    include: [/.*/],
+  },
+
+  beleuchtung: {
+    include: [/.*/],
+  },
+
   drucker: {
     include: [/.*/],
   },
@@ -1044,6 +1057,97 @@ function isStrictCatalogMatch(
       }
     }
   } else if (
+    strictKey === "kameras" ||
+    strictKey === "steckdosen" ||
+    strictKey === "beleuchtung"
+  ) {
+    const sku = String(product.sku || "").trim();
+    const prefix = sku.split(/\s+/)[0].toUpperCase();
+
+    const sourceCategory =
+      normalize(product.category);
+
+    const sourceSubcategory =
+      normalize(product.subcategory);
+
+    if (strictKey === "kameras") {
+      const validSource =
+        sourceCategory === "smart home" &&
+        sourceSubcategory === "sicherheit & uberwachung";
+
+      // Auditado no Alltron:
+      // NWK = network cameras
+      // HT = Aqara/Bosch Smart Home cameras
+      // BEL = WiZ cameras
+      // LED = Hue Secure camera/doorbell bundles
+      // NWS = Synology cameras
+      //
+      // SEC e NVR sao grupos mistos: access control,
+      // produtos sem camera, licencas e gravadores.
+      const validPrefix =
+        ["NWK", "HT", "BEL", "LED", "NWS"].includes(prefix);
+
+      const looksLikeCamera =
+        /(kamera|camera|turklingelkamera|doorbell)/i.test(text);
+
+      const wrongProduct =
+        /(ohne kamera|kameralizenz|camera license|lizenz|nvr|recorder|halter|holder|mount|bracket|gehause|case|kabel|cable|netzteil|power supply|zubehor)/i.test(text);
+
+      if (
+        !validSource ||
+        !validPrefix ||
+        !looksLikeCamera ||
+        wrongProduct
+      ) {
+        return false;
+      }
+    }
+
+    else if (strictKey === "steckdosen") {
+      const validSource =
+        sourceCategory === "smart home" &&
+        (
+          sourceSubcategory === "energie & strom" ||
+          sourceSubcategory === "gebaudetechnik"
+        );
+
+      const smartSocket =
+        /(?:smart|matter|zigbee|wlan|wifi|homekit|funk).{0,35}(?:steckdose|steckdosenleiste|plug|zwischenstecker)/i.test(text) ||
+        /(?:steckdose|steckdosenleiste|plug|zwischenstecker).{0,35}(?:smart|matter|zigbee|wlan|wifi|homekit|funk)/i.test(text) ||
+        /(funk-?zwischenstecker|funksteckdose|remote funkset)/i.test(text);
+
+      if (
+        !validSource ||
+        !smartSocket
+      ) {
+        return false;
+      }
+    }
+
+    else if (strictKey === "beleuchtung") {
+      const validSource =
+        sourceCategory === "smart home" &&
+        sourceSubcategory === "beleuchtung";
+
+      const smartSignal =
+        /(hue|wiz|aqara|eve|homematic|nanoleaf|tapo|tradfri|zigbee|matter|homekit|smart light|smartlight|wlan|wifi)/i.test(text);
+
+      const lightingProduct =
+        /(lampe|leuchte|licht|light|led|birne|bulb|strip|lightstrip|spot|panel)/i.test(text);
+
+      const accessoryOrControl =
+        /(controller|control|schalter|switch|dimmer|klemme|fernbedienung|remote|bridge|gateway|netzteil|treiber|driver|halter|holder|adapter|kabel|cable)/i.test(text);
+
+      if (
+        !validSource ||
+        !smartSignal ||
+        !lightingProduct ||
+        accessoryOrControl
+      ) {
+        return false;
+      }
+    }
+  } else if (
     strictKey === "drucker" ||
     strictKey === "scanner" ||
     strictKey === "tinte & toner" ||
@@ -1300,6 +1404,23 @@ function strictCatalogDisplayProduct(
     };
   }
 
+  const smartHomeLabels: Record<string, string> = {
+    kameras: "Kameras",
+    steckdosen: "Steckdosen",
+    beleuchtung: "Beleuchtung",
+  };
+
+  const recoveredSmartHome =
+    smartHomeLabels[key];
+
+  if (recoveredSmartHome) {
+    return {
+      ...product,
+      category: "Smart Home",
+      subcategory: recoveredSmartHome,
+    };
+  }
+
   if (sourceSubcategory === "netzwerk") {
     const networkLabels: Record<string, string> = {
       router: "Router",
@@ -1551,8 +1672,48 @@ async function queryStrictCatalogProducts(
   const officeSources =
     officeSourcesByKey[officeRecoveryKey] || null;
 
+  const smartHomeRecoveryKey =
+    normalize(query.category) === "smart home"
+      ? normalize(query.subcategory)
+      : "";
+
+  const smartHomeSourcesByKey: Record<
+    string,
+    Array<{ category: string; subcategory: string }>
+  > = {
+    kameras: [
+      {
+        category: "Smart Home",
+        subcategory: "Sicherheit & Überwachung",
+      },
+    ],
+
+    steckdosen: [
+      {
+        category: "Smart Home",
+        subcategory: "Energie & Strom",
+      },
+      {
+        category: "Smart Home",
+        subcategory: "Gebäudetechnik",
+      },
+    ],
+
+    beleuchtung: [
+      {
+        category: "Smart Home",
+        subcategory: "Beleuchtung",
+      },
+    ],
+  };
+
+  const smartHomeSources =
+    smartHomeSourcesByKey[smartHomeRecoveryKey] || null;
+
   const recoverySources =
-    storageSources || officeSources;
+    storageSources ||
+    officeSources ||
+    smartHomeSources;
 
   const fetchStrictSource = async (
     source?: { category: string; subcategory: string },
