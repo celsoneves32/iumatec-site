@@ -65,10 +65,10 @@ const categories = [
     title: "Datenspeicher",
     href: "/produkte?category=Datenspeicher",
     items: [
-      { label: "SSD", href: "/produkte?category=Datenspeicher&q=SSD" },
-      { label: "HDD", href: "/produkte?category=Datenspeicher&q=HDD" },
+      { label: "SSD", href: "/produkte?category=Datenspeicher&subcategory=SSD" },
+      { label: "HDD", href: "/produkte?category=Datenspeicher&subcategory=HDD" },
       { label: "NAS", href: "/produkte?category=Datenspeicher&subcategory=NAS" },
-      { label: "Externe SSD", href: "/produkte?category=Datenspeicher&q=Externe%20SSD" },
+      { label: "Externe SSD", href: "/produkte?category=Datenspeicher&subcategory=Externe%20SSD" },
     ],
   },
   {

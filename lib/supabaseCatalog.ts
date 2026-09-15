@@ -673,6 +673,22 @@ const STRICT_CATALOG_RULES: Record<string, StrictCatalogRule> = {
     minPrice: 70,
   },
 
+  ssd: {
+    include: [/.*/],
+  },
+
+  hdd: {
+    include: [/.*/],
+  },
+
+  nas: {
+    include: [/.*/],
+  },
+
+  "externe ssd": {
+    include: [/.*/],
+  },
+
   router: {
     include: [
       /\brouter\b/,
@@ -905,6 +921,91 @@ function isStrictCatalogMatch(
     if (!/webcam/i.test(text)) {
       return false;
     }
+  } else if (
+    strictKey === "ssd" ||
+    strictKey === "hdd" ||
+    strictKey === "nas" ||
+    strictKey === "externe ssd"
+  ) {
+    const sku = String(product.sku || "").trim();
+    const prefix = sku.split(/\s+/)[0].toUpperCase();
+    const sourceCategory = normalize(product.category);
+    const sourceSubcategory = normalize(product.subcategory);
+
+    if (strictKey === "ssd") {
+      const validSource =
+        sourceCategory === "pc-komponenten" &&
+        sourceSubcategory === "komponenten" &&
+        prefix === "SSD";
+
+      const looksExternal =
+        /(portable|passport|external|extern|usb.?c|type.?c|gehause|enclosure|case|adapter)/i.test(text);
+
+      if (!validSource || looksExternal) {
+        return false;
+      }
+    } else if (strictKey === "hdd") {
+      const standardHd =
+        prefix === "HD" &&
+        (
+          (
+            sourceCategory === "pc-komponenten" &&
+            sourceSubcategory === "komponenten"
+          ) ||
+          (
+            sourceCategory === "peripherie" &&
+            sourceSubcategory === "zubehor"
+          ) ||
+          (
+            sourceCategory === "computer" &&
+            sourceSubcategory === "desktop-pcs"
+          )
+        );
+
+      const synologyHd =
+        sourceCategory === "pc-komponenten" &&
+        sourceSubcategory === "komponenten" &&
+        prefix === "NWS" &&
+        /(hdd|festplatte)/i.test(text);
+
+      const accessory =
+        /(einschub|tray|caddy|gehause|enclosure|case|adapter|halter|holder|mount)/i.test(text);
+
+      if ((!standardHd && !synologyHd) || accessory) {
+        return false;
+      }
+    } else if (strictKey === "nas") {
+      const validSource =
+        sourceCategory === "datenspeicher" &&
+        sourceSubcategory === "storage" &&
+        prefix === "NWS";
+
+      const looksLikeNas =
+        /(diskstation|rackstation|\b[0-9]+-bay.*nas\b|\bnas\b)/i.test(text);
+
+      const accessory =
+        /(einschub|tray|caddy|backplane|pcba|sata bp|erweiterungskarte|transceiver|adapter|kabel|cable|ram|memory|netzteil|rackmount kit)/i.test(text);
+
+      if (!validSource || !looksLikeNas || accessory) {
+        return false;
+      }
+    } else if (strictKey === "externe ssd") {
+      const byName =
+        /(portable.*ssd|ssd.*portable|my passport ssd|extreme portable|external ssd|externe ssd|ssd extern|beedrive|rugged.*ssd)/i.test(text);
+
+      const externalSsdSource =
+        prefix === "SSD" &&
+        ["peripherie", "datenspeicher"].includes(sourceCategory) &&
+        /(usb|type.?c|portable|passport|rugged)/i.test(text) &&
+        /\bssd\b/i.test(text);
+
+      const accessory =
+        /(gehause|enclosure|case|mounting clamp|halter|holder|adapter)/i.test(text);
+
+      if ((!byName && !externalSsdSource) || accessory) {
+        return false;
+      }
+    }
   } else if (strictKey === "desktop-pcs") {
     const sku = String(product.sku || "").trim();
 
@@ -984,6 +1085,23 @@ function strictCatalogDisplayProduct(
 ): Product {
   const sourceSubcategory = normalize(product.subcategory);
   const key = normalize(requestedSubcategory);
+
+  const storageLabels: Record<string, string> = {
+    ssd: "SSD",
+    hdd: "HDD",
+    nas: "NAS",
+    "externe ssd": "Externe SSD",
+  };
+
+  const recoveredStorage = storageLabels[key];
+
+  if (recoveredStorage) {
+    return {
+      ...product,
+      category: "Datenspeicher",
+      subcategory: recoveredStorage,
+    };
+  }
 
   if (sourceSubcategory === "netzwerk") {
     const networkLabels: Record<string, string> = {
@@ -1122,29 +1240,110 @@ async function queryStrictCatalogProducts(
   const maxRows = 50000;
   const rows: ProductRow[] = [];
 
-  for (let from = 0; from < maxRows; from += pageSize) {
-    let request = getSupabase()
-      .from("products")
-      .select(CATALOG_COLUMNS);
+  const storageRecoveryKey =
+    normalize(query.category) === "datenspeicher"
+      ? normalize(query.subcategory)
+      : "";
 
-    request = applyCatalogFilters(request, query);
-    request = sellable(request);
-    request = request
-      .order("sku", { ascending: true })
-      .range(from, from + pageSize - 1);
+  const storageSourcesByKey: Record<
+    string,
+    Array<{ category: string; subcategory: string }>
+  > = {
+    ssd: [
+      {
+        category: "PC-Komponenten",
+        subcategory: "Komponenten",
+      },
+    ],
 
-    const { data, error } = await request;
+    hdd: [
+      {
+        category: "PC-Komponenten",
+        subcategory: "Komponenten",
+      },
+      {
+        category: "Peripherie",
+        subcategory: "Zubehör",
+      },
+      {
+        category: "Computer",
+        subcategory: "Desktop-PCs",
+      },
+    ],
 
-    if (error) {
-      throw new Error(
-        `Supabase strict catalog query failed: ${error.message}`,
-      );
+    nas: [
+      {
+        category: "Datenspeicher",
+        subcategory: "Storage",
+      },
+    ],
+
+    "externe ssd": [
+      {
+        category: "Peripherie",
+        subcategory: "Zubehör",
+      },
+      {
+        category: "Datenspeicher",
+        subcategory: "Storage",
+      },
+    ],
+  };
+
+  const storageSources =
+    storageSourcesByKey[storageRecoveryKey] || null;
+
+  const fetchStrictSource = async (
+    source?: { category: string; subcategory: string },
+  ) => {
+    for (let from = 0; from < maxRows; from += pageSize) {
+      let request = getSupabase()
+        .from("products")
+        .select(CATALOG_COLUMNS);
+
+      if (source) {
+        request = applyCatalogFilters(request, {
+          ...query,
+          category: undefined,
+          subcategory: undefined,
+        });
+
+        request = request
+          .eq("category", source.category)
+          .eq("subcategory", source.subcategory);
+      } else {
+        request = applyCatalogFilters(request, query);
+      }
+
+      request = sellable(request);
+
+      request = request
+        .order("sku", { ascending: true })
+        .range(from, from + pageSize - 1);
+
+      const { data, error } = await request;
+
+      if (error) {
+        throw new Error(
+          `Supabase strict catalog query failed: ${error.message}`,
+        );
+      }
+
+      const batch =
+        (data || []) as unknown as ProductRow[];
+
+      rows.push(...batch);
+
+      if (batch.length < pageSize) break;
     }
+  };
 
-    const batch = (data || []) as unknown as ProductRow[];
-    rows.push(...batch);
-
-    if (batch.length < pageSize) break;
+  if (storageSources) {
+    for (const source of storageSources) {
+      await fetchStrictSource(source);
+    }
+  } else {
+    await fetchStrictSource();
   }
 
   const matched = sortStrictCatalogProducts(

@@ -368,27 +368,27 @@ const CATEGORY_SHORTCUTS: Record<
 
   Datenspeicher: [
     {
-      label: "Storage",
-      category: "Datenspeicher",
-      subcategory: "Storage",
-    },
-
-    {
       label: "SSD",
       category: "Datenspeicher",
-      q: "SSD",
+      subcategory: "SSD",
     },
 
     {
       label: "HDD",
       category: "Datenspeicher",
-      q: "HDD",
+      subcategory: "HDD",
     },
 
     {
       label: "NAS",
       category: "Datenspeicher",
-      q: "NAS",
+      subcategory: "NAS",
+    },
+
+    {
+      label: "Externe SSD",
+      category: "Datenspeicher",
+      subcategory: "Externe SSD",
     },
   ],
 
