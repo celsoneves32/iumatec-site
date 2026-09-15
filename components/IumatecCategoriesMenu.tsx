@@ -12,7 +12,7 @@ const categories = [
   },
   {
     title: "PC-Komponenten",
-    href: "/produkte?category=PC-Komponenten",
+    href: "/produkte?category=PC-Komponenten&subcategory=Grafikkarten",
     items: [
       { label: "Grafikkarten", href: "/produkte?category=PC-Komponenten&subcategory=Grafikkarten" },
       { label: "RAM", href: "/produkte?category=PC-Komponenten&subcategory=RAM" },

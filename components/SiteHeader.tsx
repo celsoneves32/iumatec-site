@@ -48,7 +48,7 @@ const quickCategories = [
   { label: "Computer", href: "/produkte?category=Computer", icon: Laptop },
   {
     label: "PC-Komponenten",
-    href: "/produkte?category=PC-Komponenten",
+    href: "/produkte?category=PC-Komponenten&subcategory=Grafikkarten",
     icon: Gamepad2,
   },
   {
@@ -88,7 +88,7 @@ const CATEGORY_GROUPS: CategoryGroup[] = [
   },
   {
     name: "PC-Komponenten",
-    href: "/produkte?category=PC-Komponenten",
+    href: "/produkte?category=PC-Komponenten&subcategory=Grafikkarten",
     items: [
       { label: "Komponenten", href: "/produkte?category=PC-Komponenten&subcategory=Komponenten" },
       { label: "Kabel & Adapter", href: "/produkte?category=PC-Komponenten&subcategory=Kabel%20%26%20Adapter" },

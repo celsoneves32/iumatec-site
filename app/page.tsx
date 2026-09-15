@@ -24,6 +24,7 @@ import HomepageCarousel from "@/components/HomepageCarousel";
 import HomeCategoryGrid from "@/components/HomeCategoryGrid";
 
 import {
+  queryCatalog,
   queryCatalogProducts,
   type CatalogQuery,
   type CatalogResponse,
@@ -57,6 +58,22 @@ async function safeCatalog(
   } catch (error) {
     console.error(
       "Homepage catalog query failed:",
+      query,
+      error,
+    );
+
+    return EMPTY;
+  }
+}
+
+async function safeStrictCatalog(
+  query: CatalogQuery,
+): Promise<CatalogResponse> {
+  try {
+    return await queryCatalog(query);
+  } catch (error) {
+    console.error(
+      "Homepage strict catalog query failed:",
       query,
       error,
     );
@@ -657,10 +674,11 @@ export default async function HomePage() {
       sort: "featured",
     }),
 
-    safeCatalog({
+    safeStrictCatalog({
       category: "PC-Komponenten",
+      subcategory: "Grafikkarten",
       inStock: true,
-      minPrice: 120,
+      minPrice: 70,
       limit: 16,
       sort: "featured",
     }),
@@ -739,9 +757,9 @@ export default async function HomePage() {
     {
       title: "PC-Komponenten",
       subtitle:
-        "Komponenten, Kabel, Gaming und mehr",
+        "Grafikkarten, RAM, Mainboards und mehr",
       href:
-        "/produkte?category=PC-Komponenten",
+        "/produkte?category=PC-Komponenten&subcategory=Grafikkarten",
       icon: Cpu,
       product:
         gpus.products.find(isCardReady),
@@ -915,7 +933,7 @@ export default async function HomePage() {
       <section className="bg-[#f7f7f6]">
         <div className="mx-auto grid max-w-[1440px] gap-4 px-4 py-7 lg:grid-cols-2 xl:px-6 xl:py-8">
           <MarketingPromo
-            href="/produkte?category=PC-Komponenten"
+            href="/produkte?category=PC-Komponenten&subcategory=Grafikkarten"
             image="/images/home/iumatec-pc-performance.png"
             alt="IUMATEC PC-Komponenten – Performance für deinen Build"
             buttonLabel="Jetzt shoppen"
@@ -1007,8 +1025,8 @@ export default async function HomePage() {
           <SectionHeading
             eyebrow="PC-Komponenten"
             title="Mehr Leistung für deinen PC"
-            subtitle="Komponenten, Zubehör und Performance-Upgrades für dein System."
-            href="/produkte?category=PC-Komponenten"
+            subtitle="Grafikkarten für Gaming, Workstations und Performance-Upgrades."
+            href="/produkte?category=PC-Komponenten&subcategory=Grafikkarten"
           />
 
           <ProductRail

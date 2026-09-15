@@ -38,8 +38,8 @@ const CATEGORIES: CategoryItem[] = [
 
   {
     title: "PC-Komponenten",
-    subtitle: "Komponenten, Kabel, Gaming und mehr",
-    href: "/produkte?category=PC-Komponenten",
+    subtitle: "Grafikkarten, RAM, Mainboards und mehr",
+    href: "/produkte?category=PC-Komponenten&subcategory=Grafikkarten",
     image: "/images/categories/pc-komponenten.png",
     icon: Cpu,
     accent: "black",
