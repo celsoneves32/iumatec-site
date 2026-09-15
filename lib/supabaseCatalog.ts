@@ -931,6 +931,8 @@ function isStrictCatalogMatch(
     const prefix = sku.split(/\s+/)[0].toUpperCase();
     const sourceCategory = normalize(product.category);
     const sourceSubcategory = normalize(product.subcategory);
+    const title = normalize(product.title);
+    const brand = normalize(product.brand);
 
     if (strictKey === "ssd") {
       const validSource =
@@ -968,10 +970,20 @@ function isStrictCatalogMatch(
         prefix === "NWS" &&
         /(hdd|festplatte)/i.test(text);
 
+      const lacieExternalHdd =
+        sourceCategory === "peripherie" &&
+        sourceSubcategory === "zubehor" &&
+        prefix === "SSD" &&
+        brand === "lacie" &&
+        /(?:rugged mini usb-c.*(?:1tb|2tb)|rugged usb-c.*4tb)/i.test(title);
+
       const accessory =
         /(einschub|tray|caddy|gehause|enclosure|case|adapter|halter|holder|mount)/i.test(text);
 
-      if ((!standardHd && !synologyHd) || accessory) {
+      if (
+        (!standardHd && !synologyHd && !lacieExternalHdd) ||
+        accessory
+      ) {
         return false;
       }
     } else if (strictKey === "nas") {
@@ -991,18 +1003,27 @@ function isStrictCatalogMatch(
       }
     } else if (strictKey === "externe ssd") {
       const byName =
-        /(portable.*ssd|ssd.*portable|my passport ssd|extreme portable|external ssd|externe ssd|ssd extern|beedrive|rugged.*ssd)/i.test(text);
+        /(portable.*ssd|ssd.*portable|my passport ssd|extreme portable|external ssd|externe ssd|ssd extern|beedrive|rugged.*ssd)/i.test(title);
+
+      const titleSaysSsd =
+        /(\bssd\b|solid state|beedrive)/i.test(title);
+
+      const knownExternalSsd =
+        brand === "verbatim" &&
+        /turbometal/i.test(title);
 
       const externalSsdSource =
         prefix === "SSD" &&
         ["peripherie", "datenspeicher"].includes(sourceCategory) &&
-        /(usb|type.?c|portable|passport|rugged)/i.test(text) &&
-        /\bssd\b/i.test(text);
+        (titleSaysSsd || knownExternalSsd);
 
       const accessory =
-        /(gehause|enclosure|case|mounting clamp|halter|holder|adapter)/i.test(text);
+        /(gehause|enclosure|case|mounting clamp|halter|holder|adapter)/i.test(title);
 
-      if ((!byName && !externalSsdSource) || accessory) {
+      if (
+        (!byName && !externalSsdSource && !knownExternalSsd) ||
+        accessory
+      ) {
         return false;
       }
     }

@@ -452,6 +452,10 @@ function defaultSubcategoryForCategory(
     return "Smartphones";
   }
 
+  if (category === "Datenspeicher") {
+    return "SSD";
+  }
+
   return "Alle";
 }
 
@@ -1242,7 +1246,7 @@ export default function ProductsCatalogClient({
               },
             )}
 
-            {category !== "Alle" ? (
+            {category !== "Alle" && category !== "Datenspeicher" ? (
               <button
                 type="button"
                 onClick={() => {
@@ -1280,7 +1284,11 @@ export default function ProductsCatalogClient({
               <button
                 type="button"
                 onClick={reset}
-                className="rounded-full border border-neutral-950 bg-neutral-950 px-4 py-2 text-sm font-extrabold text-white"
+                className={
+                  category === "Alle"
+                    ? "rounded-full border border-neutral-950 bg-neutral-950 px-4 py-2 text-sm font-extrabold text-white"
+                    : "hidden"
+                }
               >
                 Alle anzeigen
               </button>

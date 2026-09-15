@@ -65,7 +65,7 @@ const quickCategories = [
   },
   {
     label: "Datenspeicher",
-    href: "/produkte?category=Datenspeicher",
+    href: "/produkte?category=Datenspeicher&subcategory=SSD",
     icon: HardDrive,
   },
   {
@@ -142,12 +142,12 @@ const CATEGORY_GROUPS: CategoryGroup[] = [
   },
   {
     name: "Datenspeicher",
-    href: "/produkte?category=Datenspeicher",
+    href: "/produkte?category=Datenspeicher&subcategory=SSD",
     items: [
-      { label: "Storage", href: "/produkte?category=Datenspeicher&subcategory=Storage" },
-      { label: "SSD", href: "/produkte?category=Datenspeicher&q=SSD" },
-      { label: "HDD", href: "/produkte?category=Datenspeicher&q=HDD" },
-      { label: "NAS", href: "/produkte?category=Datenspeicher&q=NAS" },
+      { label: "SSD", href: "/produkte?category=Datenspeicher&subcategory=SSD" },
+      { label: "HDD", href: "/produkte?category=Datenspeicher&subcategory=HDD" },
+      { label: "NAS", href: "/produkte?category=Datenspeicher&subcategory=NAS" },
+      { label: "Externe SSD", href: "/produkte?category=Datenspeicher&subcategory=Externe%20SSD" },
     ],
   },
   {

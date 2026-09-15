@@ -63,7 +63,7 @@ const categories = [
   },
   {
     title: "Datenspeicher",
-    href: "/produkte?category=Datenspeicher",
+    href: "/produkte?category=Datenspeicher&subcategory=SSD",
     items: [
       { label: "SSD", href: "/produkte?category=Datenspeicher&subcategory=SSD" },
       { label: "HDD", href: "/produkte?category=Datenspeicher&subcategory=HDD" },
