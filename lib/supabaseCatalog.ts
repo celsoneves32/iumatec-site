@@ -110,7 +110,7 @@ function getSupabase() {
 
 function cleanSearch(value: string) {
   return value
-    .replace(/[,%()]/g, " ")
+    .replace(/[,%()*]/g, " ")
     .replace(/\s+/g, " ")
     .trim()
     .slice(0, 120);
@@ -1505,17 +1505,25 @@ function applyCatalogFilters(request: any, query: CatalogQuery) {
   const search = cleanSearch(query.q || "");
 
   if (search) {
-    const pattern = `*${search}*`;
-    request = request.or(
-      [
-        `title.ilike.${pattern}`,
-        `brand.ilike.${pattern}`,
-        `sku.ilike.${pattern}`,
-        `ean.ilike.${pattern}`,
-        `category.ilike.${pattern}`,
-        `subcategory.ilike.${pattern}`,
-      ].join(","),
-    );
+    const terms = search
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 8);
+
+    for (const term of terms) {
+      const pattern = `*${term}*`;
+
+      request = request.or(
+        [
+          `title.ilike.${pattern}`,
+          `brand.ilike.${pattern}`,
+          `sku.ilike.${pattern}`,
+          `ean.ilike.${pattern}`,
+          `category.ilike.${pattern}`,
+          `subcategory.ilike.${pattern}`,
+        ].join(","),
+      );
+    }
   }
 
   if (query.category && query.category !== "Alle") {

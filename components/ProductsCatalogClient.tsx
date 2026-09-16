@@ -581,7 +581,7 @@ export default function ProductsCatalogClient({
             query.trim(),
           );
         },
-        400,
+        200,
       );
 
     return () =>
