@@ -99,7 +99,7 @@ export default function ProductBuyBox({
                 Lieferung in der Regel 2–5 Werktage
               </p>
               <p className="text-xs text-neutral-500">
-                Bei verfügbarem Lagerbestand.
+                Lieferung innerhalb der Schweiz.
               </p>
             </div>
           </div>
