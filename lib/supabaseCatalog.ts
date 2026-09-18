@@ -214,7 +214,7 @@ function sellable(query: any) {
     .gt("stock_qty", 0);
 }
 
-const getSellableCatalogTotalCached = unstable_cache(
+export const getSellableCatalogTotalCached = unstable_cache(
   async () => {
     let request = getSupabase()
       .from("products")

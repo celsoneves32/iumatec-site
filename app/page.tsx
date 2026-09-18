@@ -24,6 +24,7 @@ import HomepageCarousel from "@/components/HomepageCarousel";
 import HomeCategoryGrid from "@/components/HomeCategoryGrid";
 
 import {
+  getSellableCatalogTotalCached,
   queryCatalog,
   queryCatalogProducts,
   type CatalogQuery,
@@ -650,7 +651,6 @@ function FeatureStrip({
 
 export default async function HomePage() {
   const [
-    all,
     laptops,
     gpus,
     monitors,
@@ -659,12 +659,7 @@ export default async function HomePage() {
     storage,
     office,
     smartHome,
-    offers,
   ] = await Promise.all([
-    safeCatalog({
-      limit: 1,
-    }),
-
     safeStrictCatalog({
       category: "Computer",
       subcategory: "Laptops",
@@ -737,13 +732,6 @@ export default async function HomePage() {
       sort: "featured",
     }),
 
-    safeCatalog({
-      inStock: true,
-      minPrice: 50,
-      maxPrice: 500,
-      limit: 16,
-      sort: "price-asc",
-    }),
   ]);
 
   const categoryTiles: CategoryTile[] = [
@@ -845,11 +833,42 @@ export default async function HomePage() {
     ...gpus.products.slice(0, 4),
   ]);
 
-  const catalogTotal = Number(
-    all.catalogTotal ||
-      all.total ||
-      0,
-  );
+  const catalogTotal =
+    await getSellableCatalogTotalCached();
+
+  const offerProducts = uniqueProducts([
+    ...laptops.products,
+    ...gpus.products,
+    ...monitors.products,
+    ...smartphones.products,
+    ...network.products,
+    ...storage.products,
+    ...office.products,
+    ...smartHome.products,
+  ])
+    .filter((product) => {
+      const price = Number(product.price || 0);
+
+      return (
+        isCardReady(product) &&
+        price >= 50 &&
+        price <= 500
+      );
+    })
+    .sort(
+      (a, b) =>
+        Number(a.price || 0) -
+        Number(b.price || 0),
+    )
+    .slice(0, 16);
+
+  const offers: CatalogResponse = {
+    ...EMPTY,
+    products: offerProducts,
+    total: offerProducts.length,
+    catalogTotal,
+    limit: offerProducts.length,
+  };
 
   return (
     <main className="bg-[#f7f7f6] text-neutral-950">
