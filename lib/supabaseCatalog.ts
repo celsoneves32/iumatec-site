@@ -1889,6 +1889,14 @@ export async function queryCatalogProducts(
     return queryStrictCatalogProducts(query, offset, limit);
   }
 
+  const searchTerms = cleanSearch(query.q || "")
+    .split(/\s+/)
+    .filter(Boolean);
+
+  if (searchTerms.length > 1) {
+    return queryCatalog(query);
+  }
+
   let request = getSupabase()
     .from("products")
     .select(CATALOG_COLUMNS, { count: "exact" });
