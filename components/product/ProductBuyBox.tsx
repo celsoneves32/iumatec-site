@@ -96,7 +96,7 @@ export default function ProductBuyBox({
             <span className="text-xl">🚚</span>
             <div>
               <p className="text-sm font-black text-neutral-950">
-                Lieferung 1–3 Werktage
+                Lieferung in der Regel 2–5 Werktage
               </p>
               <p className="text-xs text-neutral-500">
                 Bei verfügbarem Lagerbestand.
