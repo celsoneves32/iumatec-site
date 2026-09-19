@@ -166,9 +166,9 @@ export default async function ProductPage({ params }: Props) {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-10 lg:py-14">
-        <div className="grid gap-10 lg:grid-cols-[1.08fr_0.92fr] lg:items-start">
-          <div>
+      <section className="mx-auto max-w-7xl px-4 py-6 sm:py-8 lg:py-14">
+        <div className="grid min-w-0 gap-8 lg:grid-cols-[1.08fr_0.92fr] lg:items-start lg:gap-10">
+          <div className="min-w-0">
             <ProductGallery
               title={product.title}
               images={productImages}

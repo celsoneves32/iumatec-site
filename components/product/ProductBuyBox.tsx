@@ -36,14 +36,14 @@ export default function ProductBuyBox({
       : "bg-green-50 text-green-700 ring-green-100";
 
   return (
-    <aside className="sticky top-28 rounded-[2rem] border border-neutral-200 bg-white p-6 shadow-xl shadow-neutral-950/5">
-      <div className="flex items-start justify-between gap-4">
-        <div>
+    <aside className="min-w-0 rounded-[2rem] border border-neutral-200 bg-white p-4 shadow-xl shadow-neutral-950/5 sm:p-6 lg:sticky lg:top-28">
+      <div className="flex min-w-0 items-start justify-between gap-3 sm:gap-4">
+        <div className="min-w-0">
           <p className="text-sm font-black uppercase tracking-wide text-neutral-500">
             {brand || "IUMATEC"}
           </p>
 
-          <h1 className="mt-2 text-3xl font-black leading-tight tracking-tight text-neutral-950">
+          <h1 className="mt-2 break-words text-2xl font-black leading-tight tracking-tight text-neutral-950 sm:text-3xl">
             {title}
           </h1>
         </div>
@@ -72,7 +72,7 @@ export default function ProductBuyBox({
       <div className="mt-7 rounded-[1.5rem] bg-neutral-50 p-5">
         <p className="text-sm font-bold text-neutral-500">Preis</p>
 
-        <div className="mt-1 text-4xl font-black tracking-tight text-neutral-950">
+        <div className="mt-1 break-words text-3xl font-black tracking-tight text-neutral-950 sm:text-4xl">
           {price}
         </div>
 

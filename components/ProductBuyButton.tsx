@@ -33,7 +33,7 @@ export default function ProductBuyButton({
             })
           : undefined
       }
-      className={`flex-1 rounded-2xl py-4 text-lg font-extrabold transition ${
+      className={`w-full min-h-[56px] rounded-xl px-6 py-4 text-base font-black transition shadow-sm ${
         canBuy
           ? "bg-red-600 text-white hover:bg-red-700"
           : "cursor-not-allowed bg-neutral-200 text-neutral-500"
