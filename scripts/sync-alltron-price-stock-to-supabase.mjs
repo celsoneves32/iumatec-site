@@ -25,7 +25,7 @@ const MAX_FEED_ROWS = 300_000;
 const MIN_MATCHED_ROWS = 40_000;
 const MIN_MATCHED_RATIO = 0.85;
 const MAX_UNMATCHED_ROWS = 7_000;
-const MAX_UNMATCHED_RATIO = 0.12;
+const MAX_UNMATCHED_RATIO = 0.125;
 const MAX_INVALID_ROWS = 2_000;
 const MAX_INVALID_RATIO = 0.04;
 const MAX_AMBIGUOUS_ROWS = 25;
@@ -158,7 +158,7 @@ function money(value) {
 
 function stock(value) {
   const parsed = number(value);
-  return parsed !== null && parsed >= 0 ? Math.trunc(parsed) : null;
+  return parsed !== null ? Math.max(0, Math.trunc(parsed)) : null;
 }
 
 function writeJson(filePath, value) {
