@@ -861,7 +861,7 @@ function isStrictCatalogMatch(
     const prefix = sku.split(/\s+/)[0].toUpperCase();
 
     if (
-      /(battery|batterie|akku|kabel|cable|adapter|case|cover|tasche|halter|ear.?pad|ohrpolster|cushion)/i.test(text)
+      /(battery|batterie|akku|kabel|cable|adapter|case|cover|tasche|halter|ear.?pad|ohrpolster|cushion|charge\s+base|charging\s+base|smart\s*switch|audio\s+processor|headset[-/ ]*handheld[- ]*switch)/i.test(text)
     ) {
       return false;
     }
