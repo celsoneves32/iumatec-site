@@ -105,6 +105,8 @@ $files = @(
     "alltron-energielabels.xml"
 )
 
+$downloadMaxAttempts = 5
+
 foreach ($file in $files) {
 
     Log ""
@@ -112,35 +114,59 @@ foreach ($file in $files) {
 
     $destination = Join-Path $DOWNLOADS $file
     $temporary   = "$destination.part"
+    $url         = "ftps://$($env:ALLTRON_HOST):990/dataexport/$file"
+    $downloadOk  = $false
 
-    if (Test-Path $temporary) {
-        Remove-Item $temporary -Force
+    for ($attempt = 1; $attempt -le $downloadMaxAttempts; $attempt++) {
+
+        if (Test-Path $temporary) {
+            Remove-Item $temporary -Force
+        }
+
+        Log "Download attempt $attempt/$downloadMaxAttempts : $file"
+
+        & curl.exe `
+            --fail `
+            --show-error `
+            --silent `
+            --ssl-reqd `
+            --connect-timeout 30 `
+            --max-time 1800 `
+            --user "$($env:ALLTRON_USER):$($env:ALLTRON_PASS)" `
+            $url `
+            --output $temporary
+
+        if ($LASTEXITCODE -eq 0 -and (Test-Path $temporary)) {
+
+            $size = (Get-Item $temporary).Length
+
+            if ($size -ge 100000) {
+                $downloadOk = $true
+                break
+            }
+
+            Log "Download suspeito: $file ($size bytes)"
+        }
+        else {
+            Log "Download attempt $attempt falhou: $file (curl exit $LASTEXITCODE)"
+        }
+
+        if ($attempt -lt $downloadMaxAttempts) {
+            $waitSeconds = [Math]::Min(60, 10 * $attempt)
+            Log "Retry em $waitSeconds segundos..."
+            Start-Sleep -Seconds $waitSeconds
+        }
     }
 
-    $url = "ftps://$($env:ALLTRON_HOST):990/dataexport/$file"
+    if (!$downloadOk) {
+        if (Test-Path $temporary) {
+            Remove-Item $temporary -Force
+        }
 
-    & curl.exe `
-        --fail `
-        --show-error `
-        --silent `
-        --ssl-reqd `
-        --user "$($env:ALLTRON_USER):$($env:ALLTRON_PASS)" `
-        $url `
-        --output $temporary
-
-    if ($LASTEXITCODE -ne 0) {
-        Fail "Download falhou: $file"
-    }
-
-    if (!(Test-Path $temporary)) {
-        Fail "Ficheiro temporário não criado: $file"
+        Fail "Download falhou apos $downloadMaxAttempts tentativas: $file"
     }
 
     $size = (Get-Item $temporary).Length
-
-    if ($size -lt 100000) {
-        Fail "Feed demasiado pequeno/suspeito: $file ($size bytes)"
-    }
 
     Move-Item $temporary $destination -Force
 
