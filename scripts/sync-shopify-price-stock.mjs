@@ -197,7 +197,6 @@ async function fetchProtectedSource() {
     const response = await fetch(endpoint, {
       headers: supabaseHeaders({
         Range: `${from}-${to}`,
-        Prefer: "count=exact",
       }),
       signal: AbortSignal.timeout(60_000),
     });
