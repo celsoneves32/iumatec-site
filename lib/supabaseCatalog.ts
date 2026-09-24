@@ -614,6 +614,10 @@ const STRICT_CATALOG_RULES: Record<string, StrictCatalogRule> = {
     include: [/.*/],
   },
 
+  audio: {
+    include: [/.*/],
+  },
+
   headsets: {
     include: [/.*/],
   },
@@ -856,6 +860,74 @@ function isStrictCatalogMatch(
     // Alltron MON = actual computer monitors.
     // MONZ and unrelated prefixes are stands, accessories or wrongly classified goods.
     if (prefix !== "MON") return false;
+  } else if (strictKey === "audio") {
+    const sku = String(product.sku || "").trim();
+    const parts = sku.split(/\s+/);
+    const prefix = (parts[0] || "").toUpperCase();
+    const family = prefix === "SMA"
+      ? (parts[1] || "").toUpperCase()
+      : "";
+
+    // Alltron groups that are not customer-facing Audio products:
+    // clocks, car accessories, AirPods cases, remote controls,
+    // mounts/accessories and unrelated monitor accessories.
+    if (
+      [
+        "HH",
+        "ATZ",
+        "MP3Z",
+        "UHR",
+        "MONZ",
+        "TKMCO",
+        "GES",
+        "FERNBEDIENUNG",
+        "WT",
+      ].includes(prefix)
+    ) {
+      return false;
+    }
+
+    // SMA sub-families confirmed as accessories/components.
+    if (
+      prefix === "SMA" &&
+      ["RHI", "VM", "IOS", "VONM", "SPZU"].includes(family)
+    ) {
+      return false;
+    }
+
+    // Voice-recorder family also contains batteries and AC adapters.
+    if (
+      prefix === "SMA" &&
+      family === "MB" &&
+      /(akku|battery|ac[- ]?adapter|netzteil|charger|ladegerat)/i.test(text)
+    ) {
+      return false;
+    }
+
+    // DJ contains genuine equipment plus stylus/maintenance accessories.
+    if (
+      prefix === "SMA" &&
+      family === "DJ" &&
+      /(fingerlift|maintenance|fibre\s+brush|carbon\s+fibre\s+brush|burste|reinigung|cleaning|tonabnehmer|stylus|nadel)/i.test(text)
+    ) {
+      return false;
+    }
+
+    // Generic audio-accessory family: keep actual devices, remove cleaning items.
+    if (
+      prefix === "SMA" &&
+      family === "ZU" &&
+      /(record\s+care|fibre\s+brush|carbon\s+fibre\s+brush|burste|reinigung|cleaning|stylus)/i.test(text)
+    ) {
+      return false;
+    }
+
+    // Last safety net for obvious wrongly classified products.
+    if (
+      /(airpods?.*(case|cover)|(?:case|cover).*airpods?|widerstand|anschlussklemme|digitalwecker|funk[- ]?wecker|elektronischer\s+wecker|analog[- ]?wecker)/i.test(text)
+    ) {
+      return false;
+    }
   } else if (strictKey === "headsets") {
     const sku = String(product.sku || "").trim();
     const prefix = sku.split(/\s+/)[0].toUpperCase();
