@@ -618,6 +618,10 @@ const STRICT_CATALOG_RULES: Record<string, StrictCatalogRule> = {
     include: [/.*/],
   },
 
+  "foto & video": {
+    include: [/.*/],
+  },
+
   headsets: {
     include: [/.*/],
   },
@@ -926,6 +930,58 @@ function isStrictCatalogMatch(
     if (
       /(airpods?.*(case|cover)|(?:case|cover).*airpods?|widerstand|anschlussklemme|digitalwecker|funk[- ]?wecker|elektronischer\s+wecker|analog[- ]?wecker)/i.test(text)
     ) {
+      return false;
+    }
+  } else if (strictKey === "foto & video") {
+    const sku = String(product.sku || "").trim();
+    const parts = sku.split(/\s+/);
+    const prefix = (parts[0] || "").toUpperCase();
+    const family = prefix === "SMA"
+      ? (parts[1] || "").toUpperCase()
+      : "";
+    const price = Number(product.price || 0);
+
+    // Confirmed accessory-only Alltron families.
+    if (
+      [
+        "DKZ",
+        "DKOZ",
+        "DKT",
+        "DKA",
+        "DMSD",
+        "DKSZ",
+        "CCZ",
+        "CCA",
+      ].includes(prefix)
+    ) {
+      return false;
+    }
+
+    // DKO contains both real lenses and mount/extension adapters.
+    if (prefix === "DKO") {
+      const looksLikeLens =
+        /(objektiv|\blens\b|\b\d{1,3}(?:-\d{1,3})?mm\b.*\b[ft]\/?\d(?:[.,]\d)?)/i.test(text);
+
+      if (!looksLikeLens) {
+        return false;
+      }
+    }
+
+    // SMA is mixed. In Foto & Video we only keep real microphone products.
+    if (prefix === "SMA") {
+      if (family !== "MIC") {
+        return false;
+      }
+
+      if (
+        /(charging?\s*case|chargecase|battery|batterie|akku|adapter|halter|mount|arm|kabel|cable)/i.test(text)
+      ) {
+        return false;
+      }
+    }
+
+    // DKB contains lighting equipment plus tiny lighting accessories.
+    if (prefix === "DKB" && price < 20) {
       return false;
     }
   } else if (strictKey === "headsets") {
