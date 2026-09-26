@@ -1153,7 +1153,7 @@ function isStrictCatalogMatch(
         /(diskstation|rackstation|\b[0-9]+-bay.*nas\b|\bnas\b)/i.test(text);
 
       const accessory =
-        /(einschub|tray|caddy|backplane|pcba|sata bp|erweiterungskarte|transceiver|adapter|kabel|cable|ram|memory|netzteil|rackmount kit)/i.test(text);
+        /(einschub|tray|caddy|backplane|pcba|sata bp|erweiterungskarte|transceiver|adapter|kabel|cable|ram|memory|netzteil|rackmount kit|lufter|fan|rail kit|power supply|boxafe|software|lizenz|license)/i.test(text);
 
       if (!validSource || !looksLikeNas || accessory) {
         return false;
@@ -1218,8 +1218,26 @@ function isStrictCatalogMatch(
       const looksLikeCamera =
         /(kamera|camera|turklingelkamera|doorbell)/i.test(text);
 
+      const cameraTitle =
+        normalize(product.title);
+
+      const cameraSku =
+        sku.toUpperCase();
+
+      const accessorySku =
+        /\b(?:ZUB|ZU)\b|UACC-|VJB-|\bCJB\b/.test(cameraSku);
+
+      const accessoryTitle =
+        /(kamera\s*halterung|kamerahalterung|camera\s*mount|wandhalterung|deckenhalterung|montage(?:set|kit|halterung|platte)|junction\s*box|anschlussbox|anschlussdose|backbox|ersatzkuppel|camera\s*base\s*station|kameragehause|doorbell\s*cover|skin\s*cover|wetterschutz|netzwerkrecorder|video\s*recorder)/i.test(cameraTitle);
+
+      const accessoryRelation =
+        /\b(?:zu|fur)\b.{0,80}(?:kamera|camera|cam|doorbell)/i.test(cameraTitle);
+
       const wrongProduct =
-        /(ohne kamera|kameralizenz|camera license|lizenz|nvr|recorder|halter|holder|mount|bracket|gehause|case|kabel|cable|netzteil|power supply|zubehor)/i.test(text);
+        accessorySku ||
+        accessoryTitle ||
+        accessoryRelation ||
+        /(ohne kamera|kameralizenz|camera license|lizenz|license|\bnvr\b)/i.test(cameraTitle);
 
       if (
         !validSource ||
@@ -1263,8 +1281,11 @@ function isStrictCatalogMatch(
       const lightingProduct =
         /(lampe|leuchte|licht|light|led|birne|bulb|strip|lightstrip|spot|panel)/i.test(text);
 
+      const lightingTitle =
+        normalize(product.title);
+
       const accessoryOrControl =
-        /(controller|control|schalter|switch|dimmer|klemme|fernbedienung|remote|bridge|gateway|netzteil|treiber|driver|halter|holder|adapter|kabel|cable)/i.test(text);
+        /(controller|control|schalter|switch|dimmer|klemme|fernbedienung|remote|bridge|gateway|netzteil|treiber|driver|halter|holder|adapter|kabel|cable|lichtaktor|lichtschalt|verbinder|lichtsensor|einbruch.*schutz|pravention)/i.test(lightingTitle);
 
       if (
         !validSource ||
@@ -1294,14 +1315,17 @@ function isStrictCatalogMatch(
       normalize(product.title);
 
     if (strictKey === "drucker") {
+      const printerTitle =
+        /(drucker|printer)/i.test(title);
+
       const officePrinter =
         sourceCategory === "office & business" &&
         sourceSubcategory === "drucker & scanner" &&
         (
-          ["TI", "TH", "LA", "FL"].includes(prefix) ||
+          ["TI", "LA", "FL"].includes(prefix) ||
           (
-            ["DK", "SEC", "PT", "PEA", "BU"].includes(prefix) &&
-            /(drucker|printer|labelprinter|belegdrucker)/i.test(text)
+            ["TH", "DK", "SEC", "PT", "PEA", "BU"].includes(prefix) &&
+            printerTitle
           )
         );
 
@@ -1309,22 +1333,22 @@ function isStrictCatalogMatch(
         sourceCategory === "peripherie" &&
         sourceSubcategory === "zubehor" &&
         prefix === "TI" &&
-        /(drucker|printer|ecotank|workforce)/i.test(text);
+        /(drucker|printer|ecotank|workforce)/i.test(title);
 
       const cardPrinter =
         sourceCategory === "peripherie" &&
         sourceSubcategory === "monitore" &&
         prefix === "TH" &&
-        /(drucker|printer)/i.test(text);
+        printerTitle;
 
-      const consumableOrAccessory =
-        /(toner|tinte|patrone|cartridge|farbband|ribbon|reinigung|cleaner|druckerbildeinheit|kabel|cable|printserver)/i.test(text);
+      const printerAccessory =
+        /(druckpapier|wandhalter|wandhalterung|ac[- ]?adapter|drucker[- ]?batterie|battery.*printer|reinigung|cleaner|printserver)/i.test(title);
 
       if (
         (!officePrinter &&
           !peripheralPrinter &&
           !cardPrinter) ||
-        consumableOrAccessory
+        printerAccessory
       ) {
         return false;
       }
@@ -1335,20 +1359,24 @@ function isStrictCatalogMatch(
         sourceCategory === "office & business" &&
         sourceSubcategory === "drucker & scanner";
 
+      const scannerSignal =
+        /(scanner|scannen)/i.test(title);
+
       const validPrefix =
-        ["SCA", "SCB"].includes(prefix) ||
+        ["SCA", "SCB", "SCBDATA"].includes(prefix) ||
         (
           ["DK", "BU"].includes(prefix) &&
-          /(scanner|scan)/i.test(text)
+          scannerSignal
         );
 
-      const accessory =
-        /(kabel|cable|consumable|tasche|bag|reiniger|cleaner|druckkopfreiniger)/i.test(text);
+      const scannerAccessory =
+        /\b(?:zu|fur)\b.{0,90}(?:ring)?(?:barcode)?scanner/i.test(title);
 
       if (
         !validSource ||
         !validPrefix ||
-        accessory
+        !scannerSignal ||
+        scannerAccessory
       ) {
         return false;
       }
@@ -1397,7 +1425,13 @@ function isStrictCatalogMatch(
       const officeLabels =
         sourceCategory === "office & business" &&
         sourceSubcategory === "drucker & scanner" &&
-        prefix === "PTZ";
+        (
+          prefix === "PTZ" ||
+          (
+            prefix === "TH" &&
+            /(druckpapier|papier|paper)/i.test(title)
+          )
+        );
 
       const photoPaper =
         sourceCategory === "peripherie" &&
