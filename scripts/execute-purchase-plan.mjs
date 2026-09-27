@@ -1,6 +1,14 @@
 ﻿import fs from "node:fs";
 import path from "node:path";
 
+import {
+  prepareSupplierSubmission,
+} from "../integrations/suppliers/supplier-submission.mjs";
+
+import {
+  prepareAlltronSubmission,
+} from "../integrations/suppliers/alltron-submission.mjs";
+
 const ROOT = process.cwd();
 
 const INPUT_FILE =
@@ -273,7 +281,161 @@ for (const purchaseOrder of sourceOrders) {
   if (errors.length) {
     blockedOrders.push(result);
   } else {
-    executionOrders.push(result);
+    /*
+     * Etapa 1:
+     * Purchase Order validada ->
+     * Supplier Submission normalizada.
+     */
+    const supplierSubmission =
+      prepareSupplierSubmission({
+        ...result,
+        status:
+          result.executionStatus,
+      });
+
+    if (
+      supplierSubmission.status !==
+      "READY_FOR_SUPPLIER_ADAPTER"
+    ) {
+      const submissionErrors =
+        Array.isArray(
+          supplierSubmission.validationErrors,
+        )
+          ? supplierSubmission.validationErrors
+          : [];
+
+      blockedOrders.push({
+        ...result,
+
+        executionStatus:
+          "BLOCKED",
+
+        validationErrors: [
+          ...result.validationErrors,
+
+          ...submissionErrors.map(
+            (error) =>
+              `supplier-submission:${error}`,
+          ),
+
+          ...(
+            submissionErrors.length
+              ? []
+              : [
+                  "supplier-submission:blocked-without-error",
+                ]
+          ),
+        ],
+
+        supplierSubmission,
+      });
+
+      continue;
+    }
+
+    /*
+     * Etapa 2:
+     * Cada fornecedor necessita do seu adapter.
+     *
+     * Por enquanto s? ALLTRON est? implementado.
+     * ALSO ser? ligado depois.
+     */
+    if (
+      result.supplier !==
+      "alltron"
+    ) {
+      blockedOrders.push({
+        ...result,
+
+        executionStatus:
+          "BLOCKED",
+
+        validationErrors: [
+          ...result.validationErrors,
+
+          `supplier-adapter-not-implemented:${
+            result.supplier ||
+            "none"
+          }`,
+        ],
+
+        supplierSubmission,
+      });
+
+      continue;
+    }
+
+    /*
+     * Etapa 3:
+     * Supplier Submission ->
+     * Alltron DRY-RUN Adapter.
+     */
+    const supplierAdapter =
+      prepareAlltronSubmission(
+        supplierSubmission,
+      );
+
+    if (
+      supplierAdapter.status !==
+      "READY_FOR_ALLTRON_DRY_RUN"
+    ) {
+      const adapterErrors =
+        Array.isArray(
+          supplierAdapter.validationErrors,
+        )
+          ? supplierAdapter.validationErrors
+          : [];
+
+      blockedOrders.push({
+        ...result,
+
+        executionStatus:
+          "BLOCKED",
+
+        validationErrors: [
+          ...result.validationErrors,
+
+          ...adapterErrors.map(
+            (error) =>
+              `alltron-adapter:${error}`,
+          ),
+
+          ...(
+            adapterErrors.length
+              ? []
+              : [
+                  "alltron-adapter:blocked-without-error",
+                ]
+          ),
+        ],
+
+        supplierSubmission,
+        supplierAdapter,
+      });
+
+      continue;
+    }
+
+    /*
+     * Passou por toda a cadeia segura.
+     *
+     * Continua sem:
+     * - network calls
+     * - submiss?o ao fornecedor
+     * - Shopify writes
+     * - stock writes
+     * - fulfillment
+     * - pagamentos
+     */
+    executionOrders.push({
+      ...result,
+
+      executionStatus:
+        supplierAdapter.status,
+
+      supplierSubmission,
+      supplierAdapter,
+    });
   }
 }
 
@@ -381,7 +543,7 @@ for (const order of executionOrders) {
     `Total gross: CHF ${order.purchaseCostGross.toFixed(2)}`,
   );
   console.log(
-    "Status: VALIDATED_FOR_SUBMISSION",
+    `Status: ${order.executionStatus}`,
   );
 }
 
