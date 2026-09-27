@@ -1,3 +1,5 @@
+import { selectSupplier } from "../integrations/suppliers/supplier-selector.mjs";
+import { buildAlltronOffer } from "../integrations/suppliers/alltron-offer.mjs";
 ﻿import fs from "fs";
 import path from "path";
 
@@ -905,7 +907,37 @@ const packUnitReview = [];
 
 const masterCatalog = products
   .map(({ _sourceFile, ...product }) => {
-    let protectedPrice = protectedSellingPrice(product);
+    const supplierSelection = selectSupplier([
+      buildAlltronOffer(product),
+    ]);
+
+    /*
+     * SUPPLIER ENGINE ATIVO
+     *
+     * Alltron mant?m EXPR/INPR originais para preservar
+     * exatamente a pol?tica financeira j? validada.
+     *
+     * Quando outro fornecedor (ex.: ALSO) for escolhido,
+     * o pre?o protegido passa a utilizar o custo selecionado.
+     */
+    const supplierOwnsPricing =
+      Boolean(supplierSelection.selectedSupplier) &&
+      supplierSelection.selectedSupplier !== "alltron";
+
+    const productForPricing =
+      supplierOwnsPricing
+        ? {
+            ...product,
+            expr:
+              supplierSelection.selectedPurchaseCostNet,
+            inpr:
+              supplierSelection.selectedPurchaseCostInclVat,
+          }
+        : product;
+
+    let protectedPrice =
+      protectedSellingPrice(productForPricing);
+
     const oldPrice = getPrice(product);
     const packSuspicion = detectPackUnitSuspicion(
       product,
@@ -947,6 +979,13 @@ const masterCatalog = products
 
     return {
       ...product,
+
+      // O stock passa a ser propriedade do Supplier Engine.
+      // Com apenas Alltron, o shadow audit provou igualdade 100%.
+      stockQty: supplierSelection.selectedStock,
+      stock: supplierSelection.selectedStock,
+      inStock: supplierSelection.selectedStock > 0,
+
       originalPrice: oldPrice,
       price: protectedPrice.price,
       purchaseCostInclVat: protectedPrice.cost,
