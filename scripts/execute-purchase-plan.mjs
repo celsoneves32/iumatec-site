@@ -11,6 +11,64 @@ import {
 
 const ROOT = process.cwd();
 
+const IDEMPOTENCY_FILE =
+  process.env.PURCHASE_SUBMISSION_LEDGER_FILE ||
+  path.join(
+    ROOT,
+    "integrations",
+    "orders",
+    "state",
+    "supplier-submissions.json",
+  );
+
+function loadSubmissionLedger() {
+  if (!fs.existsSync(IDEMPOTENCY_FILE)) {
+    return {
+      schemaVersion: 1,
+      submissions: [],
+    };
+  }
+
+  const parsed = JSON.parse(
+    fs.readFileSync(
+      IDEMPOTENCY_FILE,
+      "utf8",
+    ),
+  );
+
+  return {
+    schemaVersion: 1,
+    submissions:
+      Array.isArray(parsed?.submissions)
+        ? parsed.submissions
+        : [],
+  };
+}
+
+const submissionLedger =
+  loadSubmissionLedger();
+
+const submittedPurchaseOrderRefs =
+  new Set(
+    submissionLedger.submissions
+      .filter(
+        (entry) =>
+          String(
+            entry?.status ?? "",
+          )
+            .trim()
+            .toUpperCase() ===
+          "SUBMITTED",
+      )
+      .map(
+        (entry) =>
+          String(
+            entry?.purchaseOrderRef ?? "",
+          ).trim(),
+      )
+      .filter(Boolean),
+  );
+
 const INPUT_FILE =
   process.env.PURCHASE_PLAN_FILE ||
   path.join(
@@ -427,6 +485,51 @@ for (const purchaseOrder of sourceOrders) {
      * - fulfillment
      * - pagamentos
      */
+    /*
+     * Etapa 4:
+     * IDEMPOTENCY GATE
+     *
+     * Uma Purchase Order que j? tenha sido
+     * registada como SUBMITTED nunca pode
+     * voltar a avan?ar para submiss?o.
+     *
+     * Neste momento:
+     * - ledger READ ONLY
+     * - zero network calls
+     * - zero supplier writes
+     */
+    if (
+      submittedPurchaseOrderRefs.has(
+        result.purchaseOrderRef,
+      )
+    ) {
+      blockedOrders.push({
+        ...result,
+
+        executionStatus:
+          "BLOCKED",
+
+        validationErrors: [
+          ...result.validationErrors,
+          "idempotency:purchase-order-already-submitted",
+        ],
+
+        supplierSubmission,
+        supplierAdapter,
+
+        idempotency: {
+          duplicate: true,
+          ledgerFile:
+            path.relative(
+              ROOT,
+              IDEMPOTENCY_FILE,
+            ),
+        },
+      });
+
+      continue;
+    }
+
     executionOrders.push({
       ...result,
 
@@ -435,6 +538,15 @@ for (const purchaseOrder of sourceOrders) {
 
       supplierSubmission,
       supplierAdapter,
+
+      idempotency: {
+        duplicate: false,
+        ledgerFile:
+          path.relative(
+            ROOT,
+            IDEMPOTENCY_FILE,
+          ),
+      },
     });
   }
 }
