@@ -9,7 +9,41 @@ import {
   prepareAlltronSubmission,
 } from "../integrations/suppliers/alltron-submission.mjs";
 
+import {
+  revalidateAlltronPurchase,
+} from "../integrations/suppliers/alltron-revalidation.mjs";
+
 const ROOT = process.cwd();
+
+const ALLTRON_PURCHASE_SNAPSHOT_FILE =
+  process.env.ALLTRON_PURCHASE_SNAPSHOT_FILE ||
+  path.join(
+    ROOT,
+    "integrations",
+    "alltron",
+    "out",
+    "alltron-purchase-snapshot.json",
+  );
+
+function loadAlltronPurchaseSnapshot() {
+  if (!fs.existsSync(ALLTRON_PURCHASE_SNAPSHOT_FILE)) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(
+      fs.readFileSync(
+        ALLTRON_PURCHASE_SNAPSHOT_FILE,
+        "utf8",
+      ),
+    );
+  } catch {
+    return null;
+  }
+}
+
+const alltronPurchaseSnapshot =
+  loadAlltronPurchaseSnapshot();
 
 const IDEMPOTENCY_FILE =
   process.env.PURCHASE_SUBMISSION_LEDGER_FILE ||
@@ -530,14 +564,81 @@ for (const purchaseOrder of sourceOrders) {
       continue;
     }
 
+    /*
+     * FINAL ALLTRON REVALIDATION GATE
+     *
+     * Continua DRY RUN:
+     * - zero network calls
+     * - zero supplier writes
+     * - zero Shopify writes
+     * - zero payments
+     */
+    const supplierRevalidation =
+      revalidateAlltronPurchase(
+        supplierAdapter,
+        alltronPurchaseSnapshot,
+      );
+
+    if (
+      supplierRevalidation.status !==
+      "REVALIDATED_FOR_ALLTRON_DRY_RUN"
+    ) {
+      const revalidationErrors =
+        Array.isArray(
+          supplierRevalidation.validationErrors,
+        )
+          ? supplierRevalidation.validationErrors
+          : [];
+
+      blockedOrders.push({
+        ...result,
+
+        executionStatus: "BLOCKED",
+
+        validationErrors: [
+          ...result.validationErrors,
+
+          ...revalidationErrors.map(
+            (error) =>
+              `alltron-revalidation:${error}`,
+          ),
+
+          ...(
+            revalidationErrors.length
+              ? []
+              : [
+                  "alltron-revalidation:blocked-without-error",
+                ]
+          ),
+        ],
+
+        supplierSubmission,
+        supplierAdapter,
+
+        idempotency: {
+          duplicate: false,
+          ledgerFile:
+            path.relative(
+              ROOT,
+              IDEMPOTENCY_FILE,
+            ),
+        },
+
+        supplierRevalidation,
+      });
+
+      continue;
+    }
+
     executionOrders.push({
       ...result,
 
       executionStatus:
-        supplierAdapter.status,
+        supplierRevalidation.status,
 
       supplierSubmission,
       supplierAdapter,
+      supplierRevalidation,
 
       idempotency: {
         duplicate: false,
