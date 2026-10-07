@@ -1,4 +1,4 @@
-﻿const DEFAULT_POLICY = Object.freeze({
+const DEFAULT_POLICY = Object.freeze({
   preferredSupplier: "also",
   maxPreferredCostPremiumRate: 0.02,
   maxPreferredCostPremiumChf: 10.0,
@@ -465,16 +465,12 @@ export function selectSupplier(
   }
 
   /*
-   * Nesta fase, se o fornecedor escolhido
-   * para pricing tem stock, usamos esse stock.
-   *
-   * Se não tem, preservamos uma fonte de stock
-   * conhecida separadamente.
+   * STOCK OWNERSHIP:
+   * quando existe fornecedor selecionado para pricing/compra,
+   * o stock publicado pertence sempre a esse mesmo fornecedor.
+   * Nunca usamos stock de outro fornecedor.
    */
-  const finalStockSelection =
-    selected.stock > 0
-      ? selected
-      : stockSelection;
+  const finalStockSelection = selected;
 
   return {
     selectedSupplier:
