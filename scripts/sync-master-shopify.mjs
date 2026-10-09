@@ -246,6 +246,39 @@ async function getPublication() {
   }
 }
 
+const SHOPIFY_DEDUPE_LOOKUP = `
+  query ShopifyDedupeLookup(
+    $variantQuery: String!
+    $productQuery: String!
+  ) {
+    productVariants(
+      first: 50
+      query: $variantQuery
+    ) {
+      nodes {
+        id
+        sku
+        barcode
+        product {
+          id
+          handle
+          title
+        }
+      }
+    }
+
+    products(
+      first: 10
+      query: $productQuery
+    ) {
+      nodes {
+        id
+        handle
+        title
+      }
+    }
+  }
+`;
 const PRODUCT_SET = `
   mutation SyncProduct(
     $input: ProductSetInput!
@@ -358,14 +391,224 @@ async function publishProduct(productId, publicationId) {
   return Boolean(payload?.publishable?.publishedOnPublication);
 }
 
+function shopifyQueryValue(value) {
+  return `"${text(value)
+    .replace(/\\/g, "\\\\")
+    .replace(/"/g, '\\"')}"`;
+}
+
+function normalizeSku(value) {
+  return text(value).toUpperCase();
+}
+
+async function resolveShopifyIdentity(p, prepared) {
+  const sku = normalizeSku(
+    prepared?.meta?.sku ??
+    p.sku ??
+    p.internalNumber ??
+    p.mpn ??
+    p.litm,
+  );
+
+  const ean = text(
+    p.ean ??
+    p.barcode ??
+    p.gtin,
+  );
+
+  const handle = text(
+    prepared?.meta?.handle,
+  );
+
+  const variantTerms = [];
+
+  if (sku) {
+    variantTerms.push(
+      `sku:${shopifyQueryValue(sku)}`,
+    );
+  }
+
+  if (ean) {
+    variantTerms.push(
+      `barcode:${shopifyQueryValue(ean)}`,
+    );
+  }
+
+  const variantQuery =
+    variantTerms.length
+      ? variantTerms.join(" OR ")
+      : 'sku:"__IUMATEC_NO_MATCH__"';
+
+  const productQuery =
+    handle
+      ? `handle:${shopifyQueryValue(handle)}`
+      : 'handle:"__IUMATEC_NO_MATCH__"';
+
+  const data = await gql(
+    SHOPIFY_DEDUPE_LOOKUP,
+    {
+      variantQuery,
+      productQuery,
+    },
+  );
+
+  const variants =
+    data?.productVariants?.nodes || [];
+
+  const products =
+    data?.products?.nodes || [];
+
+  const skuMatches = sku
+    ? variants.filter(
+        (variant) =>
+          normalizeSku(variant?.sku) === sku,
+      )
+    : [];
+
+  const eanMatches = ean
+    ? variants.filter(
+        (variant) =>
+          text(variant?.barcode) === ean,
+      )
+    : [];
+
+  const handleMatches = handle
+    ? products.filter(
+        (product) =>
+          text(product?.handle) === handle,
+      )
+    : [];
+
+  if (
+    skuMatches.length > 1 ||
+    eanMatches.length > 1 ||
+    handleMatches.length > 1
+  ) {
+    return {
+      status: "BLOCKED_AMBIGUOUS",
+      reason:
+        `skuMatches=${skuMatches.length},` +
+        `eanMatches=${eanMatches.length},` +
+        `handleMatches=${handleMatches.length}`,
+      identifier: null,
+    };
+  }
+
+  const skuVariant =
+    skuMatches[0] || null;
+
+  const eanVariant =
+    eanMatches[0] || null;
+
+  if (
+    skuVariant &&
+    eanVariant &&
+    skuVariant.id !== eanVariant.id
+  ) {
+    return {
+      status: "BLOCKED_DUPLICATE_CONFLICT",
+      reason:
+        `SKU and EAN point to different variants: ` +
+        `${skuVariant.id} != ${eanVariant.id}`,
+      identifier: null,
+    };
+  }
+
+  const matchedVariant =
+    eanVariant || skuVariant || null;
+
+  const handleProduct =
+    handleMatches[0] || null;
+
+  if (matchedVariant) {
+    const productId =
+      matchedVariant?.product?.id || "";
+
+    if (!productId) {
+      return {
+        status: "BLOCKED_INVALID_MATCH",
+        reason: "Matched variant has no product id",
+        identifier: null,
+      };
+    }
+
+    if (
+      handleProduct &&
+      handleProduct.id !== productId
+    ) {
+      return {
+        status: "BLOCKED_HANDLE_CONFLICT",
+        reason:
+          `SKU/EAN product ${productId} differs from ` +
+          `handle product ${handleProduct.id}`,
+        identifier: null,
+      };
+    }
+
+    return {
+      status: "SAFE_EXISTING",
+      reason: eanVariant
+        ? "matched-exact-ean"
+        : "matched-exact-sku",
+      identifier: {
+        id: productId,
+      },
+      productId,
+      variantId: matchedVariant.id,
+    };
+  }
+
+  if (handleProduct) {
+    return {
+      status: "BLOCKED_HANDLE_ONLY",
+      reason:
+        `Handle already exists without exact SKU/EAN match: ${handle}`,
+      identifier: null,
+      productId: handleProduct.id,
+    };
+  }
+
+  return {
+    status: "SAFE_NEW",
+    reason: "no-existing-shopify-match",
+    identifier: prepared.identifier,
+    productId: null,
+    variantId: null,
+  };
+}
 async function syncProduct(p, location, publication) {
   const prepared = variablesFor(p, location.id);
 
-  if (DRY_RUN) return { dryRun: true, ...prepared.meta };
+  const identity =
+    await resolveShopifyIdentity(
+      p,
+      prepared,
+    );
+
+  if (
+    identity.status.startsWith("BLOCKED_")
+  ) {
+    throw new Error(
+      `${identity.status}: ${identity.reason}`,
+    );
+  }
+
+  if (DRY_RUN) {
+    return {
+      dryRun: true,
+      ...prepared.meta,
+      dedupeStatus: identity.status,
+      dedupeReason: identity.reason,
+      matchedProductId:
+        identity.productId || null,
+      matchedVariantId:
+        identity.variantId || null,
+    };
+  }
 
   const data = await gql(PRODUCT_SET, {
     input: prepared.input,
-    identifier: prepared.identifier,
+    identifier: identity.identifier,
   });
 
   const payload = data?.productSet;
@@ -465,16 +708,36 @@ async function main() {
         }
 
         ok += 1;
-        console.log(`[${index + 1}/${pending.length}] OK W${id}: ${title}`);
+
+        if (DRY_RUN) {
+          console.log(
+            `[${index + 1}/${pending.length}] ${
+              result.dedupeStatus || "DRY_RUN_OK"
+            } W${id}: ${title} | ${
+              result.dedupeReason || ""
+            }`,
+          );
+        } else {
+          console.log(
+            `[${index + 1}/${pending.length}] OK W${id}: ${title}`,
+          );
+        }
       } catch (error) {
         failed += 1;
-        state.totals.errors += 1;
-        append(ERROR_FILE, {
-          at: new Date().toISOString(),
-          sku,
-          title,
-          error: error instanceof Error ? error.message : String(error),
-        });
+
+        if (!DRY_RUN) {
+          state.totals.errors += 1;
+          append(ERROR_FILE, {
+            at: new Date().toISOString(),
+            sku,
+            title,
+            error:
+              error instanceof Error
+                ? error.message
+                : String(error),
+          });
+        }
+
         console.error(
           `[${index + 1}/${pending.length}] ERROR W${id}: ${title} | ${
             error instanceof Error ? error.message : String(error)
