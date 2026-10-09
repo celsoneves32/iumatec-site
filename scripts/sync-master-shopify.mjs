@@ -30,13 +30,18 @@ const TOKEN = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
 const API_VERSION =
   process.env.SHOPIFY_ADMIN_API_VERSION || "2026-04";
 
-const INPUT = path.join(
-  ROOT,
-  "integrations",
-  "alltron",
-  "out",
-  "iumatec-master-candidates.json",
-);
+const INPUT = process.env.SYNC_INPUT_FILE
+  ? path.resolve(
+      process.cwd(),
+      process.env.SYNC_INPUT_FILE,
+    )
+  : path.join(
+      ROOT,
+      "integrations",
+      "alltron",
+      "out",
+      "iumatec-master-candidates.json",
+    );
 
 const OUT_DIR = path.join(
   ROOT,
