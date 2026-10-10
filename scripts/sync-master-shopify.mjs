@@ -324,7 +324,32 @@ function variablesFor(p, locationId) {
   const title = text(p.fullTitle || p.title || p.sku || p.litm);
   const sku = text(p.sku || p.internalNumber || p.litm);
   const handle = slugify(p.slug || `${title}-${p.litm || sku}`);
-  const price = num(p.ecpr) > 0 ? num(p.ecpr) : num(p.price);
+  const selectedSupplier =
+    text(p.selectedSupplier).toLowerCase();
+
+  const price =
+    selectedSupplier === "also"
+      ? num(p.price)
+      : num(p.ecpr) > 0
+        ? num(p.ecpr)
+        : num(p.price);
+
+  if (
+    selectedSupplier === "also" &&
+    (
+      price <= 0 ||
+      (
+        num(p.minimumSafePrice) > 0 &&
+        price + 0.001 < num(p.minimumSafePrice)
+      )
+    )
+  ) {
+    throw new Error(
+      `Unsafe ALSO selling price: ${price}; minimumSafePrice=${num(
+        p.minimumSafePrice,
+      )}`,
+    );
+  }
   const stock = Math.max(0, Math.floor(num(p.stockQty ?? p.stock)));
   const image = imageOf(p);
 
