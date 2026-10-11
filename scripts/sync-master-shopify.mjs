@@ -320,6 +320,172 @@ const PUBLISH = `
   }
 `;
 
+function normalizeGateText(value) {
+  return text(value)
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function assessAlsoProductType(p) {
+  const selectedSupplier =
+    text(p.selectedSupplier).toLowerCase();
+
+  if (selectedSupplier !== "also") {
+    return {
+      status: "SAFE",
+      reason: "not-also",
+      signals: [],
+    };
+  }
+
+  const sku = text(
+    p.sku ??
+    p.internalNumber ??
+    p.mpn ??
+    p.litm,
+  );
+
+  const title = text(
+    p.fullTitle ??
+    p.title ??
+    sku,
+  );
+
+  const ean = text(
+    p.ean ??
+    p.barcode ??
+    p.gtin,
+  );
+
+  const categories = [
+    p?.iumatecCategory?.main,
+    p?.iumatecCategory?.sub,
+    p?.rawCategory?.cat1,
+    p?.rawCategory?.cat2,
+    p?.rawCategory?.cat3,
+    p?.rawCategory?.cat4,
+    p?.category,
+    p?.categoryName,
+    p?.productType,
+  ]
+    .map(text)
+    .filter(Boolean);
+
+  const softwareCategories = [
+    p?.iumatecCategory?.sub,
+    p?.rawCategory?.cat2,
+    p?.rawCategory?.cat3,
+    p?.rawCategory?.cat4,
+  ]
+    .map(normalizeGateText)
+    .filter(Boolean);
+
+  const titleSkuHaystack = normalizeGateText(
+    [sku, title].join(" "),
+  );
+
+  const haystack = normalizeGateText(
+    [
+      sku,
+      title,
+      ...categories,
+    ].join(" "),
+  );
+
+  const signals = [];
+
+  if (
+    softwareCategories.some(
+      (value) => /\bsoftware\b/.test(value),
+    )
+  ) {
+    signals.push("software-category");
+  }
+
+  if (/\bsoftware\b/.test(titleSkuHaystack)) {
+    signals.push("software-title");
+  }
+
+  const rules = [
+    [
+      "license",
+      /\b(license|licence|lizenz|jahreslizenz)\b/,
+    ],
+    [
+      "subscription",
+      /\b(subscription|abonnement|subscr|abo)\b/,
+    ],
+    [
+      "digital-esd",
+      /\b(esd|e-stu)\b/,
+    ],
+    [
+      "warranty-extension",
+      /\b(warranty|garantieverlangerung|gewahrleistungsverlangerung)\b/,
+    ],
+    [
+      "care-service",
+      /\b(carepack|care pack|techcare|active care|foundation care)\b/,
+    ],
+    [
+      "support-service",
+      /\b(support pack|serviceerweiterung|maintenance|wartung|onsite)\b/,
+    ],
+    [
+      "replacement-service",
+      /\b(replace pack|replacement pack|repl\.?\s*serv)\b/,
+    ],
+    [
+      "renewal",
+      /\b(renewal|rnw)\b/,
+    ],
+  ];
+
+  for (const [reason, pattern] of rules) {
+    if (pattern.test(haystack)) {
+      signals.push(reason);
+    }
+  }
+
+  if (signals.length > 0) {
+    return {
+      status: "REVIEW",
+      reason: signals.join(","),
+      signals,
+    };
+  }
+
+  /*
+   * Fail closed for ALSO products without GTIN/EAN.
+   *
+   * We already proved that some legitimate physical products can exist
+   * without EAN, but we also found hundreds of digital/service items in
+   * exactly that population. Those exceptional physical products must
+   * therefore be explicitly reviewed instead of being auto-published.
+   */
+  if (!ean) {
+    return {
+      status: "REVIEW",
+      reason: "missing-ean-unverified-product-type",
+      signals: ["missing-ean"],
+    };
+  }
+
+  if (num(p.weight) <= 0) {
+    return {
+      status: "REVIEW",
+      reason: "non-positive-weight",
+      signals: ["non-positive-weight"],
+    };
+  }
+
+  return {
+    status: "SAFE",
+    reason: "physical-product-gate-passed",
+    signals: [],
+  };
+}
 function variablesFor(p, locationId) {
   const title = text(p.fullTitle || p.title || p.sku || p.litm);
   const sku = text(p.sku || p.internalNumber || p.litm);
@@ -338,10 +504,8 @@ function variablesFor(p, locationId) {
     selectedSupplier === "also" &&
     (
       price <= 0 ||
-      (
-        num(p.minimumSafePrice) > 0 &&
-        price + 0.001 < num(p.minimumSafePrice)
-      )
+      num(p.minimumSafePrice) <= 0 ||
+      price + 0.001 < num(p.minimumSafePrice)
     )
   ) {
     throw new Error(
@@ -683,6 +847,62 @@ async function main() {
     const sku = text(p.sku).toUpperCase();
     return sku && !p.alreadyLinkedToShopify && !state.success[sku];
   });
+
+  const alsoProductTypeReview = [];
+
+  pending = pending.filter((p) => {
+    const gate = assessAlsoProductType(p);
+
+    if (gate.status === "SAFE") {
+      return true;
+    }
+
+    alsoProductTypeReview.push({
+      sku: text(p.sku),
+      title: text(p.fullTitle || p.title || p.sku),
+      selectedSupplier: text(p.selectedSupplier),
+      alsoProductId: text(p.alsoProductId),
+      ean: text(p.ean ?? p.barcode ?? p.gtin),
+      weight: num(p.weight),
+      price: num(p.price),
+      minimumSafePrice: num(p.minimumSafePrice),
+      status: gate.status,
+      reason: gate.reason,
+      signals: gate.signals,
+    });
+
+    return false;
+  });
+
+  if (alsoProductTypeReview.length > 0) {
+    const reviewFile = path.join(
+      OUT_DIR,
+      "also-product-type-review-latest.json",
+    );
+
+    fs.writeFileSync(
+      reviewFile,
+      JSON.stringify(
+        {
+          generatedAt: new Date().toISOString(),
+          count: alsoProductTypeReview.length,
+          products: alsoProductTypeReview,
+        },
+        null,
+        2,
+      ),
+      "utf8",
+    );
+
+    console.log(
+      "ALSO blocked/review:",
+      alsoProductTypeReview.length,
+    );
+    console.log(
+      "ALSO review report:",
+      reviewFile,
+    );
+  }
 
   if (MAX_PRODUCTS > 0) pending = pending.slice(0, MAX_PRODUCTS);
 
