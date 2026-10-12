@@ -201,17 +201,105 @@ Run-Node `
     )
 
 # --------------------------------------------------
-# 2. RECONSTRUIR MASTER COM PREÇO PROTEGIDO
+# --------------------------------------------------
+# 2. RECONSTRUIR MASTER / ALSO FAIL-SAFE
 # --------------------------------------------------
 
+$ALSO_RAW_DIR = Join-Path $ROOT "integrations\also\raw\pricelist-current"
+$ALSO_OVERLAY = Join-Path $ROOT "integrations\also\out\also-safe-supplier-overlay.json"
+$ALSO_MAX_AGE_HOURS = 36
+
+$alsoRaw = $null
+$alsoRawFresh = $false
+$alsoReason = ""
+
+if (Test-Path $ALSO_RAW_DIR) {
+    $alsoRaw = Get-ChildItem $ALSO_RAW_DIR -File -Filter "*.txt" |
+        Sort-Object LastWriteTime -Descending |
+        Select-Object -First 1
+}
+
+if (!$alsoRaw) {
+    $alsoReason = "raw-pricelist-missing"
+}
+else {
+    $rawAgeHours = ((Get-Date) - $alsoRaw.LastWriteTime).TotalHours
+
+    if ($rawAgeHours -le $ALSO_MAX_AGE_HOURS) {
+        $alsoRawFresh = $true
+        $alsoReason = "raw-fresh"
+    }
+    else {
+        $alsoReason = "raw-stale"
+    }
+}
+
+# FASE A: master preliminar SEM ALSO
+$env:IUMATEC_ALSO_ENABLED = "false"
+Log "ALSO preliminary master: DISABLED ($alsoReason)"
+
 Run-Node `
-    "STEP 2 - BUILD MASTER CATALOG" `
+    "STEP 2A - BUILD PRELIMINARY MASTER WITHOUT ALSO" `
     @(
         "--env-file=.env.local",
         ".\scripts\build-master-catalog.mjs"
     )
 
-# --------------------------------------------------
+if ($alsoRawFresh) {
+    Log "ALSO raw fresh: rebuilding supplier artifacts"
+
+    $env:ALSO_PRICELIST_FILE = $alsoRaw.FullName
+
+    Run-Node `
+        "STEP 2B1 - BUILD ALSO PURCHASE SNAPSHOT" `
+        @(
+            "--env-file=.env.local",
+            ".\scripts\build-also-purchase-snapshot.mjs"
+        )
+
+    Run-Node `
+        "STEP 2B2 - BUILD ALSO MPN INDEX" `
+        @(
+            "--env-file=.env.local",
+            ".\scripts\build-also-mpn-index.mjs"
+        )
+
+    Run-Node `
+        "STEP 2B3 - BUILD ALSO SAFE OVERLAY" `
+        @(
+            "--env-file=.env.local",
+            ".\scripts\build-also-safe-supplier-overlay.mjs"
+        )
+
+    Remove-Item Env:ALSO_PRICELIST_FILE -ErrorAction SilentlyContinue
+
+    if (!(Test-Path $ALSO_OVERLAY)) {
+        Fail "ALSO overlay nao foi criado."
+    }
+
+    $alsoOverlayItem = Get-Item $ALSO_OVERLAY
+
+    if ($alsoOverlayItem.LastWriteTime -lt $alsoRaw.LastWriteTime) {
+        Fail "ALSO overlay continua mais antigo que a pricelist."
+    }
+
+    # FASE B: master final COM overlay rec�m-gerado
+    $env:IUMATEC_ALSO_ENABLED = "true"
+    Log "ALSO final master: ENABLED"
+
+    Run-Node `
+        "STEP 2C - BUILD FINAL MASTER WITH ALSO" `
+        @(
+            "--env-file=.env.local",
+            ".\scripts\build-master-catalog.mjs"
+        )
+}
+else {
+    Log "ALSO final master: DISABLED ($alsoReason)"
+}
+
+Remove-Item Env:IUMATEC_ALSO_ENABLED -ErrorAction SilentlyContinue
+Remove-Item Env:ALSO_PRICELIST_FILE -ErrorAction SilentlyContinue
 # 3. ATUALIZAR STOCK ALLTRON -> SUPABASE
 # PREÇOS DESTE SCRIPT ESTÃO DESATIVADOS
 # --------------------------------------------------

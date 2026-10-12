@@ -1,6 +1,7 @@
 import { selectSupplier } from "../integrations/suppliers/supplier-selector.mjs";
 import { buildAlltronOffer } from "../integrations/suppliers/alltron-offer.mjs";
-﻿import fs from "fs";
+import { buildAlsoOffer } from "../integrations/suppliers/also-offer.mjs";
+import fs from "fs";
 import path from "path";
 
 const INPUT_FILES = [
@@ -27,10 +28,10 @@ const PACK_REPORT_FILE =
 const IMAGE_REPORT_FILE =
   "integrations/alltron/out/iumatec-master-image-safety.json";
 
-// Este catÃ¡logo Ã© criado pelo parseAlltronProducts.mjs a partir do XML e do
+// Este catÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡logo ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© criado pelo parseAlltronProducts.mjs a partir do XML e do
 // CSV de imagens validados por LITM exato. Os restantes ficheiros podem conter
-// galerias antigas ou associaÃ§Ãµes histÃ³ricas da Shopify e nÃ£o sÃ£o usados para
-// acrescentar imagens a um produto que jÃ¡ tenha uma imagem Alltron validada.
+// galerias antigas ou associaÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âµes histÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³ricas da Shopify e nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o sÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o usados para
+// acrescentar imagens a um produto que jÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ tenha uma imagem Alltron validada.
 const TRUSTED_IMAGE_SOURCE =
   "integrations/alltron/out/iumatec-tech-catalog.json";
 
@@ -74,10 +75,10 @@ function normalize(value) {
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
-    .replace(/Ã¤/g, "a")
-    .replace(/Ã¶/g, "o")
-    .replace(/Ã¼/g, "u")
-    .replace(/ÃŸ/g, "ss")
+    .replace(/ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¤/g, "a")
+    .replace(/ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¶/g, "o")
+    .replace(/ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼/g, "u")
+    .replace(/ÃƒÆ’Ã†â€™Ãƒâ€¦Ã‚Â¸/g, "ss")
     .replace(/[^a-z0-9]+/g, "");
 }
 
@@ -191,14 +192,14 @@ function selectSafeImages(current, incoming) {
   const currentHasTrusted = hasTrustedImageSource(current);
 
   // A fonte validada substitui qualquer galeria antiga que tenha sido lida
-  // antes. Atualmente o CSV da Alltron contÃ©m uma imagem por LITM, mas esta
-  // lÃ³gica aceitarÃ¡ automaticamente vÃ¡rias quando a fonte oficial as trouxer.
+  // antes. Atualmente o CSV da Alltron contÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©m uma imagem por LITM, mas esta
+  // lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³gica aceitarÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ automaticamente vÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡rias quando a fonte oficial as trouxer.
   if (incomingIsTrusted) {
     return incomingImages;
   }
 
-  // Depois de existir uma imagem Alltron validada, nÃ£o acumulamos imagens de
-  // catÃ¡logos antigos. Foi esta acumulaÃ§Ã£o que permitiu aparecer na galeria uma
+  // Depois de existir uma imagem Alltron validada, nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o acumulamos imagens de
+  // catÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡logos antigos. Foi esta acumulaÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o que permitiu aparecer na galeria uma
   // imagem pertencente a outro artigo.
   if (currentHasTrusted && currentImages.length > 0) {
     const rejected = incomingImages.filter(
@@ -243,7 +244,7 @@ function getCostIncludingVat(product) {
 
 function roundRetailPrice(value) {
   if (!(value > 0)) return 0;
-  // Arredonda apenas para o prÃ³ximo CHF 0,05, nunca para .90.
+  // Arredonda apenas para o prÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³ximo CHF 0,05, nunca para .90.
   return Number((Math.ceil((value - 0.000001) * 20) / 20).toFixed(2));
 }
 
@@ -253,8 +254,8 @@ function protectedSellingPrice(product) {
   // INPR = custo incluindo IVA
   const costGross = getCostIncludingVat(product);
 
-  // EXPR = custo líquido sem IVA.
-  // É a base correta quando a empresa recupera o IVA de compra.
+  // EXPR = custo lÃƒÆ’Ã‚Â­quido sem IVA.
+  // ÃƒÆ’Ã¢â‚¬Â° a base correta quando a empresa recupera o IVA de compra.
   const exprCostNet = number(product.expr);
 
   const costNet =
@@ -283,16 +284,16 @@ function protectedSellingPrice(product) {
   // ==========================================================
   // MARGEM LIQUIDA
   //
-  // venda líquida = preço bruto / (1 + IVA)
+  // venda lÃƒÆ’Ã‚Â­quida = preÃƒÆ’Ã‚Â§o bruto / (1 + IVA)
   //
   // lucro =
-  // venda líquida
-  // - custo líquido produto
+  // venda lÃƒÆ’Ã‚Â­quida
+  // - custo lÃƒÆ’Ã‚Â­quido produto
   // - transporte fornecedor
   // - fee percentual pagamento
   // - fee fixo pagamento
   //
-  // lucro / venda líquida >= 10%
+  // lucro / venda lÃƒÆ’Ã‚Â­quida >= 10%
   // ==========================================================
 
   const marginCoefficient =
@@ -351,9 +352,9 @@ function protectedSellingPrice(product) {
   // TRANSPORTE
   //
   // Se:
-  // - o preço atual já oferece envio grátis
+  // - o preÃƒÆ’Ã‚Â§o atual jÃƒÆ’Ã‚Â¡ oferece envio grÃƒÆ’Ã‚Â¡tis
   // OU
-  // - o próprio preço mínimo entra na zona de envio grátis
+  // - o prÃƒÆ’Ã‚Â³prio preÃƒÆ’Ã‚Â§o mÃƒÆ’Ã‚Â­nimo entra na zona de envio grÃƒÆ’Ã‚Â¡tis
   //
   // reservar CHF 5.90.
   // ==========================================================
@@ -434,8 +435,8 @@ function detectPackUnitSuspicion(product, protectedPrice) {
   const recommended = protectedPrice.recommended;
 
   const packMarkers = [
-    /\b\d+\s*(?:stÃ¼ck|stk\.?|pcs?|pieces?|teilig(?:e[snr]?)?|er[- ]?pack|packung(?:en)?|einheiten)\b/i,
-    /\b\d+\s*[xÃ—]\s*\d+(?:[.,]\d+)?\s*(?:mg|g|kg|ml|cl|l)\b/i,
+    /\b\d+\s*(?:stÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼ck|stk\.?|pcs?|pieces?|teilig(?:e[snr]?)?|er[- ]?pack|packung(?:en)?|einheiten)\b/i,
+    /\b\d+\s*[xÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â]\s*\d+(?:[.,]\d+)?\s*(?:mg|g|kg|ml|cl|l)\b/i,
     /\b(?:multipack|bundle|karton|carton)\b/i,
     /\b\d+\s*(?:er[- ]?)?set\b/i,
   ];
@@ -574,9 +575,9 @@ function evaluateMatch(current, incoming) {
     };
   }
 
-  // NÃºmeros internos e SKUs podem ser reutilizados, truncados ou estar
-  // incorretos nalguns catÃ¡logos. Sem LITM, EAN ou variante coincidente,
-  // sÃ³ aceitamos a junÃ§Ã£o quando ambos os identificadores fracos coincidem.
+  // NÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âºmeros internos e SKUs podem ser reutilizados, truncados ou estar
+  // incorretos nalguns catÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡logos. Sem LITM, EAN ou variante coincidente,
+  // sÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³ aceitamos a junÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o quando ambos os identificadores fracos coincidem.
   if (internalMatch && skuMatch) {
     return {
       allowed: true,
@@ -905,11 +906,125 @@ for (const record of records) {
 const priceProtection = [];
 const packUnitReview = [];
 
+const ALSO_ENABLED =
+  String(
+    process.env.IUMATEC_ALSO_ENABLED ?? "true",
+  ).toLowerCase() !== "false";
+
+const ALSO_SAFE_OVERLAY_FILE = path.join(
+  process.cwd(),
+  "integrations",
+  "also",
+  "out",
+  "also-safe-supplier-overlay.json",
+);
+
+if (
+  ALSO_ENABLED &&
+  !fs.existsSync(ALSO_SAFE_OVERLAY_FILE)
+) {
+  throw new Error(
+    "Missing ALSO safe supplier overlay.",
+  );
+}
+
+const alsoSafeOverlay = ALSO_ENABLED
+  ? JSON.parse(
+      fs.readFileSync(
+        ALSO_SAFE_OVERLAY_FILE,
+        "utf8",
+      ),
+    )
+  : {
+      summary: { safeMappings: 0 },
+      byMpn: {},
+    };
+
+if (
+  !alsoSafeOverlay ||
+  !alsoSafeOverlay.byMpn ||
+  typeof alsoSafeOverlay.byMpn !== "object"
+) {
+  throw new Error(
+    "Invalid ALSO safe supplier overlay.",
+  );
+}
+
+const alsoOverlayByMpn = new Map();
+
+for (const [mpnRaw, mapping] of Object.entries(
+  alsoSafeOverlay.byMpn,
+)) {
+  const mpn =
+    text(mpnRaw).trim().toUpperCase();
+
+  const productId =
+    text(mapping?.also?.productId);
+
+  if (!mpn || !productId) {
+    continue;
+  }
+
+  if (alsoOverlayByMpn.has(mpn)) {
+    throw new Error(
+      `Duplicate ALSO overlay MPN: ${mpn}`,
+    );
+  }
+
+  alsoOverlayByMpn.set(
+    mpn,
+    mapping,
+  );
+}
+
+const expectedAlsoMappings = number(
+  alsoSafeOverlay?.summary?.safeMappings,
+);
+
+if (
+  ALSO_ENABLED &&
+  (
+    expectedAlsoMappings <= 0 ||
+    alsoOverlayByMpn.size !== expectedAlsoMappings
+  )
+) {
+  throw new Error(
+    `ALSO overlay mapping mismatch: ${alsoOverlayByMpn.size}/${expectedAlsoMappings}`,
+  );
+}
 const masterCatalog = products
   .map(({ _sourceFile, ...product }) => {
-    const supplierSelection = selectSupplier([
-      buildAlltronOffer(product),
-    ]);
+    const alltronOffer =
+      buildAlltronOffer(product);
+
+    const supplierOffers = [
+      alltronOffer,
+    ];
+
+    const productMpn = text(
+      product.internalNumber ||
+      product.mpn ||
+      product.manufacturerPartNumber ||
+      "",
+    )
+      .trim()
+      .toUpperCase();
+
+    const alsoMapping =
+      productMpn
+        ? alsoOverlayByMpn.get(productMpn)
+        : null;
+    if (alsoMapping) {
+      supplierOffers.push(
+        buildAlsoOffer(
+          alsoMapping.also,
+          product,
+        ),
+      );
+    }
+
+    const supplierSelection =
+      selectSupplier(supplierOffers);
 
     /*
      * SUPPLIER ENGINE ATIVO
@@ -948,9 +1063,9 @@ const masterCatalog = products
       packUnitReview.push(packSuspicion);
     }
 
-    // Uma diferenÃ§a superior a 2x entre custo e preÃ§o atual costuma indicar
-    // mistura de preÃ§o por unidade com custo do pack (ou uma junÃ§Ã£o errada).
-    // NÃ£o inventamos um preÃ§o muito mais alto: bloqueamos atÃ© revisÃ£o manual.
+    // Uma diferenÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§a superior a 2x entre custo e preÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§o atual costuma indicar
+    // mistura de preÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§o por unidade com custo do pack (ou uma junÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o errada).
+    // NÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o inventamos um preÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§o muito mais alto: bloqueamos atÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© revisÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o manual.
     if (
       oldPrice > 0 &&
       protectedPrice.cost > oldPrice * 2
@@ -982,6 +1097,22 @@ const masterCatalog = products
 
       // O stock passa a ser propriedade do Supplier Engine.
       // Com apenas Alltron, o shadow audit provou igualdade 100%.
+      selectedSupplier:
+        supplierSelection.selectedSupplier || null,
+      selectedSupplierSku:
+        supplierSelection.selectedSupplierSku || null,
+      selectedStockSupplier:
+        supplierSelection.selectedStockSupplier || null,
+      selectedStockSupplierSku:
+        supplierSelection.selectedStockSupplierSku || null,
+      selectedDirectShip: Boolean(
+        supplierSelection.selectedDirectShip,
+      ),
+      supplierSelectionReason:
+        supplierSelection.selectionReason || null,
+      alsoProductId:
+        alsoMapping?.also?.productId ?? null,
+
       stockQty: supplierSelection.selectedStock,
       stock: supplierSelection.selectedStock,
       inStock: supplierSelection.selectedStock > 0,
@@ -1022,10 +1153,42 @@ fs.mkdirSync(path.dirname(outputPath), {
   recursive: true,
 });
 
-fs.writeFileSync(
+function writeJsonArrayFileSync(
+  filePath,
+  rows,
+  batchSize = 500,
+) {
+  const fd = fs.openSync(filePath, "w");
+
+  try {
+    fs.writeSync(fd, "[\n");
+
+    for (
+      let index = 0;
+      index < rows.length;
+      index += batchSize
+    ) {
+      const batch = rows
+        .slice(index, index + batchSize)
+        .map((row) => JSON.stringify(row))
+        .join(",\n");
+
+      if (index > 0) {
+        fs.writeSync(fd, ",\n");
+      }
+
+      fs.writeSync(fd, batch);
+    }
+
+    fs.writeSync(fd, "\n]\n");
+  } finally {
+    fs.closeSync(fd);
+  }
+}
+
+writeJsonArrayFileSync(
   outputPath,
-  JSON.stringify(masterCatalog, null, 2),
-  "utf8",
+  masterCatalog,
 );
 
 fs.writeFileSync(
