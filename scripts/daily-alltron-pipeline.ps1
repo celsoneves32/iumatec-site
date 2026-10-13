@@ -1,4 +1,4 @@
-ï»¿param()
+param()
 
 $ErrorActionPreference = "Stop"
 
@@ -283,7 +283,7 @@ if ($alsoRawFresh) {
         Fail "ALSO overlay continua mais antigo que a pricelist."
     }
 
-    # FASE B: master final COM overlay recém-gerado
+    # FASE B: master final COM overlay recï¿½m-gerado
     $env:IUMATEC_ALSO_ENABLED = "true"
     Log "ALSO final master: ENABLED"
 
