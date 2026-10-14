@@ -53,7 +53,7 @@ function Run-Node {
 $envFile = Join-Path $ROOT ".env.local"
 
 if (!(Test-Path $envFile)) {
-    Fail ".env.local não encontrado."
+    Fail ".env.local nÃ£o encontrado."
 }
 
 Get-Content $envFile | ForEach-Object {
@@ -83,9 +83,9 @@ Get-Content $envFile | ForEach-Object {
     }
 }
 
-if (!$env:ALLTRON_HOST) { Fail "ALLTRON_HOST não definido." }
-if (!$env:ALLTRON_USER) { Fail "ALLTRON_USER não definido." }
-if (!$env:ALLTRON_PASS) { Fail "ALLTRON_PASS não definido." }
+if (!$env:ALLTRON_HOST) { Fail "ALLTRON_HOST nÃ£o definido." }
+if (!$env:ALLTRON_USER) { Fail "ALLTRON_USER nÃ£o definido." }
+if (!$env:ALLTRON_PASS) { Fail "ALLTRON_PASS nÃ£o definido." }
 
 Log "================================================="
 Log "IUMATEC DAILY ALLTRON PIPELINE"
@@ -95,7 +95,7 @@ Log "Alltron host: $($env:ALLTRON_HOST)"
 Log "Log: $LOG"
 
 # --------------------------------------------------
-# DOWNLOAD ATÓMICO DOS 4 FEEDS ALLTRON
+# DOWNLOAD ATÃ“MICO DOS 4 FEEDS ALLTRON
 # --------------------------------------------------
 
 $files = @(
@@ -174,7 +174,7 @@ foreach ($file in $files) {
 }
 
 # --------------------------------------------------
-# VERIFICAÇÃO DOS FEEDS
+# VERIFICAÃ‡ÃƒO DOS FEEDS
 # --------------------------------------------------
 
 foreach ($file in $files) {
@@ -182,7 +182,7 @@ foreach ($file in $files) {
     $path = Join-Path $DOWNLOADS $file
 
     if (!(Test-Path $path)) {
-        Fail "Feed obrigatório em falta: $file"
+        Fail "Feed obrigatÃ³rio em falta: $file"
     }
 
     $item = Get-Item $path
@@ -283,7 +283,7 @@ if ($alsoRawFresh) {
         Fail "ALSO overlay continua mais antigo que a pricelist."
     }
 
-    # FASE B: master final COM overlay rec�m-gerado
+    # FASE B: master final COM overlay recï¿½m-gerado
     $env:IUMATEC_ALSO_ENABLED = "true"
     Log "ALSO final master: ENABLED"
 
@@ -301,7 +301,7 @@ else {
 Remove-Item Env:IUMATEC_ALSO_ENABLED -ErrorAction SilentlyContinue
 Remove-Item Env:ALSO_PRICELIST_FILE -ErrorAction SilentlyContinue
 # 3. ATUALIZAR STOCK ALLTRON -> SUPABASE
-# PREÇOS DESTE SCRIPT ESTÃO DESATIVADOS
+# PREÃ‡OS DESTE SCRIPT ESTÃƒO DESATIVADOS
 # --------------------------------------------------
 
 Run-Node `
@@ -317,8 +317,29 @@ Run-Node `
     )
 
 # --------------------------------------------------
+# 3B. ALSO SELECTED STOCK -> SUPABASE
+# ONLY WHEN ALSO IS FRESH/ENABLED
+# PRICE WRITES: DISABLED
+# --------------------------------------------------
+
+if ($alsoEnabled) {
+    Run-Node `
+        "STEP 3B - ALSO SELECTED STOCK -> SUPABASE" `
+        @(
+            "--env-file=.env.local",
+            ".\scripts\sync-master-selected-stock-to-supabase.mjs",
+            "--apply",
+            "--all",
+            "--confirm=IUMATEC-ALSO-STOCK"
+        )
+}
+else {
+    Log "STEP 3B - ALSO STOCK SKIPPED ($alsoReason)"
+}
+
+# --------------------------------------------------
 # 4. PROTEGER MARGEM NO SUPABASE
-# SOMENTE SUBIDAS ATÉ AO MÍNIMO PROTEGIDO
+# SOMENTE SUBIDAS ATÃ‰ AO MÃNIMO PROTEGIDO
 # --------------------------------------------------
 
 Run-Node `
@@ -337,12 +358,13 @@ Run-Node `
 # --------------------------------------------------
 
 Run-Node `
-    "STEP 5 - SUPABASE PRICES -> SHOPIFY" `
+    "STEP 5 - SUPABASE PRICE + STOCK -> SHOPIFY" `
     @(
         "--env-file=.env.local",
-        ".\scripts\reconcile-shopify-prices-from-supabase.mjs",
+        ".\scripts\sync-shopify-price-stock.mjs",
         "--apply",
-        "--limit=10000"
+        "--all",
+        "--confirm=IUMATEC-SUPABASE-SOURCE"
     )
 
 # --------------------------------------------------
