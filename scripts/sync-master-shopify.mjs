@@ -135,21 +135,27 @@ function descriptionOf(p) {
 function categoryOf(p) {
   return (
     text(p?.iumatecCategory?.sub) ||
+    text(p?.category?.sub) ||
     text(p.subcategory) ||
     text(p?.rawCategory?.cat2) ||
     text(p?.iumatecCategory?.main) ||
-    text(p.category) ||
+    text(p?.category?.main) ||
+    (typeof p?.category === "string" ? text(p.category) : "") ||
     "Tech"
   );
 }
 
 function tagsOf(p) {
+  const supplier = text(p.selectedSupplier).toLowerCase();
+
   return [...new Set([
-    "alltron",
     "iumatec",
+    supplier || "alltron",
     text(p.brand),
     text(p?.iumatecCategory?.main),
     text(p?.iumatecCategory?.sub),
+    text(p?.category?.main),
+    text(p?.category?.sub),
   ].filter(Boolean))];
 }
 
@@ -361,6 +367,8 @@ function assessAlsoProductType(p) {
   const categories = [
     p?.iumatecCategory?.main,
     p?.iumatecCategory?.sub,
+    p?.category?.main,
+    p?.category?.sub,
     p?.rawCategory?.cat1,
     p?.rawCategory?.cat2,
     p?.rawCategory?.cat3,
@@ -374,6 +382,8 @@ function assessAlsoProductType(p) {
 
   const softwareCategories = [
     p?.iumatecCategory?.sub,
+    p?.category?.main,
+    p?.category?.sub,
     p?.rawCategory?.cat2,
     p?.rawCategory?.cat3,
     p?.rawCategory?.cat4,
