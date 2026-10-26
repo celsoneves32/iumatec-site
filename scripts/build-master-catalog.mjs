@@ -1186,6 +1186,129 @@ function writeJsonArrayFileSync(
   }
 }
 
+/* SKU_UNIQUENESS_GATE_V1 */
+const __skuNorm = (v) => String(v ?? "").trim().toUpperCase();
+
+const __skuToken = (p) => {
+  const clean = (v) =>
+    String(v ?? "")
+      .trim()
+      .toUpperCase()
+      .replace(/[^A-Z0-9_-]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+
+  const alltron = clean(p?.alltronSku || p?.selectedSupplierSku);
+  if (alltron) return "A" + alltron;
+
+  const ean = clean(p?.ean);
+  if (ean) return "E" + ean;
+
+  const internal = clean(p?.internalNumber);
+  if (internal) return "I" + internal;
+
+  throw new Error(
+    "SKU uniqueness: sem identificador estavel para " +
+    String(p?.sku ?? "")
+  );
+};
+
+const __groups = new Map();
+
+for (const p of masterCatalog) {
+  const key = __skuNorm(p?.sku);
+  if (!key) continue;
+  if (!__groups.has(key)) __groups.set(key, []);
+  __groups.get(key).push(p);
+}
+
+const __used = new Set(
+  masterCatalog
+    .map((p) => __skuNorm(p?.sku))
+    .filter(Boolean)
+);
+
+let __duplicateGroups = 0;
+let __renamed = 0;
+
+for (const [key, items] of __groups) {
+  if (items.length < 2) continue;
+
+  __duplicateGroups++;
+
+  const linked = items.filter(
+    (p) =>
+      p?.shopifyProductId ||
+      p?.shopifyVariantId ||
+      p?.merchandiseId
+  );
+
+  if (linked.length > 1) {
+    throw new Error(
+      "SKU uniqueness STOP: >1 produto Shopify ligado a " + key
+    );
+  }
+
+  const keeper =
+    linked[0] ||
+    [...items].sort((a, b) =>
+      __skuToken(a).localeCompare(
+        __skuToken(b),
+        "en",
+        { numeric: true }
+      )
+    )[0];
+
+  for (const p of items) {
+    if (p === keeper) continue;
+
+    const base =
+      String(p?.sku ?? "").trim() +
+      "-" +
+      __skuToken(p);
+
+    let next = base;
+    let n = 2;
+
+    while (__used.has(__skuNorm(next))) {
+      next = base + "-" + n++;
+    }
+
+    p.sku = next;
+    __used.add(__skuNorm(next));
+    __renamed++;
+  }
+}
+
+const __finalCounts = new Map();
+
+for (const p of masterCatalog) {
+  const key = __skuNorm(p?.sku);
+  if (!key) continue;
+  __finalCounts.set(
+    key,
+    (__finalCounts.get(key) || 0) + 1
+  );
+}
+
+const __left =
+  [...__finalCounts.values()]
+    .filter((n) => n > 1)
+    .length;
+
+if (__left > 0) {
+  throw new Error(
+    "SKU uniqueness STOP: ainda existem " +
+    __left +
+    " grupos duplicados."
+  );
+}
+
+console.log("");
+console.log("===== SKU UNIQUENESS =====");
+console.log("Duplicate groups before:", __duplicateGroups);
+console.log("SKUs renamed:", __renamed);
+console.log("Duplicate groups after:", __left);
+
 writeJsonArrayFileSync(
   outputPath,
   masterCatalog,
