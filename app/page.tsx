@@ -477,7 +477,7 @@ function HeroProduct({
           </div>
 
           <div className="pb-1 text-xs font-semibold text-neutral-500">
-            inkl. MWST
+            Endpreis · Lieferung Schweiz
           </div>
         </div>
 
@@ -599,7 +599,7 @@ function FeatureStrip({
     {
       icon: BadgeCheck,
       title: "Transparente Preise",
-      text: "Alle Preise inkl. MWST",
+      text: "Endpreise · Lieferung Schweiz",
     },
     {
       icon: Boxes,

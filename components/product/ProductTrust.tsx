@@ -8,7 +8,7 @@ const trustItems: TrustItem[] = [
   {
     icon: "🇨🇭",
     title: "Schweizer Onlineshop",
-    description: "Klare Preise in CHF und MWST inklusive.",
+    description: "Klare Endpreise in CHF und Lieferung in der Schweiz.",
   },
   {
     icon: "🚚",

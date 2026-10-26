@@ -103,7 +103,7 @@ export default function Header({ onOpenCart }: Props) {
           <div className="flex items-center gap-4 text-white/80">
             <span className="font-bold text-white">🇨🇭 Schweizer Tech-Shop</span>
             <span className="hidden sm:inline">Lieferung in der Schweiz</span>
-            <span className="hidden lg:inline">MWST inklusive</span>
+            <span className="hidden lg:inline">Endpreise in CHF</span>
           </div>
 
           <div className="flex items-center gap-4 font-semibold text-white/80">

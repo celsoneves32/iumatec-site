@@ -53,8 +53,6 @@ export default function CartDrawer() {
   }, [isDrawerOpen, closeDrawer]);
 
   const freeShipping = total >= 0;
-  const mwstAmount = total > 0 ? total - total / 1.081 : 0;
-
   return (
     <>
       <div
@@ -247,7 +245,7 @@ export default function CartDrawer() {
               </span>
             </div>
             <p className="mt-1 text-xs font-medium text-green-700">
-              Sichere Zahlung · schnelle Lieferung · transparente MWST
+              Sichere Zahlung · schnelle Lieferung · transparente Preise
             </p>
           </div>
 
@@ -260,11 +258,6 @@ export default function CartDrawer() {
             <div className="flex items-center justify-between text-sm text-neutral-600">
               <span>Lieferung</span>
               <span className="font-semibold text-green-700">GRATIS</span>
-            </div>
-
-            <div className="flex items-center justify-between text-sm text-neutral-600">
-              <span>MWST 8.1%</span>
-              <span>inkl. {formatMoney(mwstAmount, currencyCode)}</span>
             </div>
 
             <div className="flex items-center justify-between border-t border-neutral-200 pt-3 text-lg font-extrabold text-neutral-950">

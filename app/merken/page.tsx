@@ -70,7 +70,7 @@ export default function MerkenPage() {
                 {formatPriceCH(item.price || 0)}
               </div>
 
-              <div className="mt-1 text-xs text-neutral-500">inkl. MWST</div>
+              <div className="mt-1 text-xs text-neutral-500">Endpreis · Lieferung Schweiz</div>
 
               {item.slug ? (
                 <Link

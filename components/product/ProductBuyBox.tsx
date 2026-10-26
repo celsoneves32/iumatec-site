@@ -77,7 +77,7 @@ export default function ProductBuyBox({
         </div>
 
         <p className="mt-1 text-sm font-semibold text-neutral-500">
-          inkl. MWST · Versand Schweiz
+          Endpreis · Lieferung Schweiz
         </p>
       </div>
 

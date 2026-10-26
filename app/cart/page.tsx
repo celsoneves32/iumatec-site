@@ -24,8 +24,6 @@ export default function CartPage() {
     checkoutUrl,
   } = useCart();
 
-  const mwstRate = 0.081;
-  const mwstIncluded = total - total / (1 + mwstRate);
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-10">
@@ -130,13 +128,6 @@ export default function CartPage() {
                 </span>
               </div>
 
-              <div className="flex items-center justify-between">
-                <span className="text-neutral-600">inkl. MWST (8.1%)</span>
-                <span className="font-semibold">
-                  {formatMoney(mwstIncluded, currencyCode)}
-                </span>
-              </div>
-
               <div className="border-t pt-3">
                 <div className="flex items-center justify-between text-base">
                   <span className="font-semibold text-neutral-900">Total</span>
@@ -148,7 +139,7 @@ export default function CartPage() {
             </div>
 
             <div className="mt-6 text-xs text-neutral-500">
-              Preise inkl. gesetzlicher MWST.
+              Endpreis · Lieferung Schweiz.
             </div>
 
             {checkoutUrl ? (

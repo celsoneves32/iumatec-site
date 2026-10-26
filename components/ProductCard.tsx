@@ -285,7 +285,7 @@ export default function ProductCard({ product }: Props) {
               {formatPrice(product.price)}
             </div>
             <div className="mt-0.5 text-[10px] text-neutral-400">
-              inkl. MWST · Lieferung Schweiz
+              Endpreis · Lieferung Schweiz
             </div>
           </div>
         </div>
