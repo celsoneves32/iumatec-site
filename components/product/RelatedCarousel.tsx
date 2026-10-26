@@ -1,5 +1,5 @@
 import ProductCard from "@/components/ProductCard";
-import type { Product } from "@/lib/productData";
+import type { Product } from "@/lib/supabaseCatalog";
 
 type RelatedCarouselProps = {
   products: Product[];
@@ -19,21 +19,13 @@ function getProductSlug(product: Product) {
 function getMerchandiseId(product: Product) {
   const productData = product as any;
 
-  return (
-    productData.merchandiseId ||
-    productData.shopifyVariantId ||
-    null
-  );
+  return productData.merchandiseId || productData.shopifyVariantId || null;
 }
 
 function getStockQty(product: Product) {
   const productData = product as any;
 
-  return Number(
-    productData.stockQty ??
-      productData.stock ??
-      0,
-  );
+  return Number(productData.stockQty ?? productData.stock ?? 0);
 }
 
 export default function RelatedCarousel({
@@ -45,11 +37,7 @@ export default function RelatedCarousel({
       const slug = getProductSlug(product);
       const price = Number(productData.price || 0);
 
-      return Boolean(
-        slug &&
-          productData.image &&
-          price > 0,
-      );
+      return Boolean(slug && productData.image && price > 0);
     })
     .slice(0, 8);
 
@@ -62,16 +50,17 @@ export default function RelatedCarousel({
       <div className="mx-auto max-w-7xl px-4 py-14">
         <div className="mb-8">
           <p className="text-sm font-black uppercase tracking-widest text-red-600">
-            Weitere Empfehlungen
+            Passend dazu
           </p>
 
           <h2 className="mt-2 text-3xl font-black tracking-tight text-neutral-950">
-            Ähnliche Produkte
+            Zubehör & passende Produkte
           </h2>
 
           <p className="mt-2 max-w-2xl text-neutral-500">
-            Weitere Produkte aus derselben Kategorie, die ebenfalls interessant
-            sein könnten.
+            Produkte, die sich mit diesem Artikel sinnvoll kombinieren lassen –
+            zum Beispiel Zubehör, Anschlüsse, Eingabegeräte oder passende
+            Erweiterungen.
           </p>
         </div>
 
@@ -93,19 +82,14 @@ export default function RelatedCarousel({
                   image: productData.image ?? null,
                   category: productData.category,
                   subcategory: productData.subcategory,
-                  inStock: Boolean(
-                    productData.inStock ||
-                      stockQty > 0,
-                  ),
+                  inStock: Boolean(productData.inStock || stockQty > 0),
                   stockQty,
-                  merchandiseId:
-                    getMerchandiseId(product),
+                  merchandiseId: getMerchandiseId(product),
                   productHandle:
                     productData.shopifyProductHandle ||
                     productData.productHandle ||
                     slug,
-                  energyLabel:
-                    productData.energyLabel,
+                  energyLabel: productData.energyLabel,
                 }}
               />
             );

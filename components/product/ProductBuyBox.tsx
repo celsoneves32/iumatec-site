@@ -1,4 +1,19 @@
+import Link from "next/link";
+
 import ProductBuyButton from "@/components/ProductBuyButton";
+
+type VariantOption = {
+  slug: string;
+  href: string;
+  label: string;
+  color?: string | null;
+  colorHex?: string | null;
+  storage?: string | null;
+  ram?: string | null;
+  price: string;
+  inStock: boolean;
+  active: boolean;
+};
 
 type ProductBuyBoxProps = {
   title: string;
@@ -9,6 +24,7 @@ type ProductBuyBoxProps = {
   merchandiseId?: string | null;
   productHandle: string;
   imageUrl?: string | null;
+  variants?: VariantOption[];
 };
 
 export default function ProductBuyBox({
@@ -20,6 +36,7 @@ export default function ProductBuyBox({
   merchandiseId,
   productHandle,
   imageUrl,
+  variants = [],
 }: ProductBuyBoxProps) {
   const lowStock = inStock && stockQty > 0 && stockQty <= 3;
 
@@ -34,6 +51,9 @@ export default function ProductBuyBox({
     : lowStock
       ? "bg-orange-50 text-orange-700 ring-orange-100"
       : "bg-green-50 text-green-700 ring-green-100";
+
+  const hasVariants = variants.length > 1;
+  const hasColors = variants.some((variant) => Boolean(variant.color));
 
   return (
     <aside className="min-w-0 rounded-[2rem] border border-neutral-200 bg-white p-4 shadow-xl shadow-neutral-950/5 sm:p-6 lg:sticky lg:top-28">
@@ -80,6 +100,74 @@ export default function ProductBuyBox({
           Endpreis · Lieferung Schweiz
         </p>
       </div>
+
+      {hasVariants ? (
+        <div className="mt-5 rounded-[1.5rem] border border-neutral-200 bg-white p-5">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-black text-neutral-950">
+                {hasColors ? "Farbe / Ausführung" : "Ausführung"}
+              </p>
+              <p className="mt-1 text-xs text-neutral-500">
+                Wähle die gewünschte Variante.
+              </p>
+            </div>
+
+            <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-black text-neutral-600">
+              {variants.length} Varianten
+            </span>
+          </div>
+
+          <div className="mt-4 grid gap-2">
+            {variants.map((variant) => (
+              <Link
+                key={variant.slug}
+                href={variant.href}
+                className={
+                  variant.active
+                    ? "flex items-center justify-between gap-3 rounded-2xl border-2 border-red-600 bg-red-50 px-4 py-3"
+                    : "flex items-center justify-between gap-3 rounded-2xl border border-neutral-200 bg-white px-4 py-3 transition hover:border-neutral-950 hover:bg-neutral-50"
+                }
+                aria-current={variant.active ? "page" : undefined}
+              >
+                <div className="flex min-w-0 items-center gap-3">
+                  {variant.color ? (
+                    <span
+                      aria-hidden="true"
+                      className="h-6 w-6 shrink-0 rounded-full border border-neutral-300 shadow-inner"
+                      style={{ backgroundColor: variant.colorHex || "#d4d4d8" }}
+                    />
+                  ) : null}
+
+                  <div className="min-w-0">
+                    <p
+                      className={
+                        variant.active
+                          ? "truncate text-sm font-black text-red-700"
+                          : "truncate text-sm font-black text-neutral-900"
+                      }
+                    >
+                      {variant.label}
+                    </p>
+
+                    <div className="mt-0.5 flex flex-wrap gap-x-2 text-xs text-neutral-500">
+                      {variant.storage ? <span>{variant.storage}</span> : null}
+                      {variant.ram ? <span>RAM {variant.ram}</span> : null}
+                      <span>
+                        {variant.inStock ? "verfügbar" : "nicht verfügbar"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <span className="shrink-0 text-sm font-black text-neutral-900">
+                  {variant.price}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       <div className="mt-5">
         <ProductBuyButton
