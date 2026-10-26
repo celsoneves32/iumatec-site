@@ -9,6 +9,7 @@ const ROOT = process.cwd();
 const ARGS = process.argv.slice(2);
 const APPLY = ARGS.includes("--apply");
 const APPLY_ALL = ARGS.includes("--all");
+const STOCK_ONLY = ARGS.includes("--stock-only");
 const EXPLICIT_DRY_RUN = ARGS.includes("--dry-run");
 const DRY_RUN = !APPLY;
 const FULL_CONFIRMATION = "IUMATEC-SUPABASE-SOURCE";
@@ -179,8 +180,84 @@ function supabaseHeaders(extra = {}) {
   return headers;
 }
 
+
+function loadUnsafeMasterVariantIds() {
+  const masterPath = path.join(
+    ROOT,
+    "integrations",
+    "alltron",
+    "out",
+    "iumatec-master-catalog.json",
+  );
+
+  if (!fs.existsSync(masterPath)) {
+    throw new Error(
+      "Master safety gate: master nao encontrado",
+    );
+  }
+
+  const rows = JSON.parse(
+    fs.readFileSync(masterPath, "utf8"),
+  );
+
+  if (!Array.isArray(rows)) {
+    throw new Error(
+      "Master safety gate: master invalido",
+    );
+  }
+
+  const blocked = new Set();
+
+  for (const row of rows) {
+
+    const id =
+      variantGid(row?.shopifyVariantId);
+
+    if (!id) continue;
+
+    const supplier =
+      text(row?.selectedSupplier)
+        .toLowerCase();
+
+    const reason =
+      text(row?.supplierSelectionReason)
+        .toLowerCase();
+
+    const price =
+      money(row?.price);
+
+    const minimumSafePrice =
+      money(row?.minimumSafePrice);
+
+    const supplierOk =
+      supplier === "alltron" ||
+      supplier === "also";
+
+    const unsafe =
+      !supplierOk ||
+      !(price > 0) ||
+      !(minimumSafePrice > 0) ||
+      reason === "stock-only-no-valid-cost" ||
+      row?.packUnitReviewRequired === true;
+
+    if (unsafe) {
+      blocked.add(id);
+    }
+  }
+
+  return blocked;
+}
+
 async function fetchProtectedSource() {
   const invalidCatalogKeys = loadInvalidCatalogKeys();
+
+  const unsafeMasterVariantIds =
+    loadUnsafeMasterVariantIds();
+
+  console.log(
+    "Master safety gate: blocked variant IDs =",
+    unsafeMasterVariantIds.size,
+  );
   const candidates = new Map();
   let rowsRead = 0;
   let rejectedInvalidReport = 0;
@@ -233,6 +310,10 @@ async function fetchProtectedSource() {
       const id = variantGid(row?.merchandise_id || row?.shopify_variant_id);
       if (!id) {
         rejectedInvalidVariant++;
+        continue;
+      }
+
+      if (unsafeMasterVariantIds.has(id)) {
         continue;
       }
 
@@ -433,10 +514,12 @@ async function activateInventory(inventoryItemId, desiredStock) {
   return { ok: Boolean(data?.inventoryActivate?.inventoryLevel?.id), errors: [] };
 }
 
+// SHOPIFY_STOCK_CAS_RETRY_V1
 async function setInventoryAbsolute(
   inventoryItemId,
   desiredStock,
   currentStock,
+  variantId,
 ) {
   const mutation = `
     mutation SetProtectedInventory($input: InventorySetQuantitiesInput!) {
@@ -449,22 +532,66 @@ async function setInventoryAbsolute(
       }
     }
   `;
-  const data = await shopifyFetch(mutation, {
-    input: {
-      name: "available",
-      reason: "correction",
-      quantities: [
-        {
-          inventoryItemId,
-          locationId,
-          quantity: desiredStock,
-          compareQuantity: currentStock,
-        },
-      ],
-    },
-  });
-  const errors = data?.inventorySetQuantities?.userErrors || [];
-  if (errors.length) throw new Error(JSON.stringify(errors));
+
+  let expectedStock = currentStock;
+
+  for (let attempt = 1; attempt <= 4; attempt++) {
+    const data = await shopifyFetch(mutation, {
+      input: {
+        name: "available",
+        reason: "correction",
+        quantities: [
+          {
+            inventoryItemId,
+            locationId,
+            quantity: desiredStock,
+            compareQuantity: expectedStock,
+          },
+        ],
+      },
+    });
+
+    const errors =
+      data?.inventorySetQuantities?.userErrors || [];
+
+    if (!errors.length) {
+      return;
+    }
+
+    const staleCompare =
+      errors.length > 0 &&
+      errors.every((error) =>
+        /compareQuantity argument no longer matches/i.test(
+          error?.message || "",
+        ),
+      );
+
+    if (!staleCompare || !variantId || attempt >= 4) {
+      throw new Error(JSON.stringify(errors));
+    }
+
+    const freshNodes =
+      await readShopifyVariants([variantId]);
+
+    const freshVariant = freshNodes?.[0];
+    const freshStock = currentAvailable(
+      freshVariant?.inventoryItem?.inventoryLevel,
+    );
+
+    if (freshStock === null) {
+      throw new Error(
+        `CAS retry failed: stock indisponivel para ${variantId}`,
+      );
+    }
+
+    if (freshStock === desiredStock) {
+      return;
+    }
+
+    expectedStock = freshStock;
+
+    await sleep(200 * attempt);
+  }
 }
 
 function currentAvailable(inventoryLevel) {
@@ -553,6 +680,7 @@ async function main() {
 
       summary.checked++;
       try {
+      if (!STOCK_ONLY) {
         const currentPrice = money(variant.price);
         if (Math.abs(currentPrice - desired.price) <= PRICE_TOLERANCE) {
           summary.pricesAlreadyExact++;
@@ -568,6 +696,7 @@ async function main() {
           }
         }
 
+      }
         const level = variant.inventoryItem.inventoryLevel;
         const currentStock = currentAvailable(level);
         if (currentStock === desired.stock) {
@@ -591,6 +720,7 @@ async function main() {
                 variant.inventoryItem.id,
                 desired.stock,
                 currentStock,
+                variant.id,
               );
               summary.stocksApplied++;
             }

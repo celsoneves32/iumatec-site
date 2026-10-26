@@ -53,7 +53,7 @@ function Run-Node {
 $envFile = Join-Path $ROOT ".env.local"
 
 if (!(Test-Path $envFile)) {
-    Fail ".env.local nÃ£o encontrado."
+    Fail ".env.local nao encontrado."
 }
 
 Get-Content $envFile | ForEach-Object {
@@ -83,9 +83,9 @@ Get-Content $envFile | ForEach-Object {
     }
 }
 
-if (!$env:ALLTRON_HOST) { Fail "ALLTRON_HOST nÃ£o definido." }
-if (!$env:ALLTRON_USER) { Fail "ALLTRON_USER nÃ£o definido." }
-if (!$env:ALLTRON_PASS) { Fail "ALLTRON_PASS nÃ£o definido." }
+if (!$env:ALLTRON_HOST) { Fail "ALLTRON_HOST nao definido." }
+if (!$env:ALLTRON_USER) { Fail "ALLTRON_USER nao definido." }
+if (!$env:ALLTRON_PASS) { Fail "ALLTRON_PASS nao definido." }
 
 Log "================================================="
 Log "IUMATEC DAILY ALLTRON PIPELINE"
@@ -95,7 +95,7 @@ Log "Alltron host: $($env:ALLTRON_HOST)"
 Log "Log: $LOG"
 
 # --------------------------------------------------
-# DOWNLOAD ATÃ“MICO DOS 4 FEEDS ALLTRON
+# DOWNLOAD ATOMICO DOS 4 FEEDS ALLTRON
 # --------------------------------------------------
 
 $files = @(
@@ -163,18 +163,47 @@ foreach ($file in $files) {
             Remove-Item $temporary -Force
         }
 
-        Fail "Download falhou apos $downloadMaxAttempts tentativas: $file"
+        # --------------------------------------------------
+        # FALLBACK SEGURO PARA CACHE ALLTRON
+        # --------------------------------------------------
+        $cacheMaxAgeHours = 36
+
+        if (!(Test-Path $destination)) {
+            Fail "Download falhou e nao existe cache local: $file"
+        }
+
+        $cachedFile = Get-Item $destination
+        $cachedSize = $cachedFile.Length
+        $cachedAgeHours = ((Get-Date) - $cachedFile.LastWriteTime).TotalHours
+
+        if ($cachedSize -lt 100000) {
+            Fail "Download falhou e cache local e demasiado pequeno: $file ($cachedSize bytes)"
+        }
+
+        if ($cachedAgeHours -gt $cacheMaxAgeHours) {
+            Fail "Download falhou e cache local expirou: $file ($([Math]::Round($cachedAgeHours,2)) horas)"
+        }
+
+        Log "WARNING: download Alltron indisponivel para $file"
+        Log "Fallback: usando cache local valida"
+        Log "Cache: $destination"
+        Log "Cache age: $([Math]::Round($cachedAgeHours,2)) horas"
+        Log "Cache size: $cachedSize bytes"
     }
 
-    $size = (Get-Item $temporary).Length
-
-    Move-Item $temporary $destination -Force
-
-    Log "Download OK: $file - $size bytes"
+    if ($downloadOk) {
+        $size = (Get-Item $temporary).Length
+        Move-Item $temporary $destination -Force
+        Log "Download OK: $file - $size bytes"
+    }
+    else {
+        $size = (Get-Item $destination).Length
+        Log "Cache OK: $file - $size bytes"
+    }
 }
 
 # --------------------------------------------------
-# VERIFICAÃ‡ÃƒO DOS FEEDS
+# VERIFICACAO DOS FEEDS
 # --------------------------------------------------
 
 foreach ($file in $files) {
@@ -182,7 +211,7 @@ foreach ($file in $files) {
     $path = Join-Path $DOWNLOADS $file
 
     if (!(Test-Path $path)) {
-        Fail "Feed obrigatÃ³rio em falta: $file"
+        Fail "Feed obrigatorio em falta: $file"
     }
 
     $item = Get-Item $path
@@ -205,6 +234,29 @@ Run-Node `
 # 2. RECONSTRUIR MASTER / ALSO FAIL-SAFE
 # --------------------------------------------------
 
+# --------------------------------------------------
+# ALSO SFTP DAILY DOWNLOAD
+# Falha de download nao mata imediatamente o pipeline;
+# a validacao de freshness decide se a cache pode ser usada.
+# --------------------------------------------------
+
+Log ""
+Log "ALSO SFTP: attempting daily refresh"
+
+& powershell.exe `
+    -NoProfile `
+    -ExecutionPolicy Bypass `
+    -File ".\scripts\download-also-pricelist.ps1" `
+    2>&1 | Tee-Object -FilePath $LOG -Append
+
+$alsoDownloadExit = $LASTEXITCODE
+
+if ($alsoDownloadExit -eq 0) {
+    Log "ALSO SFTP refresh: OK"
+}
+else {
+    Log "WARNING: ALSO SFTP refresh falhou; validar cache local existente"
+}
 $ALSO_RAW_DIR = Join-Path $ROOT "integrations\also\raw\pricelist-current"
 $ALSO_OVERLAY = Join-Path $ROOT "integrations\also\out\also-safe-supplier-overlay.json"
 $ALSO_MAX_AGE_HOURS = 36
@@ -283,7 +335,7 @@ if ($alsoRawFresh) {
         Fail "ALSO overlay continua mais antigo que a pricelist."
     }
 
-    # FASE B: master final COM overlay recï¿½m-gerado
+    # FASE B: master final COM overlay recem-gerado
     $env:IUMATEC_ALSO_ENABLED = "true"
     Log "ALSO final master: ENABLED"
 
@@ -301,7 +353,7 @@ else {
 Remove-Item Env:IUMATEC_ALSO_ENABLED -ErrorAction SilentlyContinue
 Remove-Item Env:ALSO_PRICELIST_FILE -ErrorAction SilentlyContinue
 # 3. ATUALIZAR STOCK ALLTRON -> SUPABASE
-# PREÃ‡OS DESTE SCRIPT ESTÃƒO DESATIVADOS
+# PRECOS DESTE SCRIPT ESTAO DESATIVADOS
 # --------------------------------------------------
 
 Run-Node `
@@ -322,7 +374,7 @@ Run-Node `
 # PRICE WRITES: DISABLED
 # --------------------------------------------------
 
-if ($alsoEnabled) {
+if ($alsoRawFresh) {
     Run-Node `
         "STEP 3B - ALSO SELECTED STOCK -> SUPABASE" `
         @(
@@ -338,36 +390,39 @@ else {
 }
 
 # --------------------------------------------------
-# 4. PROTEGER MARGEM NO SUPABASE
-# SOMENTE SUBIDAS ATÃ‰ AO MÃNIMO PROTEGIDO
+# 4. PRECO AUTOMATICO DESATIVADO
+# Os preços ficam para auditoria/manual até limpeza
+# das identidades legacy do Supabase.
 # --------------------------------------------------
 
+Log ""
+
 Run-Node `
-    "STEP 4 - PROTECTED PRICES -> SUPABASE" `
+    "STEP 4 - SAFE ACTIVE PRICE FLOOR -> SUPABASE + SHOPIFY" `
     @(
         "--env-file=.env.local",
-        ".\scripts\sync-master-protected-prices-to-supabase.mjs",
+        ".\scripts\safe-active-price-sync.mjs",
         "--apply",
-        "--all",
-        "--protected-only",
-        "--confirm=IUMATEC-PROTECTED-PRICE"
+        "--confirm=IUMATEC-SAFE-ACTIVE-PRICE"
     )
 
+Log "STEP 5 - AUTOMATIC PRICE DECREASES DISABLED (INCREASE-ONLY POLICY)"
+
 # --------------------------------------------------
-# 5. SUPABASE -> SHOPIFY
+# 5A. SUPABASE STOCK -> SHOPIFY
+# STOCK ONLY - PRECO NAO E ALTERADO
 # --------------------------------------------------
 
 Run-Node `
-    "STEP 5 - SUPABASE PRICE + STOCK -> SHOPIFY" `
+    "STEP 5A - SUPABASE STOCK -> SHOPIFY" `
     @(
         "--env-file=.env.local",
         ".\scripts\sync-shopify-price-stock.mjs",
         "--apply",
         "--all",
+        "--stock-only",
         "--confirm=IUMATEC-SUPABASE-SOURCE"
     )
-
-# --------------------------------------------------
 # TERMINADO
 # --------------------------------------------------
 
@@ -378,8 +433,8 @@ Log "================================================="
 Log "Alltron feeds: OK"
 Log "Master catalog: OK"
 Log "Stock Supabase: OK"
-Log "Protected margin prices: OK"
-Log "Shopify prices: OK"
+Log "Safe active margin prices: OK"
+Log "Shopify safe price increases: OK"
 Log "================================================="
 
 exit 0
