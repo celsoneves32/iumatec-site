@@ -628,7 +628,95 @@ function median(values) {
     : (ordered[middle - 1] + ordered[middle]) / 2;
 }
 
+function loadAlltronStockOwnership() {
+  const masterPath = path.join(
+    ROOT,
+    "integrations",
+    "alltron",
+    "out",
+    "iumatec-master-catalog.json",
+  );
+
+  if (!fs.existsSync(masterPath)) {
+    throw new Error("Owner gate: master nao encontrado");
+  }
+
+  const master = JSON.parse(fs.readFileSync(masterPath, "utf8"));
+
+  if (!Array.isArray(master) || master.length < 200000) {
+    throw new Error(
+      `Owner gate: master invalido (${Array.isArray(master) ? master.length : "not-array"})`,
+    );
+  }
+
+  const litmOwners = new Map();
+  const skuOwners = new Map();
+  let alltronOwners = 0;
+
+  function addOwner(map, key, owner) {
+    if (!key) return;
+    const owners = map.get(key) || new Set();
+    owners.add(owner);
+    map.set(key, owners);
+  }
+
+  for (const row of master) {
+    const owner = text(row?.selectedStockSupplier).toLowerCase();
+
+    if (!owner) continue;
+
+    if (owner === "alltron") {
+      alltronOwners++;
+    }
+
+    addOwner(litmOwners, normCatalogKey(row?.litm), owner);
+    addOwner(skuOwners, norm(row?.sku), owner);
+  }
+
+  if (alltronOwners < 100000) {
+    throw new Error(
+      `Owner gate: numero suspeito de Alltron owners (${alltronOwners})`,
+    );
+  }
+
+  console.log(
+    `Master stock ownership: ${alltronOwners.toLocaleString("pt-PT")} Alltron owners`,
+  );
+
+  return {
+    alltronOwners,
+    litmOwners,
+    skuOwners,
+  };
+}
+
+function isAlltronStockOwner(product, ownership) {
+  const catalogKey = normCatalogKey(product?.catalog_key);
+
+  if (catalogKey) {
+    const owners = ownership.litmOwners.get(catalogKey);
+
+    if (owners) {
+      return owners.size === 1 && owners.has("alltron");
+    }
+  }
+
+  const skuKey = norm(product?.sku);
+
+  if (skuKey) {
+    const owners = ownership.skuOwners.get(skuKey);
+
+    if (owners) {
+      return owners.size === 1 && owners.has("alltron");
+    }
+  }
+
+  return false;
+}
 function buildPlan(products, feedRows) {
+  const ownership = loadAlltronStockOwnership();
+  let alltronOwnedSupabaseRows = 0;
+  let ignoredNonAlltronOwner = 0;
   const indexes = buildFeedIndexes(feedRows);
   const duplicateCatalogKeys = [];
   const seenCatalogKeys = new Set();
@@ -644,6 +732,12 @@ function buildPlan(products, feedRows) {
   const matchMethods = {};
 
   for (const product of products) {
+    if (!isAlltronStockOwner(product, ownership)) {
+      ignoredNonAlltronOwner++;
+      continue;
+    }
+
+    alltronOwnedSupabaseRows++;
     const catalogKey = text(product.catalog_key);
     if (!catalogKey) {
       invalid.push({ catalogKey, reason: "missing-catalog-key" });
@@ -794,9 +888,11 @@ function buildPlan(products, feedRows) {
     changes,
     summary: {
       supabaseRows: products.length,
+      alltronOwnedSupabaseRows,
+      ignoredNonAlltronOwner,
       feedRows: feedRows.length,
       matched,
-      matchedRatio: products.length ? matched / products.length : 0,
+      matchedRatio: alltronOwnedSupabaseRows ? matched / alltronOwnedSupabaseRows : 0,
       exact: exact.length,
       changes: changes.length,
       priceChanges: priceChangeRows.length,
@@ -814,10 +910,10 @@ function buildPlan(products, feedRows) {
       stockFromZero: stockFromZero.length,
       supplierAbsentToZero: supplierAbsentChanges.length,
       unmatched: unmatched.length,
-      unmatchedRatio: products.length ? unmatched.length / products.length : 0,
+      unmatchedRatio: alltronOwnedSupabaseRows ? unmatched.length / alltronOwnedSupabaseRows : 0,
       ambiguous: ambiguous.length,
       invalid: invalid.length,
-      invalidRatio: products.length ? invalid.length / products.length : 0,
+      invalidRatio: alltronOwnedSupabaseRows ? invalid.length / alltronOwnedSupabaseRows : 0,
       invalidReasons,
       duplicateCatalogKeys: duplicateCatalogKeys.length,
       medianFeedToCurrentPriceRatio: median(priceRatios),
