@@ -31,8 +31,9 @@ export default function AGBPage() {
       <h2 className="text-xl font-semibold mt-6 mb-2">3. Preise & Versand</h2>
       <div className="text-gray-600 dark:text-gray-400 mb-4 space-y-3">
         <p>
-          Alle Preise verstehen sich in Schweizer Franken (CHF). Die Lieferung
-          erfolgt ausschliesslich innerhalb der Schweiz.
+          Alle im Online-Shop angegebenen Preise sind Endpreise in Schweizer
+          Franken (CHF). Eine Mehrwertsteuer wird nicht ausgewiesen.
+          Die Lieferung erfolgt ausschliesslich innerhalb der Schweiz.
         </p>
         <p>
           Für den Standardversand berechnen wir bei einem Bestellwert unter
@@ -42,15 +43,17 @@ export default function AGBPage() {
         <p>
           Von dieser Versandkostenfreiheit ausgenommen sind Sperrgut,
           besonders schwere oder voluminöse Artikel sowie Lieferungen per
-          Spedition. Für solche Artikel gelten besondere Versandkosten, die vor
-          Abschluss der Bestellung im Checkout angezeigt werden.
+          Spedition. Für solche Lieferungen gilt ein regulärer Versandtarif
+          von CHF 59.–, sofern im Checkout nichts anderes angegeben ist.
+          Die geltenden Versandkosten werden vor Abschluss der Bestellung
+          im Checkout angezeigt.
         </p>
       </div>
 
       <h2 className="text-xl font-semibold mt-6 mb-2">4. Lieferung</h2>
       <div className="text-gray-600 dark:text-gray-400 mb-4 space-y-3">
         <p>
-          Der Standardversand erfolgt in der Regel innerhalb von 3 bis 5
+          Der Standardversand erfolgt in der Regel innerhalb von 1 bis 3
           Werktagen, sofern beim Produkt oder im Checkout nichts anderes
           angegeben ist. Bei Sperrgut- und Speditionslieferungen beträgt die
           Lieferzeit in der Regel 3 bis 7 Werktage.

@@ -207,7 +207,7 @@ export default function SiteHeader() {
           <div className="flex min-w-0 items-center gap-5">
             <span className="inline-flex items-center gap-1.5 font-bold text-white/90">
               <Truck size={13} />
-              Standardversand ab CHF 49.– gratis
+              Standardversand ab CHF 99.– gratis
             </span>
             <span className="hidden items-center gap-1.5 text-white/60 lg:inline-flex">
               <ShieldCheck size={13} />

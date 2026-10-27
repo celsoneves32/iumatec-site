@@ -10,27 +10,30 @@ export default function VersandPage() {
       <h1 className="text-3xl font-semibold mb-4">Versand & Lieferung</h1>
 
       <p className="text-gray-600 dark:text-gray-400 mb-6">
-        Wir liefern schnell und zuverlässig in die ganze Schweiz und nach
-        Liechtenstein.
+        Wir liefern schnell und zuverlässig in die ganze Schweiz.
       </p>
 
       <h2 className="text-xl font-semibold mt-6 mb-2">1. Versandgebiet</h2>
       <p className="text-gray-600 dark:text-gray-400 mb-4">
-        Der Versand erfolgt ausschliesslich innerhalb der Schweiz und nach
-        Liechtenstein.
+        Der Versand erfolgt ausschliesslich innerhalb der Schweiz.
       </p>
 
       <h2 className="text-xl font-semibold mt-6 mb-2">2. Lieferzeit</h2>
       <p className="text-gray-600 dark:text-gray-400 mb-4">
-        Die Lieferung erfolgt in der Regel innerhalb von 2 bis 5 Werktagen nach
-        Bestelleingang, sofern beim jeweiligen Produkt nichts anderes angegeben
-        ist.
+        Der Standardversand erfolgt in der Regel innerhalb von 1 bis 3 Werktagen,
+        sofern beim jeweiligen Produkt oder im Checkout nichts anderes angegeben ist.
+        Bei Sperrgut- und Speditionslieferungen beträgt die Lieferzeit in der Regel
+        3 bis 7 Werktage.
       </p>
 
       <h2 className="text-xl font-semibold mt-6 mb-2">3. Versandkosten</h2>
       <p className="text-gray-600 dark:text-gray-400 mb-4">
-        Die Versandkosten werden im Bestellprozess separat ausgewiesen. Ab einem
-        bestimmten Bestellwert können Lieferungen versandkostenfrei erfolgen.
+        Der Standardversand kostet CHF 9.90. Ab einem Bestellwert von CHF 99.–
+        ist der Standardversand kostenlos. Für Sperrgut, besonders schwere oder
+        voluminöse Artikel sowie Speditionslieferungen gilt ein Versandtarif von
+        CHF 59.–, sofern im Checkout nichts anderes angegeben ist. Die für deine
+        Bestellung geltenden Versandkosten werden vor Abschluss der Bestellung
+        im Checkout angezeigt.
       </p>
 
       <h2 className="text-xl font-semibold mt-6 mb-2">4. Versandpartner</h2>
@@ -70,7 +73,7 @@ export default function VersandPage() {
       </p>
 
       <p className="mt-10 text-gray-500 text-sm">
-        Stand: März 2026 – IUMATEC Schweiz
+        Stand: Oktober 2026 – IUMATEC Schweiz
       </p>
     </main>
   );

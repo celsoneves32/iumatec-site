@@ -589,7 +589,7 @@ function FeatureStrip({
     {
       icon: Truck,
       title: "Versand Schweiz",
-      text: "Standardversand ab CHF 49.– gratis",
+      text: "Standardversand ab CHF 99.– gratis",
     },
     {
       icon: ShieldCheck,

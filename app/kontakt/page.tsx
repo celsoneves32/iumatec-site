@@ -114,7 +114,7 @@ export default function KontaktPage() {
           </p>
 
           <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-3">
-            Online-Shop mit Versand in die ganze Schweiz &amp; Liechtenstein.
+            Online-Shop mit Versand in die ganze Schweiz.
           </p>
         </div>
       </div>

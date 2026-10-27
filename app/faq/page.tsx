@@ -22,8 +22,8 @@ export default function FAQPage() {
             Wie lange dauert die Lieferung?
           </h2>
           <p className="text-gray-600 dark:text-gray-400">
-            Die Lieferung erfolgt normalerweise innerhalb von 2 bis 5 Werktagen
-            innerhalb der Schweiz und nach Liechtenstein.
+            Die Lieferung erfolgt normalerweise innerhalb von 1 bis 3 Werktagen
+            innerhalb der Schweiz.
           </p>
         </section>
 
@@ -90,14 +90,13 @@ export default function FAQPage() {
             Versendet ihr auch ins Ausland?
           </h2>
           <p className="text-gray-600 dark:text-gray-400">
-            Der Versand erfolgt derzeit nur innerhalb der Schweiz und nach
-            Liechtenstein.
+            Der Versand erfolgt derzeit nur innerhalb der Schweiz.
           </p>
         </section>
       </div>
 
       <p className="mt-10 text-gray-500 text-sm">
-        Stand: März 2026 – IUMATEC Schweiz
+        Stand: Oktober 2026 – IUMATEC Schweiz
       </p>
     </main>
   );
