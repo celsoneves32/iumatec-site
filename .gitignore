@@ -13,3 +13,11 @@ integrations/alltron/out/
 integrations/also/raw/
 integrations/also/out/
 integrations/orders/out/
+
+# Local backups / temporary development files
+*.bak
+*.backup-*
+*.before-*
+tmp-*
+.new
+patch-*.cjs
