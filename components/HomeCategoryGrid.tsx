@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -144,13 +145,6 @@ export default function HomeCategoryGrid() {
               hover:shadow-[0_18px_48px_rgba(15,23,42,0.09)]
             "
           >
-            {/* linha superior */}
-            <div
-              className={`absolute inset-x-0 top-0 z-20 h-[3px] ${
-                red ? "bg-red-600" : "bg-neutral-950"
-              }`}
-            />
-
             {/* decoração */}
             <div className="pointer-events-none absolute -right-16 -top-14 h-52 w-52 rounded-full bg-neutral-50" />
 
