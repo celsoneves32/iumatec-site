@@ -1,0 +1,87 @@
+{
+  "generatedAt": "2026-09-27T08:12:48.168Z",
+  "mode": "READ_ONLY_PURCHASE_PLAN",
+  "source": "integrations\\orders\\test\\paid-orders-audit.ready-fixture.json",
+  "rules": {
+    "acceptedQueue": "READY",
+    "reviewExcluded": true,
+    "doneExcluded": true,
+    "requiresMatchedItems": true,
+    "rejectsAmbiguousItems": true,
+    "requiresSupplier": true,
+    "requiresPositivePurchaseCost": true,
+    "directShipRequiresDestination": true,
+    "externalPurchaseExecuted": false,
+    "shopifyModified": false,
+    "stockModified": false,
+    "fulfillmentModified": false
+  },
+  "summary": {
+    "sourceOrders": 1,
+    "readyOrders": 1,
+    "reviewOrders": 0,
+    "doneOrders": 0,
+    "purchaseOrders": 1,
+    "readyForPurchase": 1,
+    "blockedPurchaseOrders": 0,
+    "blockedSourceOrders": 0,
+    "suppliers": {
+      "alltron": {
+        "purchaseOrders": 1,
+        "items": 1,
+        "purchaseCostNet": 1.03,
+        "purchaseCostGross": 1.11,
+        "readyForPurchase": 1,
+        "blocked": 0
+      }
+    }
+  },
+  "blocked": [],
+  "purchaseOrders": [
+    {
+      "purchaseOrderRef": "IUMATEC-1002-ALLTRON",
+      "status": "READY_FOR_PURCHASE",
+      "supplier": "alltron",
+      "directShip": false,
+      "dispatchMode": "STANDARD_SUPPLIER_FLOW",
+      "sourceOrder": {
+        "id": "gid://shopify/Order/13361091969408",
+        "legacyResourceId": "13361091969408",
+        "name": "#1002",
+        "createdAt": "2026-08-09T23:00:13Z",
+        "financialStatus": "PAID",
+        "fulfillmentStatus": "ON_HOLD",
+        "queue": "READY",
+        "total": {
+          "amount": "12.85",
+          "currency": "CHF"
+        },
+        "destination": null
+      },
+      "itemCount": 1,
+      "purchaseCostNet": 1.03,
+      "purchaseCostGross": 1.11,
+      "items": [
+        {
+          "lineItemId": "gid://shopify/LineItem/38087608435072",
+          "title": "Fellowes Mauspad blau",
+          "quantity": 1,
+          "shopifySku": "BU FEL MAUSPAD BLAU",
+          "shopifyVariantId": "gid://shopify/ProductVariant/58508651790720",
+          "supplier": "alltron",
+          "supplierSku": "264121",
+          "litm": "264121",
+          "ean": "77511297007",
+          "costNetUnit": 1.03,
+          "costGrossUnit": 1.11,
+          "lineCostNet": 1.03,
+          "lineCostGross": 1.11,
+          "supplierStock": 51,
+          "directShip": false,
+          "selectionReason": "lowest-effective-cost-in-stock",
+          "matchedBy": "sku"
+        }
+      ]
+    }
+  ]
+}

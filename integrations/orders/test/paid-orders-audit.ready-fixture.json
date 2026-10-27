@@ -1,0 +1,60 @@
+{
+  "generatedAt": "2026-09-27T07:45:32.954Z",
+  "mode": "read-only",
+  "shopifyApiVersion": "2025-04",
+  "summary": {
+    "paidOrdersRead": 1,
+    "readyOrders": 0,
+    "reviewOrders": 1,
+    "doneOrders": 0,
+    "lineItems": 1,
+    "matchedProducts": 1,
+    "unmatchedProducts": 0,
+    "ambiguousProducts": 0,
+    "selectedAlltron": 1,
+    "selectedNone": 0
+  },
+  "orders": [
+    {
+      "id": "gid://shopify/Order/13361091969408",
+      "legacyResourceId": "13361091969408",
+      "name": "#1002",
+      "queue": "READY",
+      "createdAt": "2026-08-09T23:00:13Z",
+      "financialStatus": "PAID",
+      "fulfillmentStatus": "ON_HOLD",
+      "total": {
+        "amount": "12.85",
+        "currency": "CHF"
+      },
+      "destination": null,
+      "items": [
+        {
+          "lineItemId": "gid://shopify/LineItem/38087608435072",
+          "title": "Fellowes Mauspad blau",
+          "quantity": 1,
+          "shopifySku": "BU FEL MAUSPAD BLAU",
+          "shopifyVariantId": "gid://shopify/ProductVariant/58508651790720",
+          "barcode": "77511297007",
+          "matched": true,
+          "ambiguous": false,
+          "matchedBy": "sku",
+          "supplier": {
+            "selected": "alltron",
+            "costNet": 1.03,
+            "costGross": 1.11,
+            "stock": 51,
+            "directShip": false,
+            "reason": "lowest-effective-cost-in-stock"
+          },
+          "master": {
+            "litm": "264121",
+            "sku": "BU FEL MAUSPAD BLAU",
+            "ean": "77511297007",
+            "masterPrice": 3.7
+          }
+        }
+      ]
+    }
+  ]
+}

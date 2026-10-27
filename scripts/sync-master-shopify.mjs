@@ -510,18 +510,21 @@ function variablesFor(p, locationId) {
         ? num(p.ecpr)
         : num(p.price);
 
+  const minimumSafePrice = num(p.minimumSafePrice);
+
   if (
-    selectedSupplier === "also" &&
-    (
-      price <= 0 ||
-      num(p.minimumSafePrice) <= 0 ||
-      price + 0.001 < num(p.minimumSafePrice)
-    )
+    price <= 0 ||
+    minimumSafePrice <= 0 ||
+    price + 0.001 < minimumSafePrice
   ) {
     throw new Error(
-      `Unsafe ALSO selling price: ${price}; minimumSafePrice=${num(
-        p.minimumSafePrice,
-      )}`,
+      `Unsafe selling price: supplier=${selectedSupplier || "alltron"}; price=${price}; minimumSafePrice=${minimumSafePrice}`,
+    );
+  }
+
+  if (p.packUnitReviewRequired === true) {
+    throw new Error(
+      "Blocked: packUnitReviewRequired=true",
     );
   }
   const stock = Math.max(0, Math.floor(num(p.stockQty ?? p.stock)));
@@ -858,6 +861,79 @@ async function main() {
     return sku && !p.alreadyLinkedToShopify && !state.success[sku];
   });
 
+  const pricingSafetyReview = [];
+
+  pending = pending.filter((p) => {
+    const selectedSupplier = text(p.selectedSupplier).toLowerCase();
+
+    const price =
+      selectedSupplier === "also"
+        ? num(p.price)
+        : num(p.ecpr) > 0
+          ? num(p.ecpr)
+          : num(p.price);
+
+    const minimumSafePrice = num(p.minimumSafePrice);
+
+    const reason =
+      price <= 0
+        ? "non-positive-price"
+        : minimumSafePrice <= 0
+          ? "missing-minimum-safe-price"
+          : price + 0.001 < minimumSafePrice
+            ? "price-below-minimum-safe-price"
+            : p.packUnitReviewRequired === true
+              ? "pack-unit-review-required"
+              : "";
+
+    if (!reason) {
+      return true;
+    }
+
+    pricingSafetyReview.push({
+      sku: text(p.sku),
+      title: text(p.fullTitle || p.title || p.sku),
+      selectedSupplier: text(p.selectedSupplier),
+      price,
+      minimumSafePrice,
+      packUnitReviewRequired: p.packUnitReviewRequired === true,
+      reason,
+    });
+
+    return false;
+  });
+
+  if (pricingSafetyReview.length > 0) {
+    const reviewFile = path.join(
+      OUT_DIR,
+      "pricing-safety-review-latest.json",
+    );
+
+    fs.writeFileSync(
+      reviewFile,
+      JSON.stringify(
+        {
+          generatedAt: new Date().toISOString(),
+          count: pricingSafetyReview.length,
+          products: pricingSafetyReview,
+        },
+        null,
+        2,
+      ),
+      "utf8",
+    );
+
+    console.log(
+      "Pricing safety blocked/review:",
+      pricingSafetyReview.length,
+    );
+
+    console.log(
+      "Pricing safety report:",
+      reviewFile,
+    );
+  }
+
   const alsoProductTypeReview = [];
 
   pending = pending.filter((p) => {
@@ -934,9 +1010,11 @@ async function main() {
 
   console.log(`Location: ${location.name}`);
   console.log(
-    publication
-      ? `Publication: ${publication.name}`
-      : "Publication not resolved; products will still be created.",
+    DRY_RUN
+      ? "Publication: skipped (dry run)"
+      : publication
+        ? `Publication: ${publication.name}`
+        : "Publication not resolved; products will still be created.",
   );
 
   let cursor = 0;

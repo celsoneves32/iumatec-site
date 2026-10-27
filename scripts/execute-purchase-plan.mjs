@@ -1,4 +1,4 @@
-﻿import fs from "node:fs";
+import fs from "node:fs";
 import path from "node:path";
 
 import {
@@ -8,6 +8,10 @@ import {
 import {
   prepareAlltronSubmission,
 } from "../integrations/suppliers/alltron-submission.mjs";
+
+import {
+  prepareAlsoSubmission,
+} from "../integrations/suppliers/also-submission.mjs";
 
 import {
   revalidateAlltronPurchase,
@@ -427,15 +431,22 @@ for (const purchaseOrder of sourceOrders) {
 
     /*
      * Etapa 2:
-     * Cada fornecedor necessita do seu adapter.
+     * Cada fornecedor usa o seu adapter.
      *
-     * Por enquanto s? ALLTRON est? implementado.
-     * ALSO ser? ligado depois.
+     * Continua DRY RUN:
+     * - zero network calls
+     * - zero supplier writes
+     * - zero Shopify writes
+     * - zero payments
      */
-    if (
-      result.supplier !==
-      "alltron"
-    ) {
+    const adapterFactory =
+      result.supplier === "alltron"
+        ? prepareAlltronSubmission
+        : result.supplier === "also"
+          ? prepareAlsoSubmission
+          : null;
+
+    if (!adapterFactory) {
       blockedOrders.push({
         ...result,
 
@@ -460,16 +471,21 @@ for (const purchaseOrder of sourceOrders) {
     /*
      * Etapa 3:
      * Supplier Submission ->
-     * Alltron DRY-RUN Adapter.
+     * supplier-specific DRY-RUN Adapter.
      */
     const supplierAdapter =
-      prepareAlltronSubmission(
+      adapterFactory(
         supplierSubmission,
       );
 
+    const expectedAdapterStatus =
+      result.supplier === "alltron"
+        ? "READY_FOR_ALLTRON_DRY_RUN"
+        : "READY_FOR_ALSO_DRY_RUN";
+
     if (
       supplierAdapter.status !==
-      "READY_FOR_ALLTRON_DRY_RUN"
+      expectedAdapterStatus
     ) {
       const adapterErrors =
         Array.isArray(
@@ -477,6 +493,9 @@ for (const purchaseOrder of sourceOrders) {
         )
           ? supplierAdapter.validationErrors
           : [];
+
+      const adapterPrefix =
+        `${result.supplier || "unknown"}-adapter`;
 
       blockedOrders.push({
         ...result,
@@ -489,14 +508,14 @@ for (const purchaseOrder of sourceOrders) {
 
           ...adapterErrors.map(
             (error) =>
-              `alltron-adapter:${error}`,
+              `${adapterPrefix}:${error}`,
           ),
 
           ...(
             adapterErrors.length
               ? []
               : [
-                  "alltron-adapter:blocked-without-error",
+                  `${adapterPrefix}:blocked-without-error`,
                 ]
           ),
         ],
@@ -509,28 +528,9 @@ for (const purchaseOrder of sourceOrders) {
     }
 
     /*
-     * Passou por toda a cadeia segura.
-     *
-     * Continua sem:
-     * - network calls
-     * - submiss?o ao fornecedor
-     * - Shopify writes
-     * - stock writes
-     * - fulfillment
-     * - pagamentos
-     */
-    /*
-     * Etapa 4:
      * IDEMPOTENCY GATE
      *
-     * Uma Purchase Order que j? tenha sido
-     * registada como SUBMITTED nunca pode
-     * voltar a avan?ar para submiss?o.
-     *
-     * Neste momento:
-     * - ledger READ ONLY
-     * - zero network calls
-     * - zero supplier writes
+     * Mantem-se igual para ALLTRON e ALSO.
      */
     if (
       submittedPurchaseOrderRefs.has(
@@ -553,6 +553,54 @@ for (const purchaseOrder of sourceOrders) {
 
         idempotency: {
           duplicate: true,
+          ledgerFile:
+            path.relative(
+              ROOT,
+              IDEMPOTENCY_FILE,
+            ),
+        },
+      });
+
+      continue;
+    }
+
+    /*
+     * ALSO ainda nao tem feed tecnico ligado.
+     *
+     * Por isso:
+     * - nao existe revalidacao automatica ALSO
+     * - nao existe submissao automatica
+     * - fica pronto apenas para FastOrder manual
+     */
+    if (result.supplier === "also") {
+      executionOrders.push({
+        ...result,
+
+        executionStatus:
+          supplierAdapter.status,
+
+        supplierSubmission,
+        supplierAdapter,
+
+        supplierRevalidation:
+          null,
+
+        manualOrder: {
+          mode:
+            "ALSO_FASTORDER",
+
+          exportScript:
+            "scripts/export-also-fastorder.mjs",
+
+          identifier:
+            "EAN",
+
+          supplierSubmission:
+            false,
+        },
+
+        idempotency: {
+          duplicate: false,
           ledgerFile:
             path.relative(
               ROOT,
