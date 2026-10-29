@@ -52,7 +52,9 @@ export default function CartDrawer() {
     };
   }, [isDrawerOpen, closeDrawer]);
 
-  const freeShipping = total >= 0;
+  const freeShipping = total >= 99;
+  const estimatedShipping = freeShipping ? 0 : 9.90;
+  const estimatedTotal = total + estimatedShipping;
   return (
     <>
       <div
@@ -238,7 +240,7 @@ export default function CartDrawer() {
           <div className="mb-3 rounded-3xl border border-green-100 bg-green-50 p-4">
             <div className="flex items-center justify-between gap-3">
               <p className="text-sm font-extrabold text-green-800">
-                {freeShipping ? "Gratis Versand aktiviert" : "Fast geschafft"}
+                {freeShipping ? "Gratis Versand aktiviert" : "Standardversand CHF 9.90"}
               </p>
               <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-green-700">
                 Schweiz
@@ -257,12 +259,12 @@ export default function CartDrawer() {
 
             <div className="flex items-center justify-between text-sm text-neutral-600">
               <span>Lieferung</span>
-              <span className="font-semibold text-green-700">GRATIS</span>
+              <span className={freeShipping ? "font-semibold text-green-700" : "font-semibold text-neutral-900"}>{freeShipping ? "GRATIS" : formatMoney(estimatedShipping, currencyCode)}</span>
             </div>
 
             <div className="flex items-center justify-between border-t border-neutral-200 pt-3 text-lg font-extrabold text-neutral-950">
-              <span>Total</span>
-              <span>{formatMoney(total, currencyCode)}</span>
+              <span>Voraussichtliches Total</span>
+              <span>{formatMoney(estimatedTotal, currencyCode)}</span>
             </div>
           </div>
 
