@@ -6,6 +6,10 @@ import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   BadgePercent,
+  Bike,
+  Camera,
+  Plug,
+  Watch,
   ChevronDown,
   ChevronRight,
   Gamepad2,
@@ -73,6 +77,10 @@ const quickCategories = [
     href: "/produkte?category=Smart%20Home&subcategory=Kameras",
     icon: House,
   },
+  { label: "Pro AV & Multimedia", href: "/produkte?category=Pro%20AV%20%26%20Multimedia", icon: Camera },
+  { label: "Sport- & Freizeituhren", href: "/produkte?category=Sport-%20%26%20Freizeituhren", icon: Watch },
+  { label: "Mobilität", href: "/produkte?category=Mobilit%C3%A4t", icon: Bike },
+  { label: "eMobility", href: "/produkte?category=eMobility", icon: Plug },
 ];
 
 const CATEGORY_GROUPS: CategoryGroup[] = [
@@ -155,6 +163,35 @@ const CATEGORY_GROUPS: CategoryGroup[] = [
       { label: "Kameras", href: "/produkte?category=Smart%20Home&subcategory=Kameras" },
       { label: "Steckdosen", href: "/produkte?category=Smart%20Home&subcategory=Steckdosen" },
       { label: "Beleuchtung", href: "/produkte?category=Smart%20Home&subcategory=Beleuchtung" },
+    ],
+  },
+  {
+    name: "Pro AV & Multimedia",
+    href: "/produkte?category=Pro%20AV%20%26%20Multimedia",
+    items: [
+      { label: "Kopfhörer & Headsets", href: "/produkte?category=Pro%20AV%20%26%20Multimedia&subcategory=Kopfh%C3%B6rer%20%26%20Headsets" },
+      { label: "Kamerareinigung", href: "/produkte?category=Pro%20AV%20%26%20Multimedia&subcategory=Kamerareinigung" },
+    ],
+  },
+  {
+    name: "Sport- & Freizeituhren",
+    href: "/produkte?category=Sport-%20%26%20Freizeituhren",
+    items: [
+      { label: "Smartwatches", href: "/produkte?category=Sport-%20%26%20Freizeituhren&subcategory=Smartwatches" },
+    ],
+  },
+  {
+    name: "Mobilität",
+    href: "/produkte?category=Mobilit%C3%A4t",
+    items: [
+      { label: "Velopumpen", href: "/produkte?category=Mobilit%C3%A4t&subcategory=Velopumpen" },
+    ],
+  },
+  {
+    name: "eMobility",
+    href: "/produkte?category=eMobility",
+    items: [
+      { label: "Ladekabel", href: "/produkte?category=eMobility&subcategory=Ladekabel" },
     ],
   },
 ];
