@@ -2,7 +2,13 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
+import { NEW_CATEGORY_GROUPS } from "@/config/newCategoryGroups";
 import {
+  Bike,
+  Camera,
+  Plug,
+  Watch,
   Cpu,
   HardDrive,
   House,
@@ -113,12 +119,24 @@ const CATEGORIES: CategoryItem[] = [
     imagePosition: "100% 100%",
     imageSize: "150%",
   },
+  ...NEW_CATEGORY_GROUPS.map((group, i) => ({
+    title: group.name,
+    subtitle: group.items.slice(0, 3).map(sub => sub.label).join(", "),
+    href: group.href,
+    image: ["/images/categories/iumatec-pro-av-multimedia.jpg","/images/categories/iumatec-sport-freizeituhren.jpg","/images/categories/iumatec-mobilitaet.jpg","/images/categories/iumatec-emobility.jpg"][i],
+    icon: [Camera, Watch, Bike, Plug][i] ?? Camera,
+    accent: i % 2 === 0 ? ("red" as const) : ("black" as const),
+    imagePosition: "100% 100%",
+    imageSize: "150%",
+  })),
 ];
 
 export default function HomeCategoryGrid() {
+  const [page, setPage] = useState(0);
   return (
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-      {CATEGORIES.map((item) => {
+    <div>
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      {CATEGORIES.slice(page * 8, (page + 1) * 8).map((item) => {
         const Icon = item.icon;
         const red = item.accent === "red";
 
@@ -181,30 +199,32 @@ export default function HomeCategoryGrid() {
               </div>
             </div>
 
-            {/* produto recortado da arte */}
-            <div className="pointer-events-none absolute bottom-0 right-0 z-10 h-[88%] w-[46%] overflow-hidden">
-              <div
-                className="
-                  absolute
-                  inset-0
-                  bg-no-repeat
-                  transition
-                  duration-500
-                  group-hover:scale-[1.025]
-                "
-                style={{
-                  backgroundImage: `url("${item.image}")`,
-                  backgroundPosition: item.imagePosition,
-                  backgroundSize: item.imageSize,
-                }}
-              />
-            </div>
+            {item.image ? (
+              <div className="pointer-events-none absolute bottom-0 right-0 z-10 h-[88%] w-[46%] overflow-hidden">
+                <div className="absolute inset-0 bg-no-repeat transition duration-500 group-hover:scale-[1.025]"
+                  style={{backgroundImage: `url("${item.image}")`,backgroundPosition:item.imagePosition,backgroundSize:item.imageSize}} />
+              </div>
+            ) : (
+              <div className="pointer-events-none absolute bottom-4 right-3 z-10 flex h-40 w-40 items-center justify-center rounded-full bg-red-50/70 text-red-200/80 transition duration-300 group-hover:scale-105">
+                <Icon size={104} strokeWidth={1.1}/>
+              </div>
+            )}
 
             {/* transição suave entre texto e produto */}
             <div className="pointer-events-none absolute inset-y-0 left-[50%] z-[15] w-14 bg-gradient-to-r from-white via-white/90 to-transparent" />
           </Link>
         );
       })}
+      </div>
+      <nav className="mt-6 flex items-center justify-center gap-3" aria-label="Kategorieseiten">
+        {[0,1].map(index => (
+          <button key={index} type="button" onClick={() => setPage(index)}
+            aria-label={`Kategorien Seite ${index+1}`}
+            aria-current={page===index ? "page" : undefined}
+            className={`h-3 rounded-full transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-600 ${page===index?"w-8 bg-red-600":"w-3 bg-neutral-300 hover:bg-neutral-400"}`}
+          />
+        ))}
+      </nav>
     </div>
   );
 }

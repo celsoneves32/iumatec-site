@@ -4,6 +4,10 @@ import {
   BadgeCheck,
   Boxes,
   ChevronRight,
+  Bike,
+  Camera,
+  Plug,
+  Watch,
   Cpu,
   HardDrive,
   Headphones,
@@ -22,6 +26,7 @@ import {
 import ProductCard from "@/components/ProductCard";
 import HomepageCarousel from "@/components/HomepageCarousel";
 import HomeCategoryGrid from "@/components/HomeCategoryGrid";
+import { NEW_CATEGORY_GROUPS } from "@/config/newCategoryGroups";
 
 import {
   getSellableCatalogTotalCached,
@@ -824,6 +829,12 @@ export default async function HomePage() {
       product:
         smartHome.products.find(isCardReady),
     },
+    ...NEW_CATEGORY_GROUPS.map((group, i) => ({
+      title: group.name,
+      subtitle: group.items.slice(0, 3).map((item) => item.label).join(", "),
+      href: group.href,
+      icon: [Camera, Watch, Bike, Plug][i] ?? Camera,
+    })),
   ];
 
   const topSelection = uniqueProducts([
@@ -878,65 +889,18 @@ export default async function HomePage() {
         <div className="mx-auto max-w-[1440px] px-4 py-5 xl:px-6 xl:py-6">
           <div className="grid gap-4 xl:grid-cols-[242px_minmax(0,1fr)]">
             <aside className="hidden overflow-hidden rounded-[24px] border border-neutral-200 bg-white xl:block">
-              <div className="flex items-center justify-between border-b border-neutral-200 px-5 py-4">
-                <div>
-                  <div className="text-[10px] font-black uppercase tracking-[0.16em] text-red-600">
-                    Sortiment
-                  </div>
-
-                  <div className="mt-1 text-sm font-black text-neutral-950">
-                    Beliebte Kategorien
-                  </div>
-                </div>
-
-                <Boxes
-                  size={18}
-                  className="text-neutral-400"
-                />
-              </div>
-
-              <nav className="p-2.5">
-                {categoryTiles.map(
-                  ({
-                    title,
-                    href,
-                    icon: Icon,
-                  }) => (
-                    <Link
-                      key={title}
-                      href={href}
-                      className="group flex items-center gap-3 rounded-xl px-3 py-3 text-[13px] font-bold text-neutral-700 transition hover:bg-neutral-50 hover:text-red-600"
-                    >
-                      <Icon
-                        size={17}
-                        strokeWidth={1.8}
-                        className="shrink-0"
-                      />
-
-                      <span className="flex-1">
-                        {title}
-                      </span>
-
-                      <ChevronRight
-                        size={14}
-                        className="text-neutral-300 transition group-hover:translate-x-0.5 group-hover:text-red-500"
-                      />
-                    </Link>
-                  ),
-                )}
-
-                <Link
-                  href="/produkte"
-                  className="mt-2 flex items-center gap-3 rounded-xl bg-neutral-950 px-3 py-3.5 text-[13px] font-black text-white transition hover:bg-red-600"
-                >
-                  <Boxes size={17} />
-
-                  <span className="flex-1">
-                    Alle Produkte
-                  </span>
-
-                  <ArrowRight size={14} />
-                </Link>
+              <nav className="p-1.5" aria-label="Sortiment">
+                {categoryTiles.map(({title,href,icon:Icon}) => {
+                  return (
+                    <div key={title}>
+                      <Link href={href} className="group flex min-h-[50px] items-center gap-2.5 rounded-lg px-2.5 py-2 text-[16px] font-bold leading-5 text-neutral-800 transition hover:bg-neutral-50 hover:text-red-600">
+                        <Icon size={21} strokeWidth={1.8} className="shrink-0" />
+                        <span className="flex-1">{title}</span>
+                        <ChevronRight size={16} className="text-neutral-300 transition group-hover:translate-x-0.5 group-hover:text-red-500" />
+                      </Link>
+                    </div>
+                  );
+                })}
               </nav>
             </aside>
 
