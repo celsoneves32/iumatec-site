@@ -33,6 +33,8 @@ import {
 } from "lucide-react";
 
 import HeaderAccount from "@/components/HeaderAccount";
+import SeasonalCampaignBar from "@/components/SeasonalCampaignBar";
+import { NEW_CATEGORY_GROUPS } from "@/config/newCategoryGroups";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { useCompare } from "@/context/CompareContext";
@@ -60,7 +62,7 @@ const quickCategories = [
     href: "/produkte?category=Peripherie",
     icon: Monitor,
   },
-  { label: "Netzwerk", href: "/produkte?category=Netzwerk&subcategory=Router", icon: Wifi },
+  { label: "Netzwerk", href: "/produkte?category=Netzwerk", icon: Wifi },
   { label: "Mobile", href: "/produkte?category=Mobile", icon: Smartphone },
   {
     label: "Office & Business",
@@ -120,7 +122,7 @@ const CATEGORY_GROUPS: CategoryGroup[] = [
   },
   {
     name: "Netzwerk",
-    href: "/produkte?category=Netzwerk&subcategory=Router",
+    href: "/produkte?category=Netzwerk",
     items: [
       { label: "Router", href: "/produkte?category=Netzwerk&subcategory=Router" },
       { label: "Switches", href: "/produkte?category=Netzwerk&subcategory=Switches" },
@@ -165,35 +167,7 @@ const CATEGORY_GROUPS: CategoryGroup[] = [
       { label: "Beleuchtung", href: "/produkte?category=Smart%20Home&subcategory=Beleuchtung" },
     ],
   },
-  {
-    name: "Pro AV & Multimedia",
-    href: "/produkte?category=Pro%20AV%20%26%20Multimedia",
-    items: [
-      { label: "Kopfhörer & Headsets", href: "/produkte?category=Pro%20AV%20%26%20Multimedia&subcategory=Kopfh%C3%B6rer%20%26%20Headsets" },
-      { label: "Kamerareinigung", href: "/produkte?category=Pro%20AV%20%26%20Multimedia&subcategory=Kamerareinigung" },
-    ],
-  },
-  {
-    name: "Sport- & Freizeituhren",
-    href: "/produkte?category=Sport-%20%26%20Freizeituhren",
-    items: [
-      { label: "Smartwatches", href: "/produkte?category=Sport-%20%26%20Freizeituhren&subcategory=Smartwatches" },
-    ],
-  },
-  {
-    name: "Mobilität",
-    href: "/produkte?category=Mobilit%C3%A4t",
-    items: [
-      { label: "Velopumpen", href: "/produkte?category=Mobilit%C3%A4t&subcategory=Velopumpen" },
-    ],
-  },
-  {
-    name: "eMobility",
-    href: "/produkte?category=eMobility",
-    items: [
-      { label: "Ladekabel", href: "/produkte?category=eMobility&subcategory=Ladekabel" },
-    ],
-  },
+  ...NEW_CATEGORY_GROUPS,
 ];
 
 function CounterBadge({ value, dark = false }: { value: number; dark?: boolean }) {
@@ -487,35 +461,7 @@ export default function SiteHeader() {
         </div>
       ) : null}
 
-      <div className="hidden border-b border-neutral-200 bg-white xl:block">
-        <nav
-          className="mx-auto flex max-w-[1440px] items-center gap-1 overflow-x-auto px-6 py-2"
-          aria-label="Hauptkategorien"
-        >
-          {quickCategories.map((category) => {
-            const Icon = category.icon;
-
-            return (
-              <Link
-                key={category.href}
-                href={category.href}
-                className="inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-[12px] font-black text-neutral-700 transition hover:bg-neutral-100 hover:text-red-600"
-              >
-                <Icon size={15} strokeWidth={1.9} />
-                {category.label}
-              </Link>
-            );
-          })}
-
-          <Link
-            href="/produkte?sort=price-asc"
-            className="ml-auto inline-flex shrink-0 items-center gap-2 rounded-lg bg-red-50 px-4 py-2 text-[12px] font-black text-red-700 transition hover:bg-red-100"
-          >
-            <BadgePercent size={15} />
-            Angebote
-          </Link>
-        </nav>
-      </div>
+      <SeasonalCampaignBar />
 
       {mobileOpen ? (
         <div className="border-b border-neutral-200 bg-white px-4 py-4 shadow-[0_20px_50px_rgba(15,23,42,.12)] xl:hidden">

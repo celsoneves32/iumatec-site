@@ -12,6 +12,7 @@ import {
 import { useCart } from "@/context/CartContext";
 import { useCompare } from "@/context/CompareContext";
 import { useWishlist } from "@/context/WishlistContext";
+import { getActiveBlackNovemberDeal } from "@/lib/blackNovemberPromotions";
 
 type Props = {
   product: {
@@ -116,8 +117,14 @@ export default function ProductCard({ product }: Props) {
   const { toggleCompare, isInCompare } = useCompare();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const [imageFailed, setImageFailed] = useState(false);
+  const [addingToCart, setAddingToCart] = useState(false);
 
   const sku = product.sku || product.slug;
+  const blackNovemberDeal = getActiveBlackNovemberDeal({
+    sku: product.sku,
+    merchandiseId: product.merchandiseId,
+    price: product.price,
+  });
   const compared = isInCompare(sku);
   const wished = isInWishlist(sku);
   const stockQty = Number(product.stockQty || 0);
@@ -150,6 +157,14 @@ export default function ProductCard({ product }: Props) {
           </span>
         )}
       </div>
+
+      {blackNovemberDeal ? (
+        <div className="absolute left-3 top-12 z-20">
+          <span className="inline-flex rounded-md bg-red-700 px-2.5 py-1.5 text-xs font-black tracking-wide text-white shadow-md">
+            BLACK NOVEMBER −{blackNovemberDeal.percent}%
+          </span>
+        </div>
+      ) : null}
 
       <div className="absolute right-3 top-3 z-20 flex flex-col gap-2 opacity-100 transition md:opacity-0 md:group-hover:opacity-100">
         <button
@@ -281,6 +296,14 @@ export default function ProductCard({ product }: Props) {
 
         <div className="mt-4 flex items-end justify-between gap-3">
           <div>
+            {blackNovemberDeal ? (
+              <div className="mb-1 flex flex-wrap items-center gap-x-2 text-[11px]">
+                <span className="text-neutral-500 line-through">
+                  {formatPrice(blackNovemberDeal.previousPrice)}
+                </span>
+                <span className="font-black text-red-700">Black November Preis</span>
+              </div>
+            ) : null}
             <div className="text-[21px] font-black tracking-[-0.025em] text-neutral-950">
               {formatPrice(product.price)}
             </div>
@@ -294,16 +317,16 @@ export default function ProductCard({ product }: Props) {
           <button
             type="button"
             disabled={!canBuy || loading}
-            onClick={() =>
-              canBuy
-                ? void addItem({
-                    merchandiseId: product.merchandiseId,
-                    productHandle: product.productHandle,
-                    quantity: 1,
-                    imageUrl: product.image ?? null,
-                  })
-                : undefined
-            }
+            onClick={() => {
+              if (!canBuy || loading || addingToCart) return;
+              setAddingToCart(true);
+              void addItem({
+                merchandiseId: product.merchandiseId,
+                productHandle: product.productHandle,
+                quantity: 1,
+                imageUrl: product.image ?? null,
+              }).finally(() => setAddingToCart(false));
+            }}
             className={`flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-[13px] font-black transition ${
               canBuy
                 ? "bg-red-600 text-white hover:bg-neutral-950"
@@ -311,7 +334,7 @@ export default function ProductCard({ product }: Props) {
             }`}
           >
             <ShoppingCart size={16} />
-            {loading
+            {addingToCart
               ? "Wird hinzugefügt …"
               : canBuy
                 ? "In den Warenkorb"
