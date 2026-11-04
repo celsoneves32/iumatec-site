@@ -8,6 +8,7 @@ import {
 } from "react";
 
 import ProductCard from "@/components/ProductCard";
+import { NEW_CATEGORY_GROUPS } from "@/config/newCategoryGroups";
 
 export type CatalogProduct = {
   sku: string;
@@ -64,6 +65,18 @@ type Shortcut = {
 };
 
 const PAGE_SIZE = 24;
+
+const CATALOG_CATEGORIES = [
+  "Computer",
+  "PC-Komponenten",
+  "Peripherie",
+  "Netzwerk",
+  "Mobile",
+  "Office & Business",
+  "Datenspeicher",
+  "Smart Home",
+  ...NEW_CATEGORY_GROUPS.map((group) => group.name),
+];
 
 type PaginationItem =
   | number
@@ -187,9 +200,9 @@ const CATEGORY_SHORTCUTS: Record<
     },
 
     {
-      label: "Computer-Zubehör",
+      label: "Computer-ZubehÃ¶r",
       category: "Computer",
-      subcategory: "Computer-Zubehör",
+      subcategory: "Computer-ZubehÃ¶r",
     },
   ],
 
@@ -239,9 +252,9 @@ const CATEGORY_SHORTCUTS: Record<
     },
 
     {
-      label: "Mäuse",
+      label: "MÃ¤use",
       category: "Peripherie",
-      subcategory: "Mäuse",
+      subcategory: "MÃ¤use",
     },
 
     {
@@ -309,9 +322,9 @@ const CATEGORY_SHORTCUTS: Record<
     },
 
     {
-      label: "Mobile Zubehör",
+      label: "Mobile ZubehÃ¶r",
       category: "Mobile",
-      subcategory: "Mobile Zubehör",
+      subcategory: "Mobile ZubehÃ¶r",
     },
   ],
 
@@ -401,8 +414,8 @@ function defaultSubcategoryForCategory(
    * Quando o cliente clica em "Mobile",
    * queremos mostrar TELEFONES primeiro.
    *
-   * Assim evitamos abrir logo cartões,
-   * suportes, capas e acessórios baratos.
+   * Assim evitamos abrir logo cartÃµes,
+   * suportes, capas e acessÃ³rios baratos.
    */
   if (category === "Mobile") {
     return "Smartphones";
@@ -461,7 +474,7 @@ const formatCount = (
 
   return `${sign}${digits.replace(
     /\B(?=(\d{3})+(?!\d))/g,
-    "’",
+    "â€™",
   )}`;
 };
 
@@ -541,7 +554,7 @@ export default function ProductsCatalogClient({
   const requestId = useRef(0);
 
   /* =======================================================
-     PÁGINA INICIAL A PARTIR DO URL
+     PÃGINA INICIAL A PARTIR DO URL
      ======================================================= */
 
   useEffect(() => {
@@ -897,7 +910,7 @@ export default function ProductsCatalogClient({
   }, [requestUrl]);
 
   /* =======================================================
-     PAGINAÇÃO
+     PAGINAÃ‡ÃƒO
      ======================================================= */
 
   const totalPages = Math.max(
@@ -1045,8 +1058,26 @@ export default function ProductsCatalogClient({
   }
 
   /* =======================================================
-     ATALHOS VISÍVEIS
+     ATALHOS VISÃVEIS
      ======================================================= */
+
+  const categoryFacets = useMemo(() => {
+    const fromCatalog = data.facets.categories;
+    const byLabel = new Map(
+      fromCatalog.map((item) => [item.label, item]),
+    );
+
+    const preferred = CATALOG_CATEGORIES.map((label) => ({
+      label,
+      count: byLabel.get(label)?.count,
+    }));
+
+    const additional = fromCatalog.filter(
+      (item) => !CATALOG_CATEGORIES.includes(item.label),
+    );
+
+    return [...preferred, ...additional];
+  }, [data.facets.categories]);
 
   const activeShortcuts =
     category !== "Alle" &&
@@ -1073,7 +1104,7 @@ export default function ProductsCatalogClient({
   return (
     <main className="min-h-screen bg-neutral-50">
       {/* ===========================
-          CABEÇALHO
+          CABEÃ‡ALHO
           =========================== */}
 
       <section className="border-b border-neutral-200 bg-white">
@@ -1095,7 +1126,7 @@ export default function ProductsCatalogClient({
                 {formatCount(
                   data.total,
                 )}{" "}
-                Produkte gefunden ·{" "}
+                Produkte gefunden Â·{" "}
                 {formatCount(
                   totalShown,
                 )}{" "}
@@ -1262,7 +1293,7 @@ export default function ProductsCatalogClient({
       </section>
 
       {/* ===========================
-          CONTEÚDO
+          CONTEÃšDO
           =========================== */}
 
       <section className="mx-auto grid max-w-7xl gap-8 px-4 py-8 xl:grid-cols-[320px_1fr]">
@@ -1281,7 +1312,7 @@ export default function ProductsCatalogClient({
               onClick={reset}
               className="rounded-full bg-neutral-100 px-3 py-2 text-xs font-extrabold"
             >
-              Zurücksetzen
+              ZurÃ¼cksetzen
             </button>
           </div>
 
@@ -1327,11 +1358,8 @@ export default function ProductsCatalogClient({
                   data.catalogTotal,
               },
 
-              ...data.facets
-                .categories,
-            ]
-              .slice(0, 13)
-              .map((item) => (
+              ...categoryFacets,
+            ].map((item) => (
                 <FilterButton
                   key={item.label}
                   item={item}
@@ -1397,7 +1425,7 @@ export default function ProductsCatalogClient({
             </div>
           </Filter>
 
-          {/* PREÇO */}
+          {/* PREÃ‡O */}
 
           <Filter title="Preis">
             <div className="grid grid-cols-2 gap-3">
@@ -1540,7 +1568,7 @@ export default function ProductsCatalogClient({
 
               <p className="mt-4 font-bold text-neutral-600">
                 Produkte werden
-                gesucht…
+                gesuchtâ€¦
               </p>
             </div>
           ) : products.length ? (
@@ -1594,7 +1622,7 @@ export default function ProductsCatalogClient({
                     }
                     className="rounded-xl border border-neutral-300 bg-white px-4 py-3 text-sm font-extrabold text-neutral-700 transition hover:border-red-500 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-40"
                   >
-                    ‹ Zurück
+                    â€¹ ZurÃ¼ck
                   </button>
 
                   {paginationItems.map(
@@ -1609,7 +1637,7 @@ export default function ProductsCatalogClient({
                             className="px-2 py-3 text-sm font-black text-neutral-400"
                             aria-hidden="true"
                           >
-                            …
+                            â€¦
                           </span>
                         );
                       }
@@ -1673,7 +1701,7 @@ export default function ProductsCatalogClient({
                     }
                     className="rounded-xl border border-neutral-300 bg-white px-4 py-3 text-sm font-extrabold text-neutral-700 transition hover:border-red-500 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-40"
                   >
-                    Weiter ›
+                    Weiter â€º
                   </button>
                 </nav>
               ) : null}
@@ -1730,7 +1758,7 @@ function FilterButton({
   active,
   onClick,
 }: {
-  item: Facet;
+  item: { label: string; count?: number };
   active: boolean;
   onClick: () => void;
 }) {
@@ -1759,11 +1787,11 @@ function FilterButton({
         {item.label}
       </span>
 
-      <span className="ml-3 text-xs text-neutral-400">
-        {formatCount(
-          item.count,
-        )}
-      </span>
+      {typeof item.count === "number" ? (
+        <span className="ml-3 text-xs text-neutral-400">
+          {formatCount(item.count)}
+        </span>
+      ) : null}
     </button>
   );
 }
