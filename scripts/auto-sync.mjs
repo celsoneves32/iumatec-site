@@ -55,6 +55,7 @@ function releaseLock() {
 function runSync() {
   const script = path.join(ROOT, "scripts", "sync-shopify-price-stock.mjs");
   const childArgs = [script];
+  childArgs.push("--stock-only");
 
   if (APPLY) {
     childArgs.push("--apply");
