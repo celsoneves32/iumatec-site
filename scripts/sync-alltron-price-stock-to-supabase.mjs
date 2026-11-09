@@ -1,6 +1,7 @@
 ﻿import crypto from "node:crypto";
 import { spawn } from "node:child_process";
 import fs from "node:fs";
+import { loadProtectedZeroKeys, isBlockedReactivation } from "./iumatec-stock-guard.mjs";
 import os from "node:os";
 import path from "node:path";
 import * as ftp from "basic-ftp";
@@ -12,6 +13,7 @@ dotenv.config({ path: ".env.local" });
 dotenv.config();
 
 const ROOT = process.cwd();
+const PROTECTED_ZERO_KEYS = loadProtectedZeroKeys(ROOT);
 const ARGS = process.argv.slice(2);
 const APPLY = ARGS.includes("--apply");
 const APPLY_ALL = ARGS.includes("--all");
@@ -739,6 +741,10 @@ function buildPlan(products, feedRows) {
 
     alltronOwnedSupabaseRows++;
     const catalogKey = text(product.catalog_key);
+    if (PROTECTED_ZERO_KEYS.has(catalogKey) &&
+        (stock(product.stock_qty) !== 0 || product.in_stock !== false)) {
+      throw new Error("IUMATEC SAFETY: produto protegido mudou no Supabase: " + catalogKey);
+    }
     if (!catalogKey) {
       invalid.push({ catalogKey, reason: "missing-catalog-key" });
       continue;
@@ -826,7 +832,8 @@ function buildPlan(products, feedRows) {
     const desiredPrice = currentPrice;
     const priceChanged = false;
     const priceQuarantined = supplierPriceOutlier;
-    const stockChanged = currentStock === null || currentStock !== desired.stock;
+    const desiredStock = PROTECTED_ZERO_KEYS.has(catalogKey) ? 0 : desired.stock;
+    const stockChanged = currentStock === null || currentStock !== desiredStock;
     const planned = {
       catalogKey,
       sku: text(product.sku),
@@ -837,7 +844,7 @@ function buildPlan(products, feedRows) {
       priceRatio,
       priceQuarantined,
       currentStock,
-      desiredStock: desired.stock,
+      desiredStock,
       priceChanged,
       stockChanged,
     };
@@ -1002,6 +1009,14 @@ function safetyChecks(summary) {
 async function patchProduct(change) {
   const endpoint = new URL(`${supabaseUrl}/rest/v1/products`);
   endpoint.searchParams.set("catalog_key", `eq.${change.catalogKey}`);
+  endpoint.searchParams.set("stock_qty",
+    change.currentStock === null ? "is.null" : `eq.${change.currentStock}`);
+  if (PROTECTED_ZERO_KEYS.has(change.catalogKey) && change.desiredStock !== 0) {
+    throw new Error("IUMATEC SAFETY: escrita positiva proibida para " + change.catalogKey);
+  }
+  if (isBlockedReactivation(change.currentStock, change.desiredStock)) {
+    throw new Error("IUMATEC SAFETY: reativacao sem aprovacao: " + change.catalogKey);
+  }
   const response = await fetchWithRetry(
     `Supabase patch ${change.catalogKey}`,
     endpoint,
@@ -1090,6 +1105,10 @@ async function main() {
       : LIMIT
         ? plan.changes.slice(OFFSET, OFFSET + LIMIT)
         : plan.changes.slice(OFFSET);
+    if (APPLY && planned.some(row =>
+      isBlockedReactivation(row.currentStock, row.desiredStock))) {
+      throw new Error("IUMATEC SAFETY: lote contem reativacoes de stock. ZERO escritas executadas.");
+    }
 
     report = {
       generatedAt: new Date().toISOString(),
@@ -1112,6 +1131,8 @@ async function main() {
       pricingPolicy: {
         owner: "iumatec-master-catalog.json",
         priceWritesEnabled: PRICE_WRITES_ENABLED,
+        protectedZeroCount: PROTECTED_ZERO_KEYS.size,
+        reactivationGate: "BLOCKED",
         note: "This script updates stock_qty/in_stock only and never writes products.price",
       },
       safetyReady: failures.length === 0,

@@ -54,15 +54,20 @@ function releaseLock() {
 
 function runSync() {
   const script = path.join(ROOT, "scripts", "sync-shopify-price-stock.mjs");
-  const childArgs = [script];
+  const childArgs = [script, "--stock-only"];
   childArgs.push("--stock-only");
 
   if (APPLY) {
+    if (process.env.IUMATEC_STOCK_APPLY_APPROVED !== "SIM") {
+      throw new Error("IUMATEC SAFETY: --apply proibido sem autorizacao explicita de stock");
+    }
     childArgs.push("--apply");
-    if (ALL || !LIMIT_ARG) {
+    if (ALL) {
       childArgs.push("--all", "--confirm=IUMATEC-SUPABASE-SOURCE");
-    } else {
+    } else if (LIMIT_ARG) {
       childArgs.push(LIMIT_ARG);
+    } else {
+      throw new Error("IUMATEC SAFETY: --apply exige --limit=N ou --all explicito");
     }
   } else {
     childArgs.push("--dry-run", LIMIT_ARG || "--limit=25");
@@ -72,7 +77,7 @@ function runSync() {
     appendLog(`Comando: node ${childArgs.slice(1).join(" ")}`);
     const child = spawn(process.execPath, childArgs, {
       cwd: ROOT,
-      env: process.env,
+      env: { ...process.env, SHOPIFY_ADMIN_API_VERSION: "2026-10" },
       stdio: "inherit",
       shell: false,
     });
