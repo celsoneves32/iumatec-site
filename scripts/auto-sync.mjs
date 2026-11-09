@@ -55,7 +55,6 @@ function releaseLock() {
 function runSync() {
   const script = path.join(ROOT, "scripts", "sync-shopify-price-stock.mjs");
   const childArgs = [script, "--stock-only"];
-  childArgs.push("--stock-only");
 
   if (APPLY) {
     if (process.env.IUMATEC_STOCK_APPLY_APPROVED !== "SIM") {
