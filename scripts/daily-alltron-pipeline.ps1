@@ -347,6 +347,8 @@ else {
 
 Remove-Item Env:IUMATEC_ALSO_ENABLED -ErrorAction SilentlyContinue
 Remove-Item Env:ALSO_PRICELIST_FILE -ErrorAction SilentlyContinue
+# IUMATEC PIPELINE WRITE LOCK
+Fail "IUMATEC SAFETY: STEP 3, 3B e 5A bloqueados ate revisao final."
 # 3. ATUALIZAR STOCK ALLTRON -> SUPABASE
 # PRECOS DESTE SCRIPT ESTAO DESATIVADOS
 # --------------------------------------------------
