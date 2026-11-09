@@ -600,6 +600,12 @@ async function setInventoryAbsolute(
       return;
     }
 
+    if (freshStock !== currentStock) {
+      throw new Error(
+        `IUMATEC SAFETY: stock mudou durante a sincronizacao de ${variantId}; escrita cancelada`
+      );
+    }
+
     expectedStock = freshStock;
 
     await sleep(200 * attempt);
