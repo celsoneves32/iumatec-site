@@ -1,4 +1,4 @@
-﻿import crypto from "node:crypto";
+import crypto from "node:crypto";
 import { spawn } from "node:child_process";
 import fs from "node:fs";
 import { loadProtectedZeroKeys, isBlockedReactivation } from "./iumatec-stock-guard.mjs";
@@ -16,6 +16,10 @@ const ROOT = process.cwd();
 const PROTECTED_ZERO_KEYS = loadProtectedZeroKeys(ROOT);
 const ARGS = process.argv.slice(2);
 const APPLY = ARGS.includes("--apply");
+// IUMATEC_DIRECT_APPLY_GATE_V1
+if (APPLY && process.env.IUMATEC_STOCK_APPLY_APPROVED !== "SIM") {
+  throw new Error("IUMATEC SAFETY: apply sem autorizacao.");
+}
 const APPLY_ALL = ARGS.includes("--all");
 const FULL_CONFIRMATION = "IUMATEC-ALLTRON-SOURCE";
 const SUPABASE_PAGE_SIZE = 1_000;

@@ -11,6 +11,10 @@ const ROOT = process.cwd();
 const PROTECTED_ZERO_KEYS = loadProtectedZeroKeys(ROOT);
 const ARGS = process.argv.slice(2);
 const APPLY = ARGS.includes("--apply");
+// IUMATEC_DIRECT_APPLY_GATE_V1
+if (APPLY && process.env.IUMATEC_STOCK_APPLY_APPROVED !== "SIM") {
+  throw new Error("IUMATEC SAFETY: apply sem autorizacao.");
+}
 const APPLY_ALL = ARGS.includes("--all");
 const STOCK_ONLY = ARGS.includes("--stock-only");
 const EXPLICIT_DRY_RUN = ARGS.includes("--dry-run");
