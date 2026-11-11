@@ -37,7 +37,7 @@ import {
   type Product,
 } from "@/lib/supabaseCatalog";
 
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 const EMPTY: CatalogResponse = {
   products: [],
