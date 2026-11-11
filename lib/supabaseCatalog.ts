@@ -1,6 +1,7 @@
 import "server-only";
 import { createClient } from "@supabase/supabase-js";
 import { unstable_cache } from "next/cache";
+import { cache } from "react";
 
 export type Product = {
   sku: string;
@@ -214,7 +215,7 @@ function sellable(query: any) {
     .gt("stock_qty", 0);
 }
 
-export const getSellableCatalogTotalCached = unstable_cache(
+export const getSellableCatalogTotalCached = cache(unstable_cache(
   async () => {
     let request = getSupabase()
       .from("products")
@@ -228,8 +229,17 @@ export const getSellableCatalogTotalCached = unstable_cache(
     const { count, error } = await request;
 
     if (error) {
+      const diagnostic = {
+        code: error.code || null,
+        message: error.message || null,
+        details: error.details || null,
+        hint: error.hint || null,
+      };
+
+      console.error("IUMATEC SUPABASE COUNT ERROR", diagnostic);
+
       throw new Error(
-        `Supabase sellable catalog total failed: ${error.message}`,
+        `Supabase sellable catalog total failed (${diagnostic.code || "unknown"}): ${diagnostic.message || "sem mensagem"}`,
       );
     }
 
@@ -239,7 +249,7 @@ export const getSellableCatalogTotalCached = unstable_cache(
   {
     revalidate: PRODUCT_CACHE_SECONDS,
   },
-);
+));
 const getProductBySlugCached = unstable_cache(async (wanted: string) => {
   let query = getSupabase()
     .from("products")

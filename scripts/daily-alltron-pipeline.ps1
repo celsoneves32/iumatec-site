@@ -243,13 +243,8 @@ Run-Node `
 Log ""
 Log "ALSO SFTP: attempting daily refresh"
 
-& powershell.exe `
-    -NoProfile `
-    -ExecutionPolicy Bypass `
-    -File ".\scripts\download-also-pricelist.ps1" `
-    2>&1 | Tee-Object -FilePath $LOG -Append
-
-$alsoDownloadExit = $LASTEXITCODE
+Log "ALSO SFTP: refresh temporariamente suspenso; verificar cache local"
+$alsoDownloadExit = 1
 
 if ($alsoDownloadExit -eq 0) {
     Log "ALSO SFTP refresh: OK"
@@ -352,6 +347,8 @@ else {
 
 Remove-Item Env:IUMATEC_ALSO_ENABLED -ErrorAction SilentlyContinue
 Remove-Item Env:ALSO_PRICELIST_FILE -ErrorAction SilentlyContinue
+# IUMATEC PIPELINE WRITE LOCK
+Fail "IUMATEC SAFETY: STEP 3, 3B e 5A bloqueados ate revisao final."
 # 3. ATUALIZAR STOCK ALLTRON -> SUPABASE
 # PRECOS DESTE SCRIPT ESTAO DESATIVADOS
 # --------------------------------------------------
@@ -397,14 +394,7 @@ else {
 
 Log ""
 
-Run-Node `
-    "STEP 4 - SAFE ACTIVE PRICE FLOOR -> SUPABASE + SHOPIFY" `
-    @(
-        "--env-file=.env.local",
-        ".\scripts\safe-active-price-sync.mjs",
-        "--apply",
-        "--confirm=IUMATEC-SAFE-ACTIVE-PRICE"
-    )
+Log "STEP 4 - DESATIVADO: PRECO AUTOMATICO"
 
 Log "STEP 5 - AUTOMATIC PRICE DECREASES DISABLED (INCREASE-ONLY POLICY)"
 
@@ -423,6 +413,28 @@ Run-Node `
         "--stock-only",
         "--confirm=IUMATEC-SUPABASE-SOURCE"
     )
+# 5B. IUMATEC â€” AUDITORIA DINAMICA (SOMENTE LEITURA)
+# Apenas gera relatorio de candidatos; falha da auditoria nao interrompe stock e precos.
+$autoAuditFile = Join-Path $ROOT 'scripts\iumatec-auto-candidates-readonly.mjs'
+if (Test-Path $autoAuditFile) {
+    Log 'STEP 5B - AUTO CANDIDATES READ ONLY'
+    try {
+        & node '--env-file=.env.local' $autoAuditFile 2>&1 | Tee-Object -FilePath $LOG -Append
+        $autoAuditResult = $LASTEXITCODE
+        if ($autoAuditResult -ne 0) {
+            Log "WARNING: STEP 5B falhou (codigo $autoAuditResult); PUBLICACAO AUTOMATICA CONTINUA DESATIVADA."
+        }
+        else {
+            Log 'STEP 5B - SIMULACAO CONCLUIDA. 0 PRODUTOS PUBLICADOS.'
+        }
+    }
+    catch {
+        Log "WARNING: STEP 5B erro na simulacao: $($_.Exception.Message). PUBLICACAO AUTOMATICA DESATIVADA."
+    }
+}
+else {
+    Log 'STEP 5B - SKIPPED: script de simulacao nao encontrado'
+}
 # TERMINADO
 # --------------------------------------------------
 

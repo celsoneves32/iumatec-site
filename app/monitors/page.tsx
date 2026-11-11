@@ -9,7 +9,7 @@ export default function MonitorsPage() {
       title="Monitore kaufen"
       subtitle="Monitore für Arbeit, Gaming und produktive Setups mit direkter Verfügbarkeit."
       category="Peripherie"
-      subcategory="Monitors"
+      subcategory="Monitore"
       badge="Peripherie · Monitors"
     />
   );

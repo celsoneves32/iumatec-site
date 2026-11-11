@@ -1,4 +1,6 @@
-﻿import fs from "node:fs";
+import { randomUUID } from "node:crypto";
+import fs from "node:fs";
+import { loadProtectedZeroKeys, isBlockedReactivation } from "./iumatec-stock-guard.mjs";
 import path from "node:path";
 import dotenv from "dotenv";
 
@@ -6,8 +8,13 @@ dotenv.config({ path: ".env.local" });
 dotenv.config();
 
 const ROOT = process.cwd();
+const PROTECTED_ZERO_KEYS = loadProtectedZeroKeys(ROOT);
 const ARGS = process.argv.slice(2);
 const APPLY = ARGS.includes("--apply");
+// IUMATEC_DIRECT_APPLY_GATE_V1
+if (APPLY && process.env.IUMATEC_STOCK_APPLY_APPROVED !== "SIM") {
+  throw new Error("IUMATEC SAFETY: apply sem autorizacao.");
+}
 const APPLY_ALL = ARGS.includes("--all");
 const STOCK_ONLY = ARGS.includes("--stock-only");
 const EXPLICIT_DRY_RUN = ARGS.includes("--dry-run");
@@ -53,6 +60,9 @@ const REPORT_PATH = path.resolve(
     ),
 );
 
+if (APPLY && !STOCK_ONLY) {
+  throw new Error("IUMATEC SAFETY: escrita de preco proibida nesta rotina. Usar --stock-only.");
+}
 if (APPLY && EXPLICIT_DRY_RUN) {
   throw new Error("Use either --dry-run or --apply, not both");
 }
@@ -76,7 +86,7 @@ if (APPLY && !APPLY_ALL && (!LIMIT || LIMIT > MAX_LIMITED_APPLY)) {
 const domain = String(process.env.SHOPIFY_STORE_DOMAIN || "").trim();
 const token = String(process.env.SHOPIFY_ADMIN_ACCESS_TOKEN || "").trim();
 const apiVersion = String(
-  process.env.SHOPIFY_ADMIN_API_VERSION || "2025-04",
+  process.env.IUMATEC_SHOPIFY_STOCK_API_VERSION || "2026-10",
 ).trim();
 const locationId = String(process.env.SHOPIFY_LOCATION_ID || "").trim();
 const supabaseUrl = String(
@@ -306,6 +316,9 @@ async function fetchProtectedSource() {
         rejectedInvalidStock++;
         continue;
       }
+      if (PROTECTED_ZERO_KEYS.has(catalogKey) && protectedStock !== 0) {
+        throw new Error("IUMATEC SAFETY: stock protegido positivo no Supabase: " + catalogKey);
+      }
 
       const id = variantGid(row?.merchandise_id || row?.shopify_variant_id);
       if (!id) {
@@ -491,18 +504,20 @@ async function activateInventory(inventoryItemId, desiredStock) {
       $inventoryItemId: ID!
       $locationId: ID!
       $available: Int
+       $idempotencyKey: String!
     ) {
       inventoryActivate(
         inventoryItemId: $inventoryItemId
         locationId: $locationId
         available: $available
-      ) {
+      ) @idempotent(key: $idempotencyKey) {
         inventoryLevel { id }
         userErrors { field message }
       }
     }
   `;
   const data = await shopifyFetch(mutation, {
+    idempotencyKey: randomUUID(),
     inventoryItemId,
     locationId,
     available: desiredStock,
@@ -522,13 +537,13 @@ async function setInventoryAbsolute(
   variantId,
 ) {
   const mutation = `
-    mutation SetProtectedInventory($input: InventorySetQuantitiesInput!) {
-      inventorySetQuantities(input: $input) {
+    mutation SetProtectedInventory($input: InventorySetQuantitiesInput!, $idempotencyKey: String!) {
+      inventorySetQuantities(input: $input) @idempotent(key: $idempotencyKey) {
         inventoryAdjustmentGroup {
           reason
           changes { name delta }
         }
-        userErrors { field message }
+        userErrors { code field message }
       }
     }
   `;
@@ -537,6 +552,7 @@ async function setInventoryAbsolute(
 
   for (let attempt = 1; attempt <= 4; attempt++) {
     const data = await shopifyFetch(mutation, {
+      idempotencyKey: randomUUID(),
       input: {
         name: "available",
         reason: "correction",
@@ -545,7 +561,7 @@ async function setInventoryAbsolute(
             inventoryItemId,
             locationId,
             quantity: desiredStock,
-            compareQuantity: expectedStock,
+            changeFromQuantity: expectedStock,
           },
         ],
       },
@@ -560,7 +576,7 @@ async function setInventoryAbsolute(
 
     const staleCompare =
       errors.length > 0 &&
-      errors.every((error) =>
+      errors.every((error) => error?.code === "CHANGE_FROM_QUANTITY_STALE" ||
         /compareQuantity argument no longer matches/i.test(
           error?.message || "",
         ),
@@ -586,6 +602,12 @@ async function setInventoryAbsolute(
 
     if (freshStock === desiredStock) {
       return;
+    }
+
+    if (freshStock !== currentStock) {
+      throw new Error(
+        `IUMATEC SAFETY: stock mudou durante a sincronizacao de ${variantId}; escrita cancelada`
+      );
     }
 
     expectedStock = freshStock;
@@ -642,6 +664,8 @@ async function main() {
     stocksApplied: 0,
     inventoryActivated: 0,
     stockUnavailable: 0,
+    stockReactivationsBlocked: 0,
+    protectedZeroCount: PROTECTED_ZERO_KEYS.size,
     errors: 0,
     priceFormulaRecalculations: 0,
     productDeletions: 0,
@@ -699,31 +723,24 @@ async function main() {
       }
         const level = variant.inventoryItem.inventoryLevel;
         const currentStock = currentAvailable(level);
+        // Nunca ativar inventario ausente nem reativar stock zero automaticamente.
+        if (!level?.id || currentStock === null ||
+            isBlockedReactivation(currentStock, desired.stock)) {
+          summary.stockReactivationsBlocked++;
+          continue;
+        }
         if (currentStock === desired.stock) {
           summary.stocksAlreadyExact++;
         } else {
           summary.stocksWouldUpdate++;
           if (!DRY_RUN) {
-            if (!level?.id || currentStock === null) {
-              const activation = await activateInventory(
-                variant.inventoryItem.id,
-                desired.stock,
-              );
-              if (!activation.ok) {
-                summary.stockUnavailable++;
-              } else {
-                summary.inventoryActivated++;
-                summary.stocksApplied++;
-              }
-            } else {
-              await setInventoryAbsolute(
-                variant.inventoryItem.id,
-                desired.stock,
-                currentStock,
-                variant.id,
-              );
-              summary.stocksApplied++;
-            }
+            await setInventoryAbsolute(
+              variant.inventoryItem.id,
+              desired.stock,
+              currentStock,
+              variant.id,
+            );
+            summary.stocksApplied++;
           }
         }
       } catch (error) {

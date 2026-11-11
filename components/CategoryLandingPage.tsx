@@ -1,11 +1,9 @@
 import Link from "next/link";
 import ProductCard from "@/components/ProductCard";
 import {
-  getProductsBySubcategory,
-  getPurchasableProducts,
-  scoreProduct,
+  queryCatalogProducts,
   type Product,
-} from "@/lib/productData";
+} from "@/lib/supabaseCatalog";
 
 type CategoryLandingPageProps = {
   title: string;
@@ -30,20 +28,28 @@ function productToCard(product: Product) {
   };
 }
 
-export default function CategoryLandingPage({
+export default async function CategoryLandingPage({
   title,
   subtitle,
   category,
   subcategory,
   badge = "IUMATEC Schweiz",
 }: CategoryLandingPageProps) {
-  const products = subcategory
-    ? getProductsBySubcategory(category, subcategory)
-        .filter((product) => product.merchandiseId && product.price > 0 && product.image)
-        .sort((a, b) => scoreProduct(b) - scoreProduct(a))
-    : getPurchasableProducts()
-        .filter((product) => product.category === category)
-        .sort((a, b) => scoreProduct(b) - scoreProduct(a));
+  const result = await queryCatalogProducts({
+    category,
+    ...(subcategory ? { subcategory } : {}),
+    sort: "featured",
+    limit: 48,
+  });
+
+  const products = result.products.filter(
+    (product) =>
+      product.merchandiseId &&
+      product.price > 0 &&
+      product.image &&
+      product.inStock &&
+      Number(product.stockQty || 0) > 0,
+  );
 
   return (
     <main className="bg-white">
@@ -85,7 +91,7 @@ export default function CategoryLandingPage({
         <div className="mb-6 flex items-end justify-between gap-4">
           <div>
             <h2 className="text-3xl font-extrabold tracking-tight text-neutral-950">
-              {products.length} Produkte
+              {result.total} Produkte
             </h2>
             <p className="mt-2 text-neutral-600">
               Direkt bestellbare Produkte mit Bild, Preis und Shopify Checkout.
