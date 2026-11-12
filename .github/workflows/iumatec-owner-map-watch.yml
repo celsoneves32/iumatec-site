@@ -1,0 +1,33 @@
+name: IUMATEC - Vigiar validade do mapa privado
+
+on:
+  schedule:
+    - cron: "30 8 * * *"
+      timezone: "Europe/Zurich"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: iumatec-owner-map-watch
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verificar mapa privado e notificar antes de expirar (sem alteracoes)
+        run: node scripts/iumatec-watch-owner-map.mjs
