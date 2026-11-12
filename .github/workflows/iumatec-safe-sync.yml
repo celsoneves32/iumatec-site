@@ -62,6 +62,8 @@ jobs:
             fi
           done
 
+      - name: Load PRIVATE supplier ownership snapshot (no prices)
+        run: node scripts/iumatec-restore-owner-snapshot.mjs
       - name: Audit current Alltron feed against Supabase (read-only)
         run: node scripts/sync-alltron-price-stock-to-supabase.mjs --limit=25
 
