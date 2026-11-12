@@ -1,10 +1,13 @@
-name: IUMATEC safe Alltron, Supabase and Shopify sync
+name: IUMATEC - Auditoria diaria segura Alltron Supabase Shopify
 
 on:
+  schedule:
+    - cron: "17 12 * * *"
+      timezone: "Europe/Zurich"
   workflow_dispatch:
     inputs:
       mode:
-        description: Execution mode
+        description: Apenas auditoria (0 alteracoes)
         required: true
         default: audit
         type: choice
@@ -19,8 +22,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  sync:
-    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'audit'
+  audit:
+    if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'audit')
     runs-on: ubuntu-latest
     timeout-minutes: 180
     env:
@@ -33,6 +36,7 @@ jobs:
       SHOPIFY_LOCATION_ID: ${{ secrets.SHOPIFY_LOCATION_ID }}
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+      IUMATEC_STOCK_APPLY_APPROVED: "NAO"
 
     steps:
       - name: Checkout
@@ -47,21 +51,37 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Audit current Alltron feed against Supabase
-        if: github.event_name == 'workflow_dispatch' && inputs.mode == 'audit'
+      - name: Validate scripts and required credentials
+        shell: bash
+        run: |
+          node --check scripts/assert-safe-audit-reports.mjs
+          for key in ALLTRON_HOST ALLTRON_USER ALLTRON_PASS SHOPIFY_STORE_DOMAIN SHOPIFY_ADMIN_ACCESS_TOKEN SHOPIFY_LOCATION_ID SUPABASE_URL SUPABASE_SECRET_KEY; do
+            if [ -z "${!key}" ]; then
+              echo "::error::Missing required GitHub Actions secret: $key"
+              exit 1
+            fi
+          done
+
+      - name: Audit current Alltron feed against Supabase (read-only)
         run: node scripts/sync-alltron-price-stock-to-supabase.mjs --limit=25
 
-      - name: Audit 25 protected Shopify variants
-        if: github.event_name == 'workflow_dispatch' && inputs.mode == 'audit'
+      - name: Verify Alltron report and fail on safety violations
+        run: node scripts/assert-safe-audit-reports.mjs alltron
+
+      - name: Audit Shopify protected variants (read-only)
         run: node scripts/auto-sync.mjs --limit=25
 
-      - name: Upload reports
+      - name: Verify Shopify report and fail on safety violations
+        run: node scripts/assert-safe-audit-reports.mjs shopify
+
+      - name: Upload audit reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: iumatec-complete-sync-report
+          name: iumatec-daily-audit-${{ github.run_id }}
           path: |
-            integrations/alltron/out/alltron-supabase-sync/
-            integrations/alltron/out/shopify-price-stock-sync/
+            integrations/alltron/out/alltron-supabase-sync/latest.json
+            integrations/alltron/out/shopify-price-stock-sync/latest.json
+            integrations/alltron/out/shopify-price-stock-sync/auto-sync.log
           if-no-files-found: warn
           retention-days: 30
