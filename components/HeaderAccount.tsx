@@ -1,36 +1,70 @@
 "use client";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import Link from "next/link";
+import { ArrowRight, ChevronDown, CircleHelp, LogOut, MapPin, Package, UserRound } from "lucide-react";
 
-const ACCOUNT_URL =
-  process.env.NEXT_PUBLIC_SHOPIFY_CUSTOMER_ACCOUNTS_URL || "";
-
+type Auth = { authenticated: boolean; displayName?: string | null };
+const customerAccount = process.env.NEXT_PUBLIC_SHOPIFY_CUSTOMER_ACCOUNTS_URL || "https://account.iumatec.ch";
+const account = (() => { try { const u = new URL(customerAccount); return u.protocol === "https:" ? u.origin : "https://account.iumatec.ch"; } catch { return "https://account.iumatec.ch"; } })();
 export default function HeaderAccount() {
-  if (!ACCOUNT_URL) {
-    return null;
+  const [open, setOpen] = useState(false);
+  const [auth, setAuth] = useState<Auth | null>(null);
+  const [email, setEmail] = useState("");
+  const [busy, setBusy] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    let active = true;
+    fetch("/api/auth/shopify/session", { cache: "no-store", credentials: "same-origin" })
+      .then(r => r.ok ? r.json() : { authenticated: false })
+      .then(data => { if (active) setAuth(data); })
+      .catch(() => { if (active) setAuth({ authenticated: false }); });
+    return () => { active = false; };
+  }, [open]);
+  useEffect(() => {
+    if (!open) return;
+    function outside(e: MouseEvent) { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); }
+    function escape(e: KeyboardEvent) { if (e.key === "Escape") setOpen(false); }
+    document.addEventListener("mousedown", outside); document.addEventListener("keydown", escape);
+    return () => { document.removeEventListener("mousedown", outside); document.removeEventListener("keydown", escape); };
+  }, [open]);
+  function login(e: FormEvent) {
+    e.preventDefault();
+    const query = email.trim() ? `?email=${encodeURIComponent(email.trim())}` : "";
+    window.location.assign(`/api/auth/shopify/login${query}`);
   }
-
+  async function logout() {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const res = await fetch("/api/auth/shopify/logout", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" } });
+      const data = await res.json();
+      window.location.assign(res.ok && typeof data.logoutUrl === "string" ? data.logoutUrl : "/konto");
+    } catch { setBusy(false); }
+  }
   return (
-    <a
-      href={ACCOUNT_URL}
-      className="inline-flex items-center gap-2 rounded-xl border border-neutral-300 px-3 py-2 text-sm font-semibold text-neutral-900 transition hover:bg-neutral-50"
-      title="Mein Konto"
-      aria-label="Mein Konto"
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        className="h-5 w-5"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M15.75 6.75a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.5 19.125a7.5 7.5 0 0 1 15 0"
-        />
-      </svg>
-
-      <span className="hidden sm:inline">Konto</span>
-    </a>
+    <div className="relative" ref={ref}>
+      <button type="button" onClick={() => { setOpen(v => !v); setAuth(null); }} className="inline-flex items-center gap-2 rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm font-semibold text-neutral-900 transition hover:bg-neutral-50" aria-haspopup="dialog" aria-expanded={open} aria-label="Mein Konto"><UserRound size={20}/><span className="hidden sm:inline">Konto</span><ChevronDown size={14} className={open ? "rotate-180" : ""}/></button>
+      {open && <div role="dialog" aria-label="Kundenkonto" className="absolute right-0 top-full z-[100] mt-3 w-[330px] rounded-2xl border border-neutral-200 bg-white p-4 text-neutral-900 shadow-[0_16px_44px_rgba(0,0,0,.16)]">
+        {auth === null ? <p className="p-2 text-sm text-neutral-600">Kundenkonto wird geladen …</p> : auth.authenticated ? <>
+          <p className="px-2 text-sm font-extrabold">{auth.displayName ? `Hallo ${auth.displayName}` : "Mein Kundenkonto"}</p>
+          <a href={`${account}/orders`} className="mt-4 flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold hover:bg-neutral-50"><Package size={18} className="text-red-700"/> Bestellungen <ArrowRight size={15} className="ml-auto"/></a>
+          <a href={account} className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold hover:bg-neutral-50"><MapPin size={18} className="text-red-700"/> Profil & Adressen <ArrowRight size={15} className="ml-auto"/></a>
+          <Link href="/konto" onClick={() => setOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold hover:bg-neutral-50"><UserRound size={18} className="text-red-700"/> Mein Konto <ArrowRight size={15} className="ml-auto"/></Link>
+          <button type="button" disabled={busy} onClick={logout} className="mt-2 flex w-full items-center gap-3 border-t border-neutral-100 px-3 py-3 text-left text-sm font-semibold hover:bg-neutral-50 disabled:opacity-50"><LogOut size={18} className="text-red-700"/> Abmelden</button>
+        </> : <>
+          <p className="px-2 text-sm font-extrabold">Willkommen bei IUMATEC</p>
+          <p className="mt-1 px-2 text-xs leading-5 text-neutral-600">Melde dich mit deiner E-Mail-Adresse an. Shopify sendet einen Bestätigungscode.</p>
+          <form onSubmit={login} className="mt-4">
+            <label htmlFor="iumatec-customer-login" className="block px-1 text-xs font-bold text-neutral-700">E-Mail-Adresse</label>
+            <input id="iumatec-customer-login" type="email" autoComplete="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="name@beispiel.ch" className="mt-2 w-full rounded-xl border border-neutral-300 px-3 py-3 text-sm outline-none focus:border-red-600"/>
+            <button type="submit" className="mt-3 flex w-full min-h-11 items-center justify-center rounded-xl bg-red-600 px-4 text-sm font-extrabold text-white hover:bg-red-700">Anmelden / Weiter</button>
+          </form>
+          <a href="/api/auth/shopify/login" className="mt-2 flex min-h-11 items-center justify-center rounded-xl border border-neutral-300 px-4 text-sm font-extrabold hover:bg-neutral-50">Konto erstellen</a>
+          <p className="mt-2 px-1 text-[11px] leading-4 text-neutral-500">Die sichere Bestätigung erfolgt bei Shopify.</p>
+          <div className="mt-3 border-t border-neutral-100 pt-2"><Link href="/konto" onClick={() => setOpen(false)} className="block rounded-xl px-3 py-2 text-sm font-semibold hover:bg-neutral-50">Mein Konto</Link><Link href="/kontakt" onClick={() => setOpen(false)} className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold hover:bg-neutral-50"><CircleHelp size={17}/> Hilfe & Kontakt</Link></div>
+        </>}
+      </div>}
+    </div>
   );
 }
