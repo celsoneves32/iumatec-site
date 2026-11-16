@@ -1350,6 +1350,7 @@ export default function ProductsCatalogClient({
 
           {/* CATEGORIAS */}
 
+          {category === "Alle" && (
           <Filter title="Kategorie">
             {[
               {
@@ -1382,6 +1383,7 @@ export default function ProductsCatalogClient({
                 />
               ))}
           </Filter>
+          )}
 
           {/* SUBCATEGORIAS */}
 
