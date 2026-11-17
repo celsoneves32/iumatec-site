@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import { spawn } from "node:child_process";
 import fs from "node:fs";
 import { loadProtectedZeroKeys, isBlockedReactivation } from "./iumatec-stock-guard.mjs";
+import { isFinancialRiskHold, assertFinancialRiskHoldZero } from "./iumatec-financial-risk-guard.mjs";
 import os from "node:os";
 import path from "node:path";
 import * as ftp from "basic-ftp";
@@ -16,11 +17,9 @@ const ROOT = process.cwd();
 const PROTECTED_ZERO_KEYS = loadProtectedZeroKeys(ROOT);
 const ARGS = process.argv.slice(2);
 const APPLY = ARGS.includes("--apply");
-// IUMATEC_DIRECT_APPLY_GATE_V1
-if (APPLY && process.env.IUMATEC_STOCK_APPLY_APPROVED !== "SIM") {
-  throw new Error("IUMATEC SAFETY: apply sem autorizacao.");
-}
 const APPLY_ALL = ARGS.includes("--all");
+// IUMATEC_CONFIRMED_ZERO_ONLY_V1: stock-to-zero only for exact live supplier matches.
+const CONFIRMED_ZERO_ONLY = ARGS.includes("--confirmed-zero-only");
 const FULL_CONFIRMATION = "IUMATEC-ALLTRON-SOURCE";
 const SUPABASE_PAGE_SIZE = 1_000;
 const MAX_LIMITED_APPLY = 1_000;
@@ -91,6 +90,10 @@ if (APPLY && !APPLY_ALL && (!LIMIT || LIMIT > MAX_LIMITED_APPLY)) {
   throw new Error(
     `Limited apply requires --limit between 1 and ${MAX_LIMITED_APPLY}`,
   );
+}
+// Nunca permitir apply generico nesta versao local. Exige dupla confirmacao explicita.
+if (APPLY && (!CONFIRMED_ZERO_ONLY || APPLY_ALL || CONFIRMATION !== "IUMATEC-ZERO-ONLY")) {
+  throw new Error("IUMATEC SAFETY: apply exige --confirmed-zero-only, --limit e --confirm=IUMATEC-ZERO-ONLY");
 }
 
 const supabaseUrl = String(
@@ -545,7 +548,7 @@ async function fetchSupabaseProducts() {
     const to = from + SUPABASE_PAGE_SIZE - 1;
     const endpoint =
       `${supabaseUrl}/rest/v1/products` +
-      "?select=catalog_key,sku,ean,internal_number,price,stock_qty,in_stock" +
+      "?select=catalog_key,sku,ean,internal_number,price,stock_qty,in_stock,price_safety_status,financial_hold" +
       "&order=catalog_key.asc";
     const response = await fetchWithRetry("Supabase read", endpoint, {
         headers: supabaseHeaders({
@@ -723,6 +726,7 @@ function buildPlan(products, feedRows) {
   const ownership = loadAlltronStockOwnership();
   let alltronOwnedSupabaseRows = 0;
   let ignoredNonAlltronOwner = 0;
+  let financialRiskHolds = 0;
   const indexes = buildFeedIndexes(feedRows);
   const duplicateCatalogKeys = [];
   const seenCatalogKeys = new Set();
@@ -755,6 +759,13 @@ function buildPlan(products, feedRows) {
     }
     if (seenCatalogKeys.has(catalogKey)) duplicateCatalogKeys.push(catalogKey);
     seenCatalogKeys.add(catalogKey);
+
+    // Financial holds cannot be reactivated by a later supplier feed.
+    if (isFinancialRiskHold(product)) {
+      assertFinancialRiskHoldZero(product);
+      financialRiskHolds++;
+      continue;
+    }
 
     const match = matchFeedRow(product, indexes);
     if (!match) {
@@ -901,6 +912,7 @@ function buildPlan(products, feedRows) {
       supabaseRows: products.length,
       alltronOwnedSupabaseRows,
       ignoredNonAlltronOwner,
+      financialRiskHolds,
       feedRows: feedRows.length,
       matched,
       matchedRatio: alltronOwnedSupabaseRows ? matched / alltronOwnedSupabaseRows : 0,
@@ -1011,6 +1023,12 @@ function safetyChecks(summary) {
 }
 
 async function patchProduct(change) {
+  // Defesa extra na ultima fronteira de escrita.
+  if (CONFIRMED_ZERO_ONLY && (
+      change.method !== "catalog-key" || !(change.currentStock > 0) ||
+      change.desiredStock !== 0 || PROTECTED_ZERO_KEYS.has(change.catalogKey))) {
+    throw new Error("IUMATEC SAFETY: PATCH fora do lote zero-only.");
+  }
   const endpoint = new URL(`${supabaseUrl}/rest/v1/products`);
   endpoint.searchParams.set("catalog_key", `eq.${change.catalogKey}`);
   endpoint.searchParams.set("stock_qty",
@@ -1104,11 +1122,25 @@ async function main() {
     const products = await fetchSupabaseProducts();
     const plan = buildPlan(products, feed.rows);
     const failures = safetyChecks(plan.summary);
+    // Excluir: sem produto no feed, reativacoes, reducoes nao-zero,
+    // identificacoes menos exatas e lista de 269 zeros protegidos.
+    const eligibleChanges = CONFIRMED_ZERO_ONLY
+      ? plan.changes.filter((row) =>
+          row.method === "catalog-key" &&
+          typeof row.currentStock === "number" && row.currentStock > 0 &&
+          row.desiredStock === 0 &&
+          !PROTECTED_ZERO_KEYS.has(row.catalogKey))
+      : plan.changes;
     const planned = APPLY_ALL
-      ? plan.changes
+      ? eligibleChanges
       : LIMIT
-        ? plan.changes.slice(OFFSET, OFFSET + LIMIT)
-        : plan.changes.slice(OFFSET);
+        ? eligibleChanges.slice(OFFSET, OFFSET + LIMIT)
+        : eligibleChanges.slice(OFFSET);
+    if (CONFIRMED_ZERO_ONLY && planned.some((row) =>
+      row.method !== "catalog-key" || !(row.currentStock > 0) ||
+      row.desiredStock !== 0 || PROTECTED_ZERO_KEYS.has(row.catalogKey))) {
+      throw new Error("IUMATEC SAFETY: lote zero-only invalido. ZERO escritas.");
+    }
     if (APPLY && planned.some(row =>
       isBlockedReactivation(row.currentStock, row.desiredStock))) {
       throw new Error("IUMATEC SAFETY: lote contem reativacoes de stock. ZERO escritas executadas.");
@@ -1142,6 +1174,14 @@ async function main() {
       safetyReady: failures.length === 0,
       safetyFailures: failures,
       selected: planned.length,
+      stockSelectionPolicy: CONFIRMED_ZERO_ONLY ? "confirmed-catalog-key-to-zero" : "normal",
+      selectedSamples: planned.slice(0, 25).map((row) => ({
+        catalogKey: row.catalogKey,
+        sku: row.sku,
+        method: row.method,
+        currentStock: row.currentStock,
+        desiredStock: row.desiredStock,
+      })),
       applied: 0,
       errors: 0,
       errorDetails: [],

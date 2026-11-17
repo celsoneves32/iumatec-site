@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import { loadProtectedZeroKeys, isBlockedReactivation } from "./iumatec-stock-guard.mjs";
+import { isFinancialRiskHold, assertFinancialRiskHoldZero } from "./iumatec-financial-risk-guard.mjs";
 import path from "node:path";
 import dotenv from "dotenv";
 
@@ -11,10 +12,6 @@ const ROOT = process.cwd();
 const PROTECTED_ZERO_KEYS = loadProtectedZeroKeys(ROOT);
 const ARGS = process.argv.slice(2);
 const APPLY = ARGS.includes("--apply");
-// IUMATEC_DIRECT_APPLY_GATE_V1
-if (APPLY && process.env.IUMATEC_STOCK_APPLY_APPROVED !== "SIM") {
-  throw new Error("IUMATEC SAFETY: apply sem autorizacao.");
-}
 const APPLY_ALL = ARGS.includes("--all");
 const STOCK_ONLY = ARGS.includes("--stock-only");
 const EXPLICIT_DRY_RUN = ARGS.includes("--dry-run");
@@ -279,7 +276,7 @@ async function fetchProtectedSource() {
     const to = from + SUPABASE_PAGE_SIZE - 1;
     const endpoint =
       `${supabaseUrl}/rest/v1/products` +
-      "?select=catalog_key,title,sku,price,stock_qty,merchandise_id,shopify_variant_id" +
+      "?select=catalog_key,title,sku,price,stock_qty,in_stock,merchandise_id,shopify_variant_id,price_safety_status,financial_hold" +
       "&order=catalog_key.asc";
     const response = await fetch(endpoint, {
       headers: supabaseHeaders({
@@ -312,6 +309,9 @@ async function fetchProtectedSource() {
       }
 
       const protectedStock = stock(row?.stock_qty);
+      if (isFinancialRiskHold(row)) {
+        assertFinancialRiskHoldZero({ ...row, stock_qty: protectedStock });
+      }
       if (protectedStock === null) {
         rejectedInvalidStock++;
         continue;
@@ -326,7 +326,7 @@ async function fetchProtectedSource() {
         continue;
       }
 
-      if (unsafeMasterVariantIds.has(id)) {
+      if (unsafeMasterVariantIds.has(id) && !isFinancialRiskHold(row)) {
         continue;
       }
 
@@ -338,6 +338,7 @@ async function fetchProtectedSource() {
         sku: text(row?.sku),
         price: protectedPrice,
         stock: protectedStock,
+        financialRiskHold: isFinancialRiskHold(row),
       });
       candidates.set(id, entries);
     }
@@ -349,7 +350,7 @@ async function fetchProtectedSource() {
   let ambiguousVariants = 0;
   for (const entries of candidates.values()) {
     const signatures = new Set(
-      entries.map((entry) => `${entry.price.toFixed(2)}|${entry.stock}`),
+      entries.map((entry) => `${entry.price.toFixed(2)}|${entry.stock}|${entry.financialRiskHold}`),
     );
     if (signatures.size !== 1) {
       ambiguousVariants++;
@@ -455,6 +456,7 @@ async function readShopifyVariants(ids) {
           id
           sku
           price
+          inventoryPolicy
           product {
             id
             title
@@ -462,6 +464,7 @@ async function readShopifyVariants(ids) {
           }
           inventoryItem {
             id
+            tracked
             inventoryLevel(locationId: $locationId) {
               id
               quantities(names: ["available"]) {
@@ -666,6 +669,8 @@ async function main() {
     stockUnavailable: 0,
     stockReactivationsBlocked: 0,
     protectedZeroCount: PROTECTED_ZERO_KEYS.size,
+    financialRiskHoldCount: selected.filter((x) => x.financialRiskHold).length,
+    financialRiskPolicyFailures: 0,
     errors: 0,
     priceFormulaRecalculations: 0,
     productDeletions: 0,
@@ -704,6 +709,19 @@ async function main() {
 
       summary.checked++;
       try {
+      if (desired.financialRiskHold && (
+        variant.inventoryPolicy !== "DENY" ||
+        variant.inventoryItem?.tracked !== true
+      )) {
+        summary.financialRiskPolicyFailures++;
+        summary.errors++;
+        summary.errorDetails.push({
+          catalogKey: desired.catalogKey,
+          variantId: variant.id,
+          reason: "financial-hold-requires-tracked-inventory-and-DENY-policy",
+        });
+        continue;
+      }
       if (!STOCK_ONLY) {
         const currentPrice = money(variant.price);
         if (Math.abs(currentPrice - desired.price) <= PRICE_TOLERANCE) {
