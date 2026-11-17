@@ -24,7 +24,7 @@ const sections = [
   {
     id: "orders", title: "Bestellungen & Rechnungen", description: "Einkäufe, Lieferstatus und Belege", icon: Package,
     items: [
-      { label: "Meine Bestellungen", description: "Bestellungen im sicheren Shopify-Kundenkonto ansehen", href: `${shopifyAccount}/orders` },
+      { label: "Meine Bestellungen", description: "Bestellungen in deinem sicheren Kundenkonto ansehen", href: `${shopifyAccount}/orders` },
       { label: "Lieferstatus prüfen", description: "Eine Bestellung und verfügbare Sendungsinformationen öffnen", href: `${shopifyAccount}/orders` },
       { label: "Rechnung oder Beleg anfragen", description: "Belege beim IUMATEC-Kundendienst anfordern", href: "/kontakt" },
     ],
@@ -32,9 +32,9 @@ const sections = [
   {
     id: "profile", title: "Mein Profil & Einstellungen", description: "Persönliche Daten und Lieferadressen", icon: UserRound,
     items: [
-      { label: "Persönliche Daten", description: "Profil im sicheren Shopify-Kundenkonto verwalten", href: shopifyAccount },
-      { label: "Lieferadressen", description: "Gespeicherte Adressen im Shopify-Kundenkonto verwalten", href: shopifyAccount },
-      { label: "Kontosicherheit", description: "Zugang und Kontoeinstellungen bei Shopify verwalten", href: shopifyAccount },
+      { label: "Persönliche Daten", description: "Profil in deinem sicheren Kundenkonto verwalten", href: shopifyAccount },
+      { label: "Lieferadressen", description: "Gespeicherte Lieferadressen sicher verwalten", href: shopifyAccount },
+      { label: "Kontosicherheit", description: "Zugang und Kontoeinstellungen sicher verwalten", href: shopifyAccount },
     ],
   },
   {
@@ -158,7 +158,7 @@ export default function KontoAuthenticatedGate({ guest }: { guest: ReactNode }) 
           <span className="flex items-center gap-3"><Truck className="text-neutral-500" size={22}/><span><strong className="block">IUMATEC Schweiz</strong><span className="block text-xs text-neutral-500">Lieferung ausschliesslich innerhalb der Schweiz</span></span></span>
           <a href="mailto:support@iumatec.ch" className="font-bold text-red-700 hover:underline">support@iumatec.ch</a>
         </div>
-        <p className="mt-5 text-center text-xs leading-5 text-neutral-500">Anmeldung und Kundenprofil werden sicher über Shopify verwaltet. Retouren und Beleganfragen bearbeitet der IUMATEC-Kundendienst.</p>
+        <p className="mt-5 text-center text-xs leading-5 text-neutral-500">Anmeldung und Kundenprofil werden sicher verwaltet. Retouren und Beleganfragen bearbeitet der IUMATEC-Kundendienst.</p>
       </div>
     </main>
   );

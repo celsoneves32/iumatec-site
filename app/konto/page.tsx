@@ -55,7 +55,7 @@ function GuestKontoPage() {
             </h2>
             <p className="mt-3 max-w-xl text-base leading-7 text-neutral-600">
               Melde dich sicher an oder erstelle ein Kundenkonto. Danach kannst du deine
-              Bestellungen, Lieferadressen und persönlichen Angaben bei Shopify verwalten.
+              Bestellungen, Lieferadressen und persönlichen Angaben sicher verwalten.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3 text-sm text-neutral-600">
               <span className="inline-flex items-center gap-2"><LockKeyhole size={17} className="text-red-700" /> Sicherer Zugang</span>
@@ -83,7 +83,7 @@ function GuestKontoPage() {
               Konto erstellen <UserRound size={17} aria-hidden="true" />
             </a>
             <p className="mt-5 text-center text-xs leading-5 text-neutral-400">
-              Beide Optionen nutzen denselben sicheren Shopify-Zugang.
+              Beide Optionen nutzen denselben sicheren IUMATEC-Zugang.
             </p>
           </div>
         </section>
@@ -102,7 +102,7 @@ function GuestKontoPage() {
         </section>
 
         <p className="mt-6 text-center text-xs leading-5 text-neutral-500">
-          Persönliche Bestellungen und Kontodaten werden erst im geschützten Shopify-Kundenkonto angezeigt.
+          Persönliche Bestellungen und Kontodaten werden erst nach der sicheren Anmeldung angezeigt.
         </p>
       </div>
     </main>

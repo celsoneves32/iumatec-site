@@ -54,14 +54,14 @@ export default function HeaderAccount() {
           <button type="button" disabled={busy} onClick={logout} className="mt-2 flex w-full items-center gap-3 border-t border-neutral-100 px-3 py-3 text-left text-sm font-semibold hover:bg-neutral-50 disabled:opacity-50"><LogOut size={18} className="text-red-700"/> Abmelden</button>
         </> : <>
           <p className="px-2 text-sm font-extrabold">Willkommen bei IUMATEC</p>
-          <p className="mt-1 px-2 text-xs leading-5 text-neutral-600">Melde dich mit deiner E-Mail-Adresse an. Shopify sendet einen Bestätigungscode.</p>
+          <p className="mt-1 px-2 text-xs leading-5 text-neutral-600">Melde dich mit deiner E-Mail-Adresse an. Du erhältst einen Bestätigungscode.</p>
           <form onSubmit={login} className="mt-4">
             <label htmlFor="iumatec-customer-login" className="block px-1 text-xs font-bold text-neutral-700">E-Mail-Adresse</label>
             <input id="iumatec-customer-login" type="email" autoComplete="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="name@beispiel.ch" className="mt-2 w-full rounded-xl border border-neutral-300 px-3 py-3 text-sm outline-none focus:border-red-600"/>
             <button type="submit" className="mt-3 flex w-full min-h-11 items-center justify-center rounded-xl bg-red-600 px-4 text-sm font-extrabold text-white hover:bg-red-700">Anmelden / Weiter</button>
           </form>
           <a href="/api/auth/shopify/login" className="mt-2 flex min-h-11 items-center justify-center rounded-xl border border-neutral-300 px-4 text-sm font-extrabold hover:bg-neutral-50">Konto erstellen</a>
-          <p className="mt-2 px-1 text-[11px] leading-4 text-neutral-500">Die sichere Bestätigung erfolgt bei Shopify.</p>
+          <p className="mt-2 px-1 text-[11px] leading-4 text-neutral-500">Die Anmeldung wird durch einen Bestätigungscode geschützt.</p>
           <div className="mt-3 border-t border-neutral-100 pt-2"><Link href="/konto" onClick={() => setOpen(false)} className="block rounded-xl px-3 py-2 text-sm font-semibold hover:bg-neutral-50">Mein Konto</Link><Link href="/kontakt" onClick={() => setOpen(false)} className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold hover:bg-neutral-50"><CircleHelp size={17}/> Hilfe & Kontakt</Link></div>
         </>}
       </div>}
