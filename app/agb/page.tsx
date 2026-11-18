@@ -72,12 +72,45 @@ export default function AGBPage() {
       </div>
 
       <h2 className="text-xl font-semibold mt-6 mb-2">
-        5. Zahlung
+        5. Zahlung und Ratenzahlung
       </h2>
-      <p className="text-gray-600 dark:text-gray-400 mb-4">
-        Es gelten die im Checkout angebotenen Zahlungsmethoden. IUMATEC behält
-        sich vor, einzelne Zahlungsarten im Einzelfall auszuschliessen.
-      </p>
+      <div className="text-gray-600 dark:text-gray-400 mb-4 space-y-3">
+        <p>
+          Es gelten die im Checkout tatsächlich angebotenen Zahlungsmethoden,
+          insbesondere Kreditkarten, TWINT und Klarna, sofern verfügbar.
+          IUMATEC behält sich vor, einzelne Zahlungsarten im Einzelfall
+          auszuschliessen.
+        </p>
+        <p>
+          Bei Auswahl von Klarna können je nach Verfügbarkeit und einer
+          allfälligen Bonitätsprüfung Sofortzahlung, spätere Zahlung oder
+          Ratenzahlung angeboten werden. Ob und unter welchen Bedingungen
+          Ratenzahlung möglich ist, entscheidet der jeweilige Zahlungsanbieter.
+          Verbindliche Zahlungsfristen sowie allfällige Gebühren und weitere
+          Konditionen werden im Zahlungsablauf des Anbieters mitgeteilt.
+        </p>
+        <p>
+          Zahlungen mit TWINT werden über die TWINT-App autorisiert.
+          Eine spätere Zahlung oder Finanzierung über TWINT ist nur verfügbar,
+          wenn diese Option im konkreten Zahlungsvorgang ausdrücklich
+          angeboten wird. Es gelten die zusätzlichen Bedingungen des
+          zuständigen Zahlungsdienstleisters.
+        </p>
+        <p>
+          Wird ein Zahlungsplan mit einem externen Anbieter vereinbart,
+          verwaltet dieser die einzelnen Raten, Fälligkeiten und bereits
+          geleisteten Ratenzahlungen. Der im IUMATEC-Kundenkonto angezeigte
+          Zahlungsstatus bezieht sich auf die Bestellung bei IUMATEC und
+          stellt keine Bestätigung dar, dass sämtliche Raten gegenüber dem
+          Zahlungsanbieter bereits bezahlt wurden.
+        </p>
+        <p>
+          Für Fragen zu Bestellung, Lieferung, Rückgabe und Gewährleistung
+          bleibt IUMATEC der Ansprechpartner. Bei Fragen zum externen
+          Ratenzahlungsvertrag, zu Fälligkeiten oder zum offenen Ratenbetrag
+          ist der jeweilige Zahlungsanbieter zuständig.
+        </p>
+      </div>
 
       {/* Rückgabe – aktualisiert Oktober 2026 */}
       <h2 className="text-xl font-semibold mt-6 mb-2">
@@ -196,7 +229,7 @@ export default function AGBPage() {
       </p>
 
       <p className="mt-10 text-gray-500 text-sm">
-        Stand: Oktober 2026 – IUMATEC Schweiz
+        Stand: November 2026 – IUMATEC Schweiz
       </p>
     </main>
   );
