@@ -8,7 +8,6 @@ import {
   Package,
   ShieldCheck,
   Truck,
-  UserRound,
 } from "lucide-react";
 
 export const metadata = {
@@ -64,14 +63,8 @@ function GuestKontoPage() {
             >
               Anmelden <ArrowRight size={17} aria-hidden="true" />
             </a>
-            <a
-              href={login}
-              className="mt-3 inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/25 bg-white px-5 py-3 text-sm font-extrabold text-neutral-950 transition hover:bg-neutral-100"
-            >
-              Konto erstellen <UserRound size={17} aria-hidden="true" />
-            </a>
             <p className="mt-5 text-center text-xs leading-5 text-neutral-400">
-              Neu bei IUMATEC? Gib deine E-Mail-Adresse ein. Dein Konto wird nach der Bestätigung eingerichtet.
+              Neu bei IUMATEC? Melde dich mit deiner E-Mail-Adresse an. Dein Kundenkonto wird nach der Bestätigung automatisch erstellt.
             </p>
           </div>
         </section>

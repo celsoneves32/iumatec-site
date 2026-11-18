@@ -58,10 +58,9 @@ export default function HeaderAccount() {
           <form onSubmit={login} className="mt-4">
             <label htmlFor="iumatec-customer-login" className="block px-1 text-xs font-bold text-neutral-700">E-Mail-Adresse</label>
             <input id="iumatec-customer-login" type="email" autoComplete="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="name@beispiel.ch" className="mt-2 w-full rounded-xl border border-neutral-300 px-3 py-3 text-sm outline-none focus:border-red-600"/>
-            <button type="submit" className="mt-3 flex w-full min-h-11 items-center justify-center rounded-xl bg-red-600 px-4 text-sm font-extrabold text-white hover:bg-red-700">Anmelden / Weiter</button>
+            <button type="submit" className="mt-3 flex w-full min-h-11 items-center justify-center rounded-xl bg-red-600 px-4 text-sm font-extrabold text-white hover:bg-red-700">Anmelden</button>
           </form>
-          <a href="/api/auth/shopify/login" className="mt-2 flex min-h-11 items-center justify-center rounded-xl border border-neutral-300 px-4 text-sm font-extrabold hover:bg-neutral-50">Neu hier? Konto erstellen</a>
-          <p className="mt-2 px-1 text-[11px] leading-4 text-neutral-500">Auch neue Konten werden mit einem Bestätigungscode per E-Mail erstellt.</p>
+          <p className="mt-2 px-1 text-[11px] leading-4 text-neutral-500">Neu bei IUMATEC? Melde dich mit deiner E-Mail-Adresse an. Dein Konto wird nach der Bestätigung automatisch erstellt.</p>
           <div className="mt-3 border-t border-neutral-100 pt-2"><Link href="/konto" onClick={() => setOpen(false)} className="block rounded-xl px-3 py-2 text-sm font-semibold hover:bg-neutral-50">Mein Konto</Link><Link href="/kontakt" onClick={() => setOpen(false)} className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold hover:bg-neutral-50"><CircleHelp size={17}/> Hilfe & Kontakt</Link></div>
         </>}
       </div>}
