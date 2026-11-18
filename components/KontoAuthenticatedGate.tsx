@@ -17,8 +17,8 @@ const sections = [
   {
     id: "orders", title: "Bestellungen & Rechnungen", description: "Einkäufe, Lieferstatus und Belege", icon: Package,
     items: [
-      { label: "Meine Bestellungen", description: "Bestellungen in deinem sicheren Kundenkonto ansehen", href: `${shopifyAccount}/orders` },
-      { label: "Lieferstatus prüfen", description: "Eine Bestellung und verfügbare Sendungsinformationen öffnen", href: `${shopifyAccount}/orders` },
+      { label: "Meine Bestellungen", description: "Bestellungen in deinem sicheren Kundenkonto ansehen", href: "/konto/bestellungen" },
+      { label: "Lieferstatus prüfen", description: "Eine Bestellung und verfügbare Sendungsinformationen öffnen", href: "/konto/bestellungen" },
       { label: "Rechnung oder Beleg anfragen", description: "Belege beim IUMATEC-Kundendienst anfordern", href: "/kontakt" },
     ],
   },
@@ -105,7 +105,7 @@ export default function KontoAuthenticatedGate({ guest }: { guest: ReactNode }) 
   }
 
   const quick = [
-    { label: "Bestellungen", description: "Bestellübersicht öffnen", icon: Package, href: `${shopifyAccount}/orders` },
+    { label: "Bestellungen", description: "Bestellübersicht öffnen", icon: Package, href: "/konto/bestellungen" },
     { label: "Mein Profil", description: "Persönliche Daten verwalten", icon: MapPin, href: `${shopifyAccount}/profile` },
     { label: "Merkliste", description: "Gespeicherte Artikel", icon: Heart, href: "/merken" },
   ];
