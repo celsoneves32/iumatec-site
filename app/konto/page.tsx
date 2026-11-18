@@ -16,19 +16,7 @@ export const metadata = {
   description: "Sicher bei IUMATEC anmelden, Kundenkonto eröffnen und Hilfe finden.",
 };
 
-// Shopify verwaltet die tatsächliche Anmeldung und die privaten Kontodaten.
-// Diese öffentliche Seite behauptet nie, den Loginstatus zu kennen.
-const configured = process.env.NEXT_PUBLIC_SHOPIFY_CUSTOMER_ACCOUNTS_URL || "";
-const fallback = "https://shop.iumatec.ch/account";
-function accountUrl() {
-  if (!configured) return fallback;
-  try {
-    const parsed = new URL(configured);
-    return parsed.protocol === "https:" ? parsed.toString() : fallback;
-  } catch {
-    return fallback;
-  }
-}
+
 
 function GuestKontoPage() {
   const login = "/api/auth/shopify/login";
@@ -83,7 +71,7 @@ function GuestKontoPage() {
               Konto erstellen <UserRound size={17} aria-hidden="true" />
             </a>
             <p className="mt-5 text-center text-xs leading-5 text-neutral-400">
-              Beide Optionen nutzen denselben sicheren IUMATEC-Zugang.
+              Neu bei IUMATEC? Gib deine E-Mail-Adresse ein. Dein Konto wird nach der Bestätigung eingerichtet.
             </p>
           </div>
         </section>

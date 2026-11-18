@@ -4,8 +4,8 @@ import Link from "next/link";
 import { ArrowRight, ChevronDown, CircleHelp, LogOut, MapPin, Package, UserRound } from "lucide-react";
 
 type Auth = { authenticated: boolean; displayName?: string | null };
-const customerAccount = process.env.NEXT_PUBLIC_SHOPIFY_CUSTOMER_ACCOUNTS_URL || "https://account.iumatec.ch";
-const account = (() => { try { const u = new URL(customerAccount); return u.protocol === "https:" ? u.origin : "https://account.iumatec.ch"; } catch { return "https://account.iumatec.ch"; } })();
+// Customer pages live on account.iumatec.ch, never on shop.iumatec.ch.
+const account = "https://account.iumatec.ch";
 export default function HeaderAccount() {
   const [open, setOpen] = useState(false);
   const [auth, setAuth] = useState<Auth | null>(null);
@@ -49,7 +49,7 @@ export default function HeaderAccount() {
         {auth === null ? <p className="p-2 text-sm text-neutral-600">Kundenkonto wird geladen …</p> : auth.authenticated ? <>
           <p className="px-2 text-sm font-extrabold">{auth.displayName ? `Hallo ${auth.displayName}` : "Mein Kundenkonto"}</p>
           <a href={`${account}/orders`} className="mt-4 flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold hover:bg-neutral-50"><Package size={18} className="text-red-700"/> Bestellungen <ArrowRight size={15} className="ml-auto"/></a>
-          <a href={account} className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold hover:bg-neutral-50"><MapPin size={18} className="text-red-700"/> Profil & Adressen <ArrowRight size={15} className="ml-auto"/></a>
+          <a href={`${account}/profile`} className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold hover:bg-neutral-50"><MapPin size={18} className="text-red-700"/> Profil & Adressen <ArrowRight size={15} className="ml-auto"/></a>
           <Link href="/konto" onClick={() => setOpen(false)} className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold hover:bg-neutral-50"><UserRound size={18} className="text-red-700"/> Mein Konto <ArrowRight size={15} className="ml-auto"/></Link>
           <button type="button" disabled={busy} onClick={logout} className="mt-2 flex w-full items-center gap-3 border-t border-neutral-100 px-3 py-3 text-left text-sm font-semibold hover:bg-neutral-50 disabled:opacity-50"><LogOut size={18} className="text-red-700"/> Abmelden</button>
         </> : <>
@@ -60,8 +60,8 @@ export default function HeaderAccount() {
             <input id="iumatec-customer-login" type="email" autoComplete="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="name@beispiel.ch" className="mt-2 w-full rounded-xl border border-neutral-300 px-3 py-3 text-sm outline-none focus:border-red-600"/>
             <button type="submit" className="mt-3 flex w-full min-h-11 items-center justify-center rounded-xl bg-red-600 px-4 text-sm font-extrabold text-white hover:bg-red-700">Anmelden / Weiter</button>
           </form>
-          <a href="/api/auth/shopify/login" className="mt-2 flex min-h-11 items-center justify-center rounded-xl border border-neutral-300 px-4 text-sm font-extrabold hover:bg-neutral-50">Konto erstellen</a>
-          <p className="mt-2 px-1 text-[11px] leading-4 text-neutral-500">Die Anmeldung wird durch einen Bestätigungscode geschützt.</p>
+          <a href="/api/auth/shopify/login" className="mt-2 flex min-h-11 items-center justify-center rounded-xl border border-neutral-300 px-4 text-sm font-extrabold hover:bg-neutral-50">Neu hier? Konto erstellen</a>
+          <p className="mt-2 px-1 text-[11px] leading-4 text-neutral-500">Auch neue Konten werden mit einem Bestätigungscode per E-Mail erstellt.</p>
           <div className="mt-3 border-t border-neutral-100 pt-2"><Link href="/konto" onClick={() => setOpen(false)} className="block rounded-xl px-3 py-2 text-sm font-semibold hover:bg-neutral-50">Mein Konto</Link><Link href="/kontakt" onClick={() => setOpen(false)} className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold hover:bg-neutral-50"><CircleHelp size={17}/> Hilfe & Kontakt</Link></div>
         </>}
       </div>}

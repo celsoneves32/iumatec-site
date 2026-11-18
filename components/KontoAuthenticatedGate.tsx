@@ -10,15 +10,8 @@ import {
 type AuthState = { authenticated: boolean; displayName?: string | null };
 type MenuItem = { label: string; description: string; href: string };
 
-const accountSetting = process.env.NEXT_PUBLIC_SHOPIFY_CUSTOMER_ACCOUNTS_URL || "https://account.iumatec.ch";
-const shopifyAccount = (() => {
-  try {
-    const url = new URL(accountSetting);
-    return url.protocol === "https:" ? url.origin : "https://account.iumatec.ch";
-  } catch {
-    return "https://account.iumatec.ch";
-  }
-})();
+// Use the customer account domain, not the storefront URL.
+const shopifyAccount = "https://account.iumatec.ch";
 
 const sections = [
   {
@@ -32,9 +25,9 @@ const sections = [
   {
     id: "profile", title: "Mein Profil & Einstellungen", description: "Persönliche Daten und Lieferadressen", icon: UserRound,
     items: [
-      { label: "Persönliche Daten", description: "Profil in deinem sicheren Kundenkonto verwalten", href: shopifyAccount },
-      { label: "Lieferadressen", description: "Gespeicherte Lieferadressen sicher verwalten", href: shopifyAccount },
-      { label: "Kontosicherheit", description: "Zugang und Kontoeinstellungen sicher verwalten", href: shopifyAccount },
+      { label: "Persönliche Daten", description: "Profil in deinem sicheren Kundenkonto verwalten", href: `${shopifyAccount}/profile` },
+      { label: "Lieferadressen", description: "Gespeicherte Lieferadressen sicher verwalten", href: `${shopifyAccount}/profile` },
+      { label: "Kontosicherheit", description: "Zugang und Kontoeinstellungen sicher verwalten", href: `${shopifyAccount}/profile` },
     ],
   },
   {
@@ -113,7 +106,7 @@ export default function KontoAuthenticatedGate({ guest }: { guest: ReactNode }) 
 
   const quick = [
     { label: "Bestellungen", description: "Bestellübersicht öffnen", icon: Package, href: `${shopifyAccount}/orders` },
-    { label: "Mein Profil", description: "Persönliche Daten verwalten", icon: MapPin, href: shopifyAccount },
+    { label: "Mein Profil", description: "Persönliche Daten verwalten", icon: MapPin, href: `${shopifyAccount}/profile` },
     { label: "Merkliste", description: "Gespeicherte Artikel", icon: Heart, href: "/merken" },
   ];
 
