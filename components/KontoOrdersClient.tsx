@@ -258,7 +258,7 @@ export default function KontoOrdersClient() {
               <div className="mt-4 space-y-2 border-t border-neutral-200 pt-4 text-sm">
                 {order.subtotal && <div className="flex justify-between gap-3"><span className="text-neutral-600">Zwischensumme</span><strong>{currency(order.subtotal)}</strong></div>}
                 {order.totalShipping && <div className="flex justify-between gap-3"><span className="text-neutral-600">Versand</span><strong>{currency(order.totalShipping)}</strong></div>}
-                {order.totalTax && <div className="flex justify-between gap-3"><span className="text-neutral-600">MwSt. (im Gesamtbetrag enthalten)</span><strong>{currency(order.totalTax)}</strong></div>}
+                {order.totalTax && Number.isFinite(Number(order.totalTax.amount)) && Number(order.totalTax.amount) > 0 && <div className="flex justify-between gap-3"><span className="text-neutral-600">MwSt. (im Gesamtbetrag enthalten)</span><strong>{currency(order.totalTax)}</strong></div>}
                 <div className="flex justify-between gap-3 border-t border-neutral-200 pt-3 text-lg font-black"><span>Gesamt</span><span>{currency(order.totalPrice)}</span></div>
                 {order.totalRefunded && Number(order.totalRefunded.amount) > 0 && <div className="flex justify-between gap-3 text-sm text-neutral-600"><span>Erstattet</span><span>{currency(order.totalRefunded)}</span></div>}
               </div>
