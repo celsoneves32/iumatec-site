@@ -1,3 +1,4 @@
+import { isQuarantinedShopifyProduct } from './catalog-identity-guard.mjs';
 import fs from "node:fs";
 import path from "node:path";
 
@@ -143,12 +144,16 @@ async function publishProduct(productId, publicationId) {
 }
 
 async function main() {
+  if (!process.argv.includes('--apply') || process.env.IUMATEC_PUBLISH_APPROVED !== 'SIM') {
+    console.log('SAFE: publication disabled by default. Explicit approval required.');
+    return;
+  }
   const file = path.join(
     ROOT,
     "integrations",
     "alltron",
     "out",
-    "iumatec-catalog-enriched.json"
+    "storefront-shopify-resolved.json"
   );
 
   if (!fs.existsSync(file)) {
@@ -188,6 +193,7 @@ async function main() {
     new Set(
       data
         .map((item) => item.shopifyProductId)
+        .filter((id) => !isQuarantinedShopifyProduct(id))
         .filter(
           (id) =>
             typeof id === "string" &&

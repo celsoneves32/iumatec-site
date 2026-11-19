@@ -552,6 +552,11 @@ function evaluateMatch(current, incoming) {
 
   const skuMatch = sameNonEmpty(a.sku, b.sku);
 
+  // A single strong identifier is insufficient when the commercial SKUs disagree.
+  if (differentNonEmpty(a.sku, b.sku) && strongMatches <= 1) {
+    return { allowed: false, score: -1000, reason: 'sku-conflict-single-strong-key',
+      currentIdentity: a, incomingIdentity: b };
+  }
   if (strongConflicts > 0) {
     return {
       allowed: false,
@@ -595,6 +600,15 @@ function evaluateMatch(current, incoming) {
     currentIdentity: a,
     incomingIdentity: b,
   };
+}
+
+function authoritativeText(current, incoming, field) {
+  const trustedIncoming = incoming?._sourceFile === TRUSTED_IMAGE_SOURCE;
+  const trustedCurrent = hasTrustedImageSource(current);
+  if (trustedIncoming) return text(incoming?.[field]) || text(current?.[field]);
+  if (trustedCurrent) return text(current?.[field]) || text(incoming?.[field]);
+  // Keep the first source stable: do not select longest text across sources.
+  return text(current?.[field]) || text(incoming?.[field]);
 }
 
 function mergeProduct(current, incoming) {
@@ -662,24 +676,15 @@ function mergeProduct(current, incoming) {
 
     brand: preferred(current.brand, incoming.brand),
 
-    title: longer(current.title, incoming.title),
+    title: authoritativeText(current, incoming, 'title'),
 
-    title2: longer(current.title2, incoming.title2),
+    title2: authoritativeText(current, incoming, 'title2'),
 
-    fullTitle: longer(
-      current.fullTitle,
-      incoming.fullTitle,
-    ),
+    fullTitle: authoritativeText(current, incoming, 'fullTitle'),
 
-    description: longer(
-      current.description,
-      incoming.description,
-    ),
+    description: authoritativeText(current, incoming, 'description'),
 
-    description2: longer(
-      current.description2,
-      incoming.description2,
-    ),
+    description2: authoritativeText(current, incoming, 'description2'),
 
     deliveryDate: preferred(
       current.deliveryDate,

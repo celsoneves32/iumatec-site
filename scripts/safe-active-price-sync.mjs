@@ -1,3 +1,4 @@
+import { validateCatalogIdentity } from './catalog-identity-guard.mjs';
 import fs from "node:fs";
 import path from "node:path";
 
@@ -1006,6 +1007,14 @@ async function main() {
       continue;
     }
 
+    const verified = validateCatalogIdentity(match.row, product);
+    if (!verified.ok) {
+      identityUnmatched++;
+      plan.action = 'QUARANTINE';
+      plan.reason = 'identity-conflict-' + verified.reason;
+      plans.push(plan);
+      continue;
+    }
     identityMatched++;
 
     matchMethods[match.method] =

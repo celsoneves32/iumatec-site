@@ -1,3 +1,4 @@
+import { validateCatalogIdentity } from './catalog-identity-guard.mjs';
 import fs from "node:fs";
 import path from "node:path";
 
@@ -159,6 +160,12 @@ function run() {
 
     if (result.status === "resolved") {
       const match = result.matches[0];
+      const identity = validateCatalogIdentity(product, match);
+      if (!identity.ok) {
+        review.push({ status: 'identity-conflict', method: identity.reason,
+          product: compactProduct(product), matches: [compactShopify(match)] });
+        continue;
+      }
       resolved.push({
         ...product,
         shopifyProductId: text(match.productId),

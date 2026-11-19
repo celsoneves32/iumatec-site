@@ -1,3 +1,4 @@
+import { validateCatalogIdentity } from './catalog-identity-guard.mjs';
 import fs from "node:fs";
 import path from "node:path";
 
@@ -279,7 +280,9 @@ async function findBySku(sku) {
   const data = await adminFetch(query, { query: `sku:${escapeGraphqlQueryValue(clean)}` });
   const nodes = data?.productVariants?.nodes || [];
 
-  const exact = nodes.find((node) => normalizeSku(node?.sku) === clean);
+  const candidates = nodes.filter((node) => normalizeSku(node?.sku) === clean);
+  if (candidates.length !== 1 || nodes.length >= 10) return null;
+  const exact = candidates[0];
   if (!exact?.id || !exact?.product?.id) return null;
 
   return {
@@ -321,7 +324,9 @@ async function findByBarcode(barcode) {
   const data = await adminFetch(query, { query: `barcode:${escapeGraphqlQueryValue(clean)}` });
   const nodes = data?.productVariants?.nodes || [];
 
-  const exact = nodes.find((node) => normalizeBarcode(node?.barcode) === clean);
+  const candidates = nodes.filter((node) => normalizeBarcode(node?.barcode) === clean);
+  if (candidates.length !== 1 || nodes.length >= 10) return null;
+  const exact = candidates[0];
   if (!exact?.id || !exact?.product?.id) return null;
 
   return {
@@ -439,8 +444,6 @@ async function resolveShopifyMatch(item) {
     (existingVariant ? await findByVariantId(existingVariant) : null) ||
     (item?.sku ? await findBySku(item.sku) : null) ||
     (item?.ean ? await findByBarcode(item.ean) : null) ||
-    (existingHandle ? await findByHandle(existingHandle) : null) ||
-    (item?.title ? await findByTitle(item.title) : null) ||
     null
   );
 }
@@ -484,6 +487,13 @@ async function main() {
         continue;
       }
 
+      const identity = validateCatalogIdentity(item, match);
+      if (!identity.ok) {
+        enriched.push({ ...item, merchandiseId: '',
+          shopifyMatchStatus: 'identity-conflict', shopifySyncError: identity.reason });
+        report.notMatched += 1;
+        continue;
+      }
       report.matched += 1;
       report.byMatchType[match.matchType] =
         (report.byMatchType[match.matchType] || 0) + 1;

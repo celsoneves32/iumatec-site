@@ -1,3 +1,4 @@
+import { isQuarantinedShopifyProduct } from './catalog-identity-guard.mjs';
 import fs from "fs";
 import path from "path";
 
@@ -490,6 +491,12 @@ function isPurchasable(product) {
       ),
     ) &&
     getPrice(product) > 0 &&
+    number(product.purchaseCostInclVat) > 0 &&
+    number(product.minimumSafePrice) > 0 &&
+    getPrice(product) + 0.009 >= number(product.minimumSafePrice) &&
+    ['alltron', 'also'].includes(clean(product.selectedSupplier).toLowerCase()) &&
+    product.packUnitReviewRequired !== true &&
+    !isQuarantinedShopifyProduct(product.shopifyProductId) &&
     product.priceSafetyStatus !== "blocked-missing-cost" &&
     getStock(product) > 0 &&
     getImages(product).length > 0

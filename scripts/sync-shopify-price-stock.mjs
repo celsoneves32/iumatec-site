@@ -1,3 +1,4 @@
+import { validateCatalogIdentity, isQuarantinedShopifyProduct } from './catalog-identity-guard.mjs';
 import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import { loadProtectedZeroKeys, isBlockedReactivation } from "./iumatec-stock-guard.mjs";
@@ -279,7 +280,7 @@ async function fetchProtectedSource() {
     const to = from + SUPABASE_PAGE_SIZE - 1;
     const endpoint =
       `${supabaseUrl}/rest/v1/products` +
-      "?select=catalog_key,title,sku,price,stock_qty,merchandise_id,shopify_variant_id" +
+      "?select=catalog_key,title,sku,ean,price,stock_qty,merchandise_id,shopify_variant_id" +
       "&order=catalog_key.asc";
     const response = await fetch(endpoint, {
       headers: supabaseHeaders({
@@ -336,6 +337,7 @@ async function fetchProtectedSource() {
         catalogKey,
         title: text(row?.title),
         sku: text(row?.sku),
+        ean: text(row?.ean),
         price: protectedPrice,
         stock: protectedStock,
       });
@@ -454,6 +456,7 @@ async function readShopifyVariants(ids) {
         ... on ProductVariant {
           id
           sku
+          barcode
           price
           product {
             id
@@ -702,6 +705,17 @@ async function main() {
         continue;
       }
 
+      const verified = validateCatalogIdentity(
+        { merchandiseId: desired?.variantId, sku: desired?.sku, ean: desired?.ean },
+        { variantId: variant.id, sku: variant.sku, barcode: variant.barcode,
+          productId: variant.product.id }
+      );
+      if (!verified.ok || isQuarantinedShopifyProduct(variant.product.id)) {
+        summary.errors++;
+        if (summary.errorDetails.length < 100) summary.errorDetails.push({
+          variantId: variant.id, reason: verified.reason || 'quarantined' });
+        continue;
+      }
       summary.checked++;
       try {
       if (!STOCK_ONLY) {
