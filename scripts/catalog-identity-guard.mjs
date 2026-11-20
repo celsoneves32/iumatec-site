@@ -11,6 +11,16 @@ export const QUARANTINED_PRODUCT_IDS = new Set([
 const txt = value => String(value ?? '').trim();
 const sku = value => txt(value).toUpperCase().replace(/\s+/g, ' ');
 const ean = value => txt(value).replace(/\D/g, '');
+// 12-digit UPC and equivalent 13-digit EAN with a leading zero represent the same GTIN.
+export function gtinEquivalent(a, b) {
+  const x = ean(a);
+  const y = ean(b);
+  if (!x || !y) return false;
+  if (x === y) return true;
+  const lengths = new Set([8, 12, 13, 14]);
+  return lengths.has(x.length) && lengths.has(y.length) &&
+    x.padStart(14, '0') === y.padStart(14, '0');
+}
 const gid = value => txt(value).match(/(\d+)$/)?.[1] || '';
 
 export function isQuarantinedShopifyProduct(id) {
@@ -28,13 +38,19 @@ export function validateCatalogIdentity(expected, actual) {
   const expectedSku = sku(expected.sku);
   const actualSku = sku(actual.sku);
   const expectedEan = ean(expected.ean || expected.barcode || expected.gtin);
-  const actualEan = ean(actual.barcode || actual.ean || actual.gtin);
+  const actualEans = [
+    actual.barcode, actual.ean, actual.gtin,
+    ...(Array.isArray(actual.barcodes?.nodes) ? actual.barcodes.nodes.map(b => b?.value) : []),
+    ...(Array.isArray(actual.barcodes) ? actual.barcodes.map(b => typeof b === 'string' ? b : b?.value) : []),
+  ].filter(Boolean);
+  const eanMatched = Boolean(expectedEan) &&
+    actualEans.some(value => gtinEquivalent(expectedEan, value));
   if (expectedVariant && expectedVariant !== actualVariant) return { ok: false, reason: 'variant-id-conflict' };
   if (expectedSku && expectedSku !== actualSku) return { ok: false, reason: 'sku-missing-or-conflict' };
-  if (expectedEan && expectedEan !== actualEan) return { ok: false, reason: 'ean-missing-or-conflict' };
+  if (expectedEan && !eanMatched) return { ok: false, reason: 'ean-missing-or-conflict' };
   const evidence = [
     expectedSku && actualSku && expectedSku === actualSku ? 'sku' : '',
-    expectedEan && actualEan && expectedEan === actualEan ? 'ean' : '',
+    eanMatched ? 'ean' : '',
   ].filter(Boolean);
   // An ID alone is not enough: stale Shopify variant links caused previous cross-item matches.
   if (evidence.length === 0) return { ok: false, reason: 'no-secondary-identity-evidence' };

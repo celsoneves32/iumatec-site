@@ -1,4 +1,4 @@
-import { validateCatalogIdentity } from './catalog-identity-guard.mjs';
+import { validateCatalogIdentity, gtinEquivalent } from './catalog-identity-guard.mjs';
 import fs from "node:fs";
 import path from "node:path";
 
@@ -41,7 +41,10 @@ const ADMIN_DOMAIN =
   process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN;
 
 const ADMIN_TOKEN = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
-const ADMIN_API_VERSION = process.env.SHOPIFY_ADMIN_API_VERSION || "2025-04";
+const ADMIN_API_VERSION = process.env.SHOPIFY_ADMIN_API_VERSION || "2026-10";
+if (ADMIN_API_VERSION < '2026-10') {
+  throw new Error('IUMATEC: Admin API 2026-10 or later required for barcodes collection');
+}
 
 const STOREFRONT_TOKEN =
   process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN ||
@@ -95,6 +98,14 @@ function normalizeSku(value) {
 
 function normalizeBarcode(value) {
   return String(value || "").replace(/[^\dA-Za-z]/g, "").trim();
+}
+
+function barcodeValues(variant) {
+  return (variant?.barcodes?.nodes || []).map(b => String(b?.value || '').trim()).filter(Boolean);
+}
+function firstBarcode(variant) { return barcodeValues(variant)[0] || ''; }
+function barcodeMatches(a, b) {
+  return normalizeBarcode(a) === normalizeBarcode(b) || gtinEquivalent(a, b);
 }
 
 function escapeGraphqlQueryValue(value) {
@@ -224,7 +235,7 @@ async function findByVariantId(variantIdOrGid) {
         ... on ProductVariant {
           id
           sku
-          barcode
+          barcodes(first: 20) { nodes { value type } }
           title
           product {
             id
@@ -250,7 +261,9 @@ async function findByVariantId(variantIdOrGid) {
     variantId: variant.id,
     variantTitle: variant.title,
     sku: variant.sku || "",
-    barcode: variant.barcode || "",
+    barcode: firstBarcode(variant),
+
+    barcodes: variant.barcodes,
   };
 }
 
@@ -264,7 +277,7 @@ async function findBySku(sku) {
         nodes {
           id
           sku
-          barcode
+          barcodes(first: 20) { nodes { value type } }
           title
           product {
             id
@@ -294,7 +307,9 @@ async function findBySku(sku) {
     variantId: exact.id,
     variantTitle: exact.title,
     sku: exact.sku || "",
-    barcode: exact.barcode || "",
+    barcode: firstBarcode(exact),
+
+    barcodes: exact.barcodes,
   };
 }
 
@@ -308,7 +323,7 @@ async function findByBarcode(barcode) {
         nodes {
           id
           sku
-          barcode
+          barcodes(first: 20) { nodes { value type } }
           title
           product {
             id
@@ -324,7 +339,7 @@ async function findByBarcode(barcode) {
   const data = await adminFetch(query, { query: `barcode:${escapeGraphqlQueryValue(clean)}` });
   const nodes = data?.productVariants?.nodes || [];
 
-  const candidates = nodes.filter((node) => normalizeBarcode(node?.barcode) === clean);
+  const candidates = nodes.filter((node) => barcodeValues(node).some((value) => barcodeMatches(value, clean)));
   if (candidates.length !== 1 || nodes.length >= 10) return null;
   const exact = candidates[0];
   if (!exact?.id || !exact?.product?.id) return null;
@@ -338,7 +353,9 @@ async function findByBarcode(barcode) {
     variantId: exact.id,
     variantTitle: exact.title,
     sku: exact.sku || "",
-    barcode: exact.barcode || "",
+    barcode: firstBarcode(exact),
+
+    barcodes: exact.barcodes,
   };
 }
 
@@ -357,7 +374,7 @@ async function findByHandle(handle) {
           nodes {
             id
             sku
-            barcode
+            barcodes(first: 20) { nodes { value type } }
             title
           }
         }
@@ -380,7 +397,9 @@ async function findByHandle(handle) {
     variantId: firstVariant.id,
     variantTitle: firstVariant.title,
     sku: firstVariant.sku || "",
-    barcode: firstVariant.barcode || "",
+    barcode: firstBarcode(firstVariant),
+
+    barcodes: firstVariant.barcodes,
   };
 }
 
@@ -400,7 +419,7 @@ async function findByTitle(title) {
             nodes {
               id
               sku
-              barcode
+              barcodes(first: 20) { nodes { value type } }
               title
             }
           }
@@ -429,7 +448,9 @@ async function findByTitle(title) {
     variantId: firstVariant.id,
     variantTitle: firstVariant.title,
     sku: firstVariant.sku || "",
-    barcode: firstVariant.barcode || "",
+    barcode: firstBarcode(firstVariant),
+
+    barcodes: firstVariant.barcodes,
   };
 }
 

@@ -90,6 +90,9 @@ const apiVersion = String(
   process.env.IUMATEC_SHOPIFY_STOCK_API_VERSION || "2026-10",
 ).trim();
 const locationId = String(process.env.SHOPIFY_LOCATION_ID || "").trim();
+if (apiVersion < '2026-10') {
+  throw new Error('IUMATEC: Admin API 2026-10 or later required for barcodes collection');
+}
 const supabaseUrl = String(
   process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "",
 )
@@ -456,7 +459,7 @@ async function readShopifyVariants(ids) {
         ... on ProductVariant {
           id
           sku
-          barcode
+          barcodes(first: 20) { nodes { value type } }
           price
           product {
             id
@@ -707,7 +710,7 @@ async function main() {
 
       const verified = validateCatalogIdentity(
         { merchandiseId: desired?.variantId, sku: desired?.sku, ean: desired?.ean },
-        { variantId: variant.id, sku: variant.sku, barcode: variant.barcode,
+        { variantId: variant.id, sku: variant.sku, barcodes: variant.barcodes,
           productId: variant.product.id }
       );
       if (!verified.ok || isQuarantinedShopifyProduct(variant.product.id)) {
