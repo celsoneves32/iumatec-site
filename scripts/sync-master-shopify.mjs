@@ -762,6 +762,7 @@ async function resolveShopifyIdentity(p, prepared) {
       },
       productId,
       variantId: matchedVariant.id,
+      existingBarcode: text(matchedVariant.barcode),
     };
   }
 
@@ -798,6 +799,20 @@ async function syncProduct(p, location, publication) {
     throw new Error(
       `${identity.status}: ${identity.reason}`,
     );
+  }
+
+  // Never overwrite an existing Shopify barcode from supplier data.
+  // Both missing and mismatching incoming barcodes must be reviewed manually.
+  if (identity.status === "SAFE_EXISTING") {
+    const existingBarcode = text(identity.existingBarcode);
+    const incomingBarcode = text(prepared.input.variants?.[0]?.barcode);
+    if (existingBarcode !== incomingBarcode) {
+      throw new Error(
+        `BLOCKED_BARCODE_CHANGE: Shopify variant ${identity.variantId} ` +
+        `has barcode ${existingBarcode || "(empty)"}; ` +
+        `supplier supplied ${incomingBarcode || "(empty)"}.`
+      );
+    }
   }
 
   if (DRY_RUN) {
