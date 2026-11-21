@@ -506,12 +506,7 @@ function variablesFor(p, locationId) {
   const selectedSupplier =
     text(p.selectedSupplier).toLowerCase();
 
-  const price =
-    selectedSupplier === "also"
-      ? num(p.price)
-      : num(p.ecpr) > 0
-        ? num(p.ecpr)
-        : num(p.price);
+  const price = num(p.price);
 
   const minimumSafePrice = num(p.minimumSafePrice);
 
@@ -910,12 +905,7 @@ async function main() {
   pending = pending.filter((p) => {
     const selectedSupplier = text(p.selectedSupplier).toLowerCase();
 
-    const price =
-      selectedSupplier === "also"
-        ? num(p.price)
-        : num(p.ecpr) > 0
-          ? num(p.ecpr)
-          : num(p.price);
+    const price = num(p.price);
 
     const minimumSafePrice = num(p.minimumSafePrice);
 
