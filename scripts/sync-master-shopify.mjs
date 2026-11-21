@@ -69,7 +69,7 @@ const MAX_PRODUCTS = Math.max(
 );
 
 const DRY_RUN =
-  String(process.env.SYNC_DRY_RUN || "false").toLowerCase() === "true";
+  String(process.env.SYNC_DRY_RUN || "true").toLowerCase() !== "false";
 
 if (!DOMAIN) throw new Error("Missing SHOPIFY_STORE_DOMAIN");
 if (!TOKEN) throw new Error("Missing SHOPIFY_ADMIN_ACCESS_TOKEN");
@@ -850,6 +850,11 @@ async function syncProduct(p, location, publication) {
   // This importer is creation-only: no re-writes of price, stock or barcode sets for existing products.
   if (identity.status === "SAFE_EXISTING") {
     throw new Error(`BLOCKED_EXISTING_PRODUCT_WRITE: Shopify product ${identity.productId} requires manual review.`);
+  }
+
+  // IUMATEC: block creation until create-only and identity checks are validated.
+  if (identity.status === "SAFE_NEW") {
+    throw new Error("BLOCKED_SAFE_NEW_CREATION: manual review required.");
   }
 
   const data = await gql(PRODUCT_SET, {
