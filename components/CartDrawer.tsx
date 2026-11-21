@@ -52,9 +52,10 @@ export default function CartDrawer() {
     };
   }, [isDrawerOpen, closeDrawer]);
 
-  const freeShipping = total >= 99;
-  const estimatedShipping = freeShipping ? 0 : 9.90;
-  const estimatedTotal = total + estimatedShipping;
+  const hasItems = items.length > 0 && totalQuantity > 0;
+  const freeShipping = hasItems && total >= 99;
+  const estimatedShipping = !hasItems || freeShipping ? 0 : 9.90;
+  const estimatedTotal = hasItems ? total + estimatedShipping : 0;
   return (
     <>
       <div
@@ -237,7 +238,7 @@ export default function CartDrawer() {
         </div>
 
         <div className="border-t border-neutral-200 bg-white px-5 py-4 shadow-[0_-10px_30px_rgba(0,0,0,0.04)]">
-          <div className="mb-3 rounded-3xl border border-green-100 bg-green-50 p-4">
+          {hasItems ? <div className="mb-3 rounded-3xl border border-green-100 bg-green-50 p-4">
             <div className="flex items-center justify-between gap-3">
               <p className="text-sm font-extrabold text-green-800">
                 {freeShipping ? "Gratis Versand aktiviert" : "Standardversand CHF 9.90"}
@@ -249,7 +250,7 @@ export default function CartDrawer() {
             <p className="mt-1 text-xs font-medium text-green-700">
               Sichere Zahlung · schnelle Lieferung · transparente Preise
             </p>
-          </div>
+          </div> : null}
 
           <div className="space-y-2 rounded-3xl bg-neutral-50 p-4">
             <div className="flex items-center justify-between text-sm text-neutral-600">
@@ -259,7 +260,7 @@ export default function CartDrawer() {
 
             <div className="flex items-center justify-between text-sm text-neutral-600">
               <span>Lieferung</span>
-              <span className={freeShipping ? "font-semibold text-green-700" : "font-semibold text-neutral-900"}>{freeShipping ? "GRATIS" : formatMoney(estimatedShipping, currencyCode)}</span>
+              <span className={freeShipping ? "font-semibold text-green-700" : "font-semibold text-neutral-900"}>{!hasItems ? "—" : freeShipping ? "GRATIS" : formatMoney(estimatedShipping, currencyCode)}</span>
             </div>
 
             <div className="flex items-center justify-between border-t border-neutral-200 pt-3 text-lg font-extrabold text-neutral-950">
@@ -269,7 +270,7 @@ export default function CartDrawer() {
           </div>
 
           <div className="mt-4 space-y-3">
-            {checkoutUrl ? (
+            {hasItems && checkoutUrl ? (
               <a
                 href={checkoutUrl}
                 className="block w-full rounded-2xl bg-red-600 px-5 py-4 text-center text-base font-extrabold text-white shadow-sm transition hover:bg-red-700"
