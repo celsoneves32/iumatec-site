@@ -3,6 +3,13 @@ import Link from "next/link";
 
 const collections = [
   {
+    title: "TV & Home Cinema",
+    href: "/tv-home-cinema",
+    image: "/categories/monitors.png",
+    description: "Fernseher, Soundbars und Heimkino",
+  },
+
+  {
     title: "Laptops",
     href: "/produkte?category=Computer&subcategory=Laptops",
     image: "/categories/laptops.png",

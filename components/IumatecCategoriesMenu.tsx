@@ -2,6 +2,17 @@ import Link from "next/link";
 
 const categories = [
   {
+    title: "TV & Home Cinema",
+    href: "/tv-home-cinema",
+    items: [
+      { label: "Fernseher", href: "/tv-home-cinema?bereich=fernseher" },
+      { label: "Soundbars", href: "/tv-home-cinema?bereich=soundbars" },
+      { label: "Heimkino", href: "/tv-home-cinema?bereich=heimkino" },
+      { label: "TV-Zubehör", href: "/tv-home-cinema?bereich=tv-zubehoer" },
+    ],
+  },
+
+  {
     title: "Computer",
     href: "/produkte?category=Computer",
     items: [

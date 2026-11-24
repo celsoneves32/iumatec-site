@@ -33,6 +33,17 @@ type CategoryItem = {
 
 const CATEGORIES: CategoryItem[] = [
   {
+    title: "TV & Home Cinema",
+    subtitle: "Fernseher, Soundbars, Heimkino und Zubehör",
+    href: "/tv-home-cinema",
+    image: "/images/categories/peripherie.png",
+    icon: Monitor,
+    accent: "red",
+    imagePosition: "100% 100%",
+    imageSize: "150%",
+  },
+
+  {
     title: "Computer",
     subtitle: "Laptops, Desktop-PCs und Mini PCs",
     href: "/produkte?category=Computer",

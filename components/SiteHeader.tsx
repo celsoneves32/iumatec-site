@@ -51,6 +51,8 @@ type CategoryGroup = {
 };
 
 const quickCategories = [
+  { label: "TV & Home Cinema", href: "/tv-home-cinema", icon: Monitor },
+
   { label: "Computer", href: "/produkte?category=Computer", icon: Laptop },
   {
     label: "PC-Komponenten",
@@ -86,6 +88,17 @@ const quickCategories = [
 ];
 
 const CATEGORY_GROUPS: CategoryGroup[] = [
+  {
+    name: "TV & Home Cinema",
+    href: "/tv-home-cinema",
+    items: [
+      { label: "Fernseher", href: "/tv-home-cinema?bereich=fernseher" },
+      { label: "Soundbars", href: "/tv-home-cinema?bereich=soundbars" },
+      { label: "Heimkino", href: "/tv-home-cinema?bereich=heimkino" },
+      { label: "TV-Zubehör", href: "/tv-home-cinema?bereich=tv-zubehoer" },
+    ],
+  },
+
   {
     name: "Computer",
     href: "/produkte?category=Computer",
