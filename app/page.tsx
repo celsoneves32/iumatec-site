@@ -741,6 +741,13 @@ export default async function HomePage() {
 
   const categoryTiles: CategoryTile[] = [
     {
+      title: "TV & Home Cinema",
+      subtitle: "Fernseher, Soundbars, Heimkino und Zubehör",
+      href: "/tv-home-cinema",
+      icon: Monitor,
+      tone: "red",
+    },
+    {
       title: "Computer",
       subtitle:
         "Laptops, Desktop-PCs und Mini PCs",
