@@ -53,9 +53,8 @@ export default function CartDrawer() {
   }, [isDrawerOpen, closeDrawer]);
 
   const hasItems = items.length > 0 && totalQuantity > 0;
-  const freeShipping = hasItems && total >= 99;
-  const estimatedShipping = !hasItems || freeShipping ? 0 : 9.90;
-  const estimatedTotal = hasItems ? total + estimatedShipping : 0;
+  // The actual shipping rate is determined by Shopify checkout and product shipping rules.
+  // Never promise free shipping based on cart value alone.
   return (
     <>
       <div
@@ -241,7 +240,7 @@ export default function CartDrawer() {
           {hasItems ? <div className="mb-3 rounded-3xl border border-green-100 bg-green-50 p-4">
             <div className="flex items-center justify-between gap-3">
               <p className="text-sm font-extrabold text-green-800">
-                {freeShipping ? "Gratis Versand aktiviert" : "Standardversand CHF 9.90"}
+                {"Versand wird im Checkout berechnet"}
               </p>
               <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-green-700">
                 Schweiz
@@ -260,12 +259,12 @@ export default function CartDrawer() {
 
             <div className="flex items-center justify-between text-sm text-neutral-600">
               <span>Lieferung</span>
-              <span className={freeShipping ? "font-semibold text-green-700" : "font-semibold text-neutral-900"}>{!hasItems ? "—" : freeShipping ? "GRATIS" : formatMoney(estimatedShipping, currencyCode)}</span>
+              <span className="font-semibold text-neutral-900">Wird im Checkout berechnet</span>
             </div>
 
             <div className="flex items-center justify-between border-t border-neutral-200 pt-3 text-lg font-extrabold text-neutral-950">
-              <span>Voraussichtliches Total</span>
-              <span>{formatMoney(estimatedTotal, currencyCode)}</span>
+              <span>Zwischensumme ohne Versand</span>
+              <span>{formatMoney(total, currencyCode)}</span>
             </div>
           </div>
 
