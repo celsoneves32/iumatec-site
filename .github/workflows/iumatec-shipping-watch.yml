@@ -1,0 +1,45 @@
+name: IUMATEC - Auditoria de portes TV (somente leitura)
+
+on:
+  schedule:
+    - cron: '37 13 * * *'
+      timezone: 'Europe/Zurich'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: iumatec-shipping-watch
+  cancel-in-progress: false
+
+jobs:
+  shipping-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SHOPIFY_STORE_DOMAIN: ${{ secrets.SHOPIFY_STORE_DOMAIN }}
+      SHOPIFY_ADMIN_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ADMIN_ACCESS_TOKEN }}
+      SHOPIFY_ADMIN_API_VERSION: '2026-10'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Test shipping classification (no Shopify writes)
+        run: node --test scripts/shipping-policy.test.mjs scripts/shipping-import-simulation.test.mjs
+      - name: Check Shopify existing TV weights (read only)
+        run: node scripts/audit-shipping-shopify-readonly.mjs
+      - name: Save review reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: iumatec-shipping-review-${{ github.run_id }}
+          path: |
+            integrations/alltron/out/shipping-audit/latest.json
+            integrations/alltron/out/shipping-audit/review.csv
+          if-no-files-found: warn
+          retention-days: 30
