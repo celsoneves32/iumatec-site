@@ -29,7 +29,10 @@ const DOMAIN =
   process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN;
 const TOKEN = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
 const API_VERSION =
-  process.env.SHOPIFY_ADMIN_API_VERSION || "2026-04";
+  process.env.SHOPIFY_ADMIN_API_VERSION || "2026-10";
+if (!/^\d{4}-\d{2}$/.test(API_VERSION) || API_VERSION < "2026-10") {
+  throw new Error("IUMATEC SAFETY: Shopify Admin API 2026-10 or later is required for barcode collections.");
+}
 
 const INPUT = process.env.SYNC_INPUT_FILE
   ? path.resolve(
@@ -67,7 +70,7 @@ const MAX_PRODUCTS = Math.max(
 );
 
 const DRY_RUN =
-  String(process.env.SYNC_DRY_RUN || "false").toLowerCase() === "true";
+  String(process.env.SYNC_DRY_RUN || "true").toLowerCase() !== "false";
 
 if (!DOMAIN) throw new Error("Missing SHOPIFY_STORE_DOMAIN");
 if (!TOKEN) throw new Error("Missing SHOPIFY_ADMIN_ACCESS_TOKEN");
@@ -270,7 +273,7 @@ const SHOPIFY_DEDUPE_LOOKUP = `
       nodes {
         id
         sku
-        barcode
+        barcodes(first: 20) { nodes { value type } }
         product {
           id
           handle
@@ -504,12 +507,7 @@ function variablesFor(p, locationId) {
   const selectedSupplier =
     text(p.selectedSupplier).toLowerCase();
 
-  const price =
-    selectedSupplier === "also"
-      ? num(p.price)
-      : num(p.ecpr) > 0
-        ? num(p.ecpr)
-        : num(p.price);
+  const price = num(p.price);
 
   const minimumSafePrice = num(p.minimumSafePrice);
 
@@ -571,7 +569,8 @@ function variablesFor(p, locationId) {
     }],
   };
 
-  if (text(p.ean)) input.variants[0].barcode = text(p.ean);
+  const supplierBarcode = text(p.ean || p.barcode || p.gtin);
+  if (supplierBarcode) input.variants[0].barcodes = [{ value: supplierBarcode }];
 
   if (image) {
     input.files = [{
@@ -610,6 +609,21 @@ function shopifyQueryValue(value) {
 
 function normalizeSku(value) {
   return text(value).toUpperCase();
+}
+
+function barcodesOf(variant) {
+  const nodes = variant?.barcodes?.nodes;
+  return Array.isArray(nodes) ? nodes.map((b) => text(b?.value)).filter(Boolean) : [];
+}
+
+function sameBarcode(a, b) {
+  const left = text(a);
+  const right = text(b);
+  if (!left || !right) return false;
+  if (left === right) return true;
+  // GTIN-12, GTIN-13 and GTIN-14 may be equivalent after left zero padding.
+  if (!/^\d{8,14}$/.test(left) || !/^\d{8,14}$/.test(right)) return false;
+  return left.padStart(14, "0") === right.padStart(14, "0");
 }
 
 async function resolveShopifyIdentity(p, prepared) {
@@ -679,7 +693,7 @@ async function resolveShopifyIdentity(p, prepared) {
   const eanMatches = ean
     ? variants.filter(
         (variant) =>
-          text(variant?.barcode) === ean,
+          barcodesOf(variant).some((code) => sameBarcode(code, ean)),
       )
     : [];
 
@@ -766,6 +780,7 @@ async function resolveShopifyIdentity(p, prepared) {
       },
       productId,
       variantId: matchedVariant.id,
+      existingBarcodes: barcodesOf(matchedVariant),
     };
   }
 
@@ -804,6 +819,20 @@ async function syncProduct(p, location, publication) {
     );
   }
 
+  // Never overwrite an existing Shopify barcode from supplier data.
+  // Both missing and mismatching incoming barcodes must be reviewed manually.
+  if (identity.status === "SAFE_EXISTING") {
+    const existingBarcodes = identity.existingBarcodes || [];
+    const incomingBarcode = text(prepared.input.variants?.[0]?.barcodes?.[0]?.value);
+    if (!incomingBarcode || !existingBarcodes.some((code) => sameBarcode(code, incomingBarcode))) {
+      throw new Error(
+        `BLOCKED_BARCODE_CHANGE: Shopify variant ${identity.variantId}; ` +
+        `existing=${existingBarcodes.join(",") || "(empty)"}; ` +
+        `incoming=${incomingBarcode || "(empty)"}.`
+      );
+    }
+  }
+
   if (DRY_RUN) {
     return {
       dryRun: true,
@@ -815,6 +844,16 @@ async function syncProduct(p, location, publication) {
       matchedVariantId:
         identity.variantId || null,
     };
+  }
+
+  // This importer is creation-only: no re-writes of price, stock or barcode sets for existing products.
+  if (identity.status === "SAFE_EXISTING") {
+    throw new Error(`BLOCKED_EXISTING_PRODUCT_WRITE: Shopify product ${identity.productId} requires manual review.`);
+  }
+
+  // IUMATEC: block creation until create-only and identity checks are validated.
+  if (identity.status === "SAFE_NEW") {
+    throw new Error("BLOCKED_SAFE_NEW_CREATION: manual review required.");
   }
 
   const data = await gql(PRODUCT_SET, {
@@ -895,12 +934,7 @@ async function main() {
   pending = pending.filter((p) => {
     const selectedSupplier = text(p.selectedSupplier).toLowerCase();
 
-    const price =
-      selectedSupplier === "also"
-        ? num(p.price)
-        : num(p.ecpr) > 0
-          ? num(p.ecpr)
-          : num(p.price);
+    const price = num(p.price);
 
     const minimumSafePrice = num(p.minimumSafePrice);
 
