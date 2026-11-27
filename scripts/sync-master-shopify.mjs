@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { assessShipping, freightTag, weightForShopify } from "./shipping-policy.mjs";
 
 const ROOT = process.cwd();
 
@@ -537,7 +538,7 @@ function variablesFor(p, locationId) {
     vendor: text(p.brand) || "IUMATEC",
     productType: categoryOf(p),
     status: "ACTIVE",
-    tags: tagsOf(p),
+    tags: [...tagsOf(p), ...(assessShipping(p).freight ? [freightTag] : [])],
     productOptions: [{
       name: "Title",
       position: 1,
@@ -552,7 +553,10 @@ function variablesFor(p, locationId) {
         optionName: "Title",
         name: "Default Title",
       }],
-      inventoryItem: { tracked: true },
+      inventoryItem: {
+        tracked: true,
+        measurement: { weight: { value: weightForShopify(p), unit: "KILOGRAMS" } },
+      },
       inventoryQuantities: [{
         locationId,
         name: "available",
@@ -834,6 +838,31 @@ async function syncProduct(p, location, publication) {
   const product = payload?.product;
   if (!product?.id) throw new Error("productSet returned no product");
 
+  const expectedFreight = assessShipping(p).freight;
+  let shippingReady = false;
+  for (let attempt = 0; attempt < 12; attempt++) {
+    const market = await gql(`
+      query ShippingReady($productId: ID!) {
+        standard: collection(id: "gid://shopify/Collection/705807548800") {
+          hasProduct(id: $productId)
+        }
+        freight: collection(id: "gid://shopify/Collection/705807581568") {
+          hasProduct(id: $productId)
+        }
+      }
+    `, { productId: product.id });
+    const inStandard = market?.standard?.hasProduct === true;
+    const inFreight = market?.freight?.hasProduct === true;
+    if (expectedFreight ? (inFreight && !inStandard) : (inStandard && !inFreight)) {
+      shippingReady = true;
+      break;
+    }
+    await sleep(1500);
+  }
+  if (!shippingReady) {
+    throw new Error(`IUMATEC SHIPPING SAFETY: refused publication. Market collection not verified for ${product.id} (freight=${expectedFreight})`);
+  }
+
   let published = false;
   try {
     published = await publishProduct(product.id, publication?.id);
@@ -988,6 +1017,30 @@ async function main() {
       "ALSO review report:",
       reviewFile,
     );
+  }
+
+  // Shipping safety gate: new products without reliable shipping data must not be imported.
+  const shippingReview = [];
+  pending = pending.filter((p) => {
+    const result = assessShipping(p);
+    if (result.status === "SAFE") return true;
+    shippingReview.push({
+      sku: text(p.sku),
+      title: text(p.fullTitle || p.title || p.sku),
+      reason: result.reason,
+      weightKg: result.weightKg,
+      packageVolumeM3: result.volumeM3,
+    });
+    return false;
+  });
+  if (shippingReview.length > 0) {
+    const reviewFile = path.join(OUT_DIR, "shipping-safety-review-latest.json");
+    fs.writeFileSync(reviewFile, JSON.stringify({
+      generatedAt: new Date().toISOString(),
+      count: shippingReview.length,
+      products: shippingReview,
+    }, null, 2), "utf8");
+    console.log("IUMATEC SHIPPING SAFETY: held for review", shippingReview.length, reviewFile);
   }
 
   if (MAX_PRODUCTS > 0) pending = pending.slice(0, MAX_PRODUCTS);
