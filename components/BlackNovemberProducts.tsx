@@ -1,114 +1,130 @@
-﻿import ProductCard from "@/components/ProductCard";
-import {
-  queryCatalogProducts,
-  type Product,
-} from "@/lib/supabaseCatalog";
+import ProductCard from "@/components/ProductCard";
+import { createClient } from "@supabase/supabase-js";
 
-const searches = [
-  "Laptop",
-  "Monitor",
-  "SSD",
-  "Headset",
-];
+// IUMATEC Black November 2026: selected by exact Shopify SKU.
+// These are existing shop prices, NOT promotional reductions.
+// A price mismatch or missing/invalid stock hides an item (fail closed).
+const PICKS = [
+  { sku: "TKMMT SAM A27 5G 128GB BLACK", price: 299.0 },
+  { sku: "NO AC ASP 17 AG17-31P-C1Z3", price: 499.0 },
+  { sku: "TKMMT XIA REDMI A7 PRO 4G 128G", price: 159.0 },
+  { sku: "SP GAZ SO PS PORTAL REMOTE P", price: 243.35 },
+  { sku: "MON AS XG27UCSR", price: 403.25 },
+  { sku: "NO AC ASP LITE AL15-47P-R325", price: 599.0 },
+  { sku: "SMA KH XIA RM BUDS 6 PLAY WHT", price: 15.0 },
+  { sku: "GES XIA REDMI WATCH 5 BLA", price: 66.0 },
+  { sku: "SP GAZ SO PS PULSE ELITE W", price: 171.1 },
+  { sku: "SSD SAM 990 EVO PLUS 1TB M.2", price: 263.0 },
+  { sku: "GR GW RTX5060TI PYTH III 16GB", price: 743.2 },
+  { sku: "MON SAM LS27HG702SUXEN G70SH", price: 739.0 },
+] as const;
 
-function isReady(product: Product) {
-  return Boolean(
-    product.slug &&
-    product.title &&
-    product.image &&
-    Number(product.price) > 0 &&
-    product.inStock === true &&
-    Number(product.stockQty ?? 0) > 0 &&
-    (product.merchandiseId || product.shopifyVariantId)
-  );
+type CatalogRow = {
+  sku: string;
+  slug: string | null;
+  title: string | null;
+  brand: string | null;
+  price: number | string | null;
+  image: string | null;
+  category: string | null;
+  subcategory: string | null;
+  in_stock: boolean | null;
+  stock_qty: number | null;
+  merchandise_id: string | null;
+  shopify_product_handle: string | null;
+  shopify_variant_id: string | null;
+  shopify_sync_status: string | null;
+};
+
+async function getSelectedProducts() {
+  const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return [];
+
+  const client = createClient(url, key, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  const { data, error } = await client
+    .from("products")
+    .select(
+      "sku,slug,title,brand,price,image,category,subcategory,in_stock,stock_qty,merchandise_id,shopify_product_handle,shopify_variant_id,shopify_sync_status",
+    )
+    .in("sku", PICKS.map((pick) => pick.sku))
+    .eq("in_stock", true)
+    .gt("stock_qty", 0)
+    .limit(40);
+
+  if (error) {
+    console.error("IUMATEC Black November selection read failed:", error.message);
+    return [];
+  }
+
+  const rows = new Map<string, CatalogRow>();
+  const duplicates = new Set<string>();
+  for (const raw of data || []) {
+    const row = raw as CatalogRow;
+    if (rows.has(row.sku)) duplicates.add(row.sku);
+    rows.set(row.sku, row);
+  }
+
+  return PICKS.flatMap((pick) => {
+    const row = rows.get(pick.sku);
+    if (!row || duplicates.has(pick.sku)) return [];
+    const price = Number(row.price);
+    // Fail closed rather than show a stale Supabase price beside Shopify checkout.
+    if (!Number.isFinite(price) || Math.abs(price - pick.price) > 0.011) return [];
+    if (
+      !row.slug || !row.title || !row.image ||
+      row.in_stock !== true || Number(row.stock_qty) <= 0 ||
+      (!row.merchandise_id && !row.shopify_variant_id) ||
+      row.shopify_sync_status === "unmatched_shopify"
+    ) return [];
+
+    return [{
+      sku: row.sku,
+      slug: row.slug,
+      title: row.title,
+      brand: row.brand || undefined,
+      price,
+      image: row.image,
+      category: row.category || undefined,
+      subcategory: row.subcategory || undefined,
+      inStock: true,
+      stockQty: Number(row.stock_qty),
+      merchandiseId: row.merchandise_id || row.shopify_variant_id,
+      productHandle: row.shopify_product_handle || row.slug,
+    }];
+  });
 }
 
 export default async function BlackNovemberProducts() {
-  const responses = await Promise.allSettled(
-    searches.map((q) =>
-      queryCatalogProducts({
-        q,
-        limit: 24,
-        inStock: true,
-        sort: "featured",
-      })
-    )
-  );
-
-  const products: Product[] = [];
-  const seen = new Set<string>();
-
-  for (const response of responses) {
-    if (response.status !== "fulfilled") continue;
-
-    let added = 0;
-
-    for (const product of response.value.products) {
-      if (added >= 5) break;
-      if (!isReady(product)) continue;
-
-      const key = product.sku || product.slug;
-      if (seen.has(key)) continue;
-
-      seen.add(key);
-      products.push(product);
-      added++;
-    }
-  }
-
-  if (!products.length) {
-    return null;
-  }
+  const products = await getSelectedProducts();
+  if (products.length === 0) return null;
 
   return (
     <section id="produkte" className="py-12">
       <div className="mb-8">
         <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-300">
-          IUMATEC BLACK NOVEMBER
+          IUMATEC BLACK NOVEMBER · TOP AUSWAHL
         </p>
-
         <h2 className="mt-3 text-3xl font-black">
-          Unsere Technik-Highlights
+          Unsere Highlights für Black Friday
         </h2>
-
-        <p className="mt-3 text-sm text-neutral-400">
-          Ausgewaehlte Produkte aus unserem
-          aktuellen Sortiment.
+        <p className="mt-3 max-w-3xl text-sm leading-6 text-neutral-400">
+          Smartphones, Notebooks, Gaming, Monitore und Zubehör –
+          gezielt ausgewählt aus unserem Schweizer Sortiment.
+          Aktuelle Verkaufspreise und Verfügbarkeit gelten beim Produkt.
         </p>
       </div>
-
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {products.map((product) => (
-          <ProductCard
-            key={product.sku || product.slug}
-            product={{
-              sku: product.sku,
-              slug: product.slug,
-              title: product.title,
-              brand: product.brand,
-              price: Number(product.price),
-              image: product.image ?? null,
-              category: product.category,
-              subcategory: product.subcategory,
-              inStock: product.inStock,
-              stockQty: product.stockQty,
-              merchandiseId:
-                product.merchandiseId ||
-                product.shopifyVariantId ||
-                null,
-              productHandle:
-                product.shopifyProductHandle ||
-                product.slug,
-              energyLabel: product.energyLabel,
-            }}
-          />
+          <ProductCard key={product.sku} product={product} />
         ))}
       </div>
-
       <p className="mt-7 text-xs leading-6 text-neutral-400">
-        Aktuell gelten die regulaeren Katalogpreise.
-        Preisreduktionen werden erst nach Pruefung
-        separat gekennzeichnet.
+        Kuratierte Black-Friday-Auswahl, keine pauschalen Rabatte.
+        Preisreduktionen werden nur nach bestätigter Kalkulation und
+        Prüfung des Shopify-Checkout-Preises separat ausgewiesen.
       </p>
     </section>
   );

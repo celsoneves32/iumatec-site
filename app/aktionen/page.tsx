@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import BlackNovemberProducts from "@/components/BlackNovemberProducts";
 
+export const revalidate = 300;
+
 export const metadata: Metadata = {
   title: "Black November 2026 | IUMATEC Schweiz",
   description:
