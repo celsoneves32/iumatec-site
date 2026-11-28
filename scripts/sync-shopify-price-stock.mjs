@@ -247,6 +247,7 @@ function loadUnsafeMasterVariantIds() {
       !supplierOk ||
       !(price > 0) ||
       !(minimumSafePrice > 0) ||
+      price + 0.001 < minimumSafePrice ||
       reason === "stock-only-no-valid-cost" ||
       row?.packUnitReviewRequired === true;
 

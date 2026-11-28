@@ -804,6 +804,22 @@ async function syncProduct(p, location, publication) {
     );
   }
 
+  // Respect manual financial and catalogue quarantines: never reactivate a DRAFT
+  // product through an automatic synchronization, even when its price is valid.
+  if (identity.status === "SAFE_EXISTING") {
+    const existing = await gql(`
+      query ExistingProductStatus($id: ID!) {
+        product(id: $id) { id status }
+      }
+    `, { id: identity.productId });
+    const status = existing?.product?.status;
+    if (status !== "ACTIVE") {
+      throw new Error(
+        `IUMATEC FINANCIAL SAFETY: existing product not ACTIVE (${status || "unknown"}); manual review required for ${identity.productId}`,
+      );
+    }
+  }
+
   if (DRY_RUN) {
     return {
       dryRun: true,
