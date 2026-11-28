@@ -1,4 +1,5 @@
 import ProductCard from "@/components/ProductCard";
+import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 
 // IUMATEC Black November 2026: selected by exact Shopify SKU.
@@ -103,12 +104,45 @@ export default async function BlackNovemberProducts() {
 
   return (
     <section id="produkte" className="py-12">
+      <div className="mb-9 overflow-hidden rounded-3xl border border-amber-300/30 bg-gradient-to-r from-amber-400/20 via-neutral-900 to-neutral-950 p-6 sm:p-9">
+        <p className="text-xs font-black uppercase tracking-[0.22em] text-amber-300">
+          BLACK FRIDAY WEEKEND · IUMATEC SCHWEIZ
+        </p>
+        <div className="mt-4 flex flex-wrap items-end justify-between gap-5">
+          <div className="max-w-2xl">
+            <h2 className="text-3xl font-black leading-tight text-white sm:text-4xl">
+              Top-Technik für dein nächstes Upgrade
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-neutral-300">
+              Gaming, Smartphones, Notebooks und Zubehör. Persönlich ausgewählte
+              Highlights aus unserem Schweizer Sortiment – zu den aktuell
+              angezeigten Preisen.
+            </p>
+          </div>
+          <Link
+            href="/produkte"
+            className="rounded-xl bg-amber-300 px-5 py-3 text-sm font-black text-neutral-950 transition hover:bg-amber-200"
+          >
+            Alle Technik entdecken
+          </Link>
+        </div>
+        <div className="mt-6 flex flex-wrap gap-2">
+          {["Gaming", "Smartphones", "Notebooks", "Monitore", "Zubehör"].map((item) => (
+            <span
+              key={item}
+              className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-semibold text-neutral-200"
+            >
+              {item}
+            </span>
+          ))}
+        </div>
+      </div>
       <div className="mb-8">
         <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-300">
           IUMATEC BLACK NOVEMBER · TOP AUSWAHL
         </p>
         <h2 className="mt-3 text-3xl font-black">
-          Unsere Highlights für Black Friday
+          Black Friday · Unsere Top-Auswahl
         </h2>
         <p className="mt-3 max-w-3xl text-sm leading-6 text-neutral-400">
           Smartphones, Notebooks, Gaming, Monitore und Zubehör –
@@ -116,7 +150,7 @@ export default async function BlackNovemberProducts() {
           Aktuelle Verkaufspreise und Verfügbarkeit gelten beim Produkt.
         </p>
       </div>
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
         {products.map((product) => (
           <ProductCard key={product.sku} product={product} />
         ))}
