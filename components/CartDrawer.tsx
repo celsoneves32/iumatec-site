@@ -264,7 +264,7 @@ export default function CartDrawer() {
 
             <div className="flex items-center justify-between border-t border-neutral-200 pt-3 text-lg font-extrabold text-neutral-950">
               <span>Zwischensumme ohne Versand</span>
-              <span>{formatMoney(total, currencyCode)}</span>
+              <span>{formatMoney(subtotal, currencyCode)}</span>
             </div>
           </div>
 
